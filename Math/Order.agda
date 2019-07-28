@@ -61,26 +61,26 @@ module _ {A : Type ℓ}
   IsUpperBound-IsProp : (S : Subset A) (u : A) → IsProp (IsUpperBound S u)
   IsUpperBound-IsProp S u = Π-IsProp (λ s → Π-IsProp (λ s∈S → <-IsProp))
 
-  IsUpwardClosed : Subset A → Type ℓ
-  IsUpwardClosed S = ∀ {a b : A} → a < b → a ∈ S → b ∈ S
+  IsUpperSet : Subset A → Type ℓ
+  IsUpperSet S = ∀ {a b : A} → a < b → a ∈ S → b ∈ S
 
-  -- TODO: rename?
-  UpwardClosed : Type (ℓ-suc ℓ)
-  UpwardClosed = Σ (Subset A) IsUpwardClosed
+  UpperSet : Type (ℓ-suc ℓ)
+  UpperSet = Σ (Subset A) IsUpperSet
 
-  up : A → UpwardClosed
-  up u = ((λ a → u < a) , λ a → <-IsProp) , λ a<b u<a → trans u<a a<b
+  principal : A → UpperSet
+  principal u = ((λ a → u < a) , λ a → <-IsProp) , λ a<b u<a → trans u<a a<b
 
   -- Sets where every element is an upper bound has a surpremum of ∞ 
-  -∞ : UpwardClosed
+  -∞ : UpperSet
   -∞ = ((λ a → Lift ⊤) , λ a → Lift-IsProp (⊤-IsProp)) , λ a<b _ → lift tt
 
   -- Sets that have no upper bound have a supremum of ∞
-  ∞ : UpwardClosed
+  ∞ : UpperSet
   ∞ = ((λ a → Lift ⊥) , λ a → Lift-IsProp (⊥-IsProp)) , λ a<b ff → ff
 
-  supremum : Subset A → UpwardClosed
+  -- TODO: closure lower set?
+  supremum : Subset A → UpperSet
   supremum S = (IsUpperBound S , IsUpperBound-IsProp S) , λ a<b a-IsUpperBound s s∈S → trans (a-IsUpperBound s s∈S) a<b
 
-  -- IsMax-supremum : {S : Subset A} (m : A) → IsMax S m → supremum S ≡ up m
+  -- IsMax-supremum : {S : Subset A} (m : A) → IsMax S m → closure S ≡ principal m
   -- IsMax-supremum m m-IsMax = {!!}

@@ -2,11 +2,10 @@
 module Math.Type where
 
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; _≡_; Σ; Σ-syntax; _,_; fst; snd)
-open import Cubical.Foundations.HLevels public using (isOfHLevelΣ; ΣProp≡) renaming (propPi to Π-IsProp)
+open import Cubical.Foundations.HLevels public using (isOfHLevelΣ; ΣProp≡) renaming (propPi to Π-IsProp; isSetPi to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
-open import Cubical.Foundations.Prelude public using (Lift; lift; lower; subst) renaming (cong to ap; isProp to IsProp)
-open import Cubical.Data.Empty public using (⊥) renaming (isProp⊥ to ⊥-IsProp)
-open import Cubical.Data.Empty using (⊥-elim)
+open import Cubical.Foundations.Prelude public using (Lift; lift; lower; subst) renaming (cong to ap; isProp to IsProp; isSet to IsSet)
+open import Cubical.Data.Empty public using (⊥; ⊥-elim) renaming (isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ)
 open import Cubical.Data.Sigma using (sigmaPath→pathSigma)

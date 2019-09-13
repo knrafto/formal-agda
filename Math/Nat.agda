@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Nat where
 
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm) renaming (injSuc to suc-IsInjective; znots to ¬zero≡suc)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; _*_) renaming (injSuc to suc-IsInjective; znots to ¬zero≡suc)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <≤-trans)
 open import Cubical.Data.Nat.Order using (¬-<-zero; zero-≤; suc-≤-suc; pred-≤-pred)
 open import Math.Decidable

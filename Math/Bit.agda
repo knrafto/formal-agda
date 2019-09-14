@@ -40,3 +40,6 @@ fromBits = fromDigits ∘ (toFin2 ∘_)
 
 fromBits-IsEquiv : {n : ℕ} → IsEquiv (fromBits {n = n})
 fromBits-IsEquiv = fromDigits-IsEquiv ∘-IsEquiv f∘-IsEquiv toFin2-IsEquiv
+
+toBits : {n : ℕ} → Fin (2 ^ n) → Vec n Bit
+toBits = inv fromBits-IsEquiv

@@ -5,7 +5,6 @@ open import Cubical.Core.Everything public using () renaming (isEquiv to IsEquiv
 open import Cubical.Foundations.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding)
 open import Cubical.Foundations.Equiv public using (fiber)
 open import Cubical.Foundations.Equiv using (idEquiv; isoToEquiv; invEquiv; compEquiv)
-open import Cubical.Foundations.Function public using (_∘_)
 -- TODO: rename (maybe export in Math.Type)?
 open import Cubical.Foundations.HLevels using (inhProp→isContr)
 open import Cubical.Foundations.HAEquiv using (isHAEquiv; equiv→HAEquiv)
@@ -41,6 +40,11 @@ HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
 
 id : A → A
 id a = a
+
+infixr 9 _∘_
+
+_∘_ : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → (B → C) → (A → B) → (A → C)
+g ∘ f = λ x → g (f x)
 
 id-IsEquiv : {A : Type ℓ} → IsEquiv (id {A = A})
 id-IsEquiv {A = A} = snd (idEquiv A)
@@ -92,8 +96,26 @@ _∘-IsEquiv_ {g = g} {f = f} g-IsEquiv f-IsEquiv = snd (compEquiv (f , f-IsEqui
   ∘f-∘f-inv : (g : A → C) → g ∘ inv f-IsEquiv ∘ f ≡ g
   ∘f-∘f-inv g = funExt λ x → ap g (leftInv f-IsEquiv x)
 
+f∘-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {f : B → C} → IsEquiv f → IsEquiv (f ∘_)
+f∘-IsEquiv {A = A} {B = B} {C = C} {f = f} f-IsEquiv = HasInverse→IsEquiv f∘-inv f∘-inv-f∘ f∘-f∘-inv
+  where
+  f∘-inv : (A → C) → (A → B)
+  f∘-inv = inv f-IsEquiv ∘_
+
+  f∘-inv-f∘ : (g : A → B) → inv f-IsEquiv ∘ f ∘ g ≡ g
+  f∘-inv-f∘ g = funExt λ x → leftInv f-IsEquiv (g x)
+
+  f∘-f∘-inv : (g : A → C) → f ∘ inv f-IsEquiv ∘ g ≡ g
+  f∘-f∘-inv g = funExt λ x → rightInv f-IsEquiv (g x) 
+
 const : A → (B → A)
 const a = λ _ → a
 
 const-IsEquiv : IsContr B → IsEquiv (const {A = A} {B = B})
 const-IsEquiv B-IsContr = HasInverse→IsEquiv (λ f → f (the B-IsContr)) (λ _ → refl) (λ g → funExt λ b → ap g (the≡ B-IsContr))
+
+IsContr→IsContr→IsEquiv : {A : Type ℓ} {B : Type ℓ'} {f : A → B} → IsContr A → IsContr B → IsEquiv f
+IsContr→IsContr→IsEquiv {f = f} A-IsContr B-IsContr = HasInverse→IsEquiv
+  (λ _ → the A-IsContr)
+  (λ a → IsContr→IsProp A-IsContr _ _)
+  (λ b → IsContr→IsProp B-IsContr _ _)

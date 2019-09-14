@@ -4,7 +4,7 @@ module Math.Type where
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; _≡_; Σ; Σ-syntax; _,_; fst; snd)
 open import Cubical.Foundations.HLevels public using (ΣProp≡) renaming (propPi to Π-IsProp; isSetPi to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
-open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isProp→isSet to IsProp→IsSet)
+open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
 open import Cubical.Data.Empty public using (⊥; ⊥-elim) renaming (isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isPropUnit to ⊤-IsProp)

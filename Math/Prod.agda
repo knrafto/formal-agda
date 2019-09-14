@@ -33,3 +33,9 @@ private
 
   ×-map-rightInv : (x : C × D) → ×-map f g (×-map (inv f-IsEquiv) (inv g-IsEquiv) x) ≡ x
   ×-map-rightInv (c , d) = ×≡ (rightInv f-IsEquiv c , rightInv g-IsEquiv d)
+
+×-swap : {A : Type ℓ} {B : Type ℓ'} → A × B → B × A
+×-swap (a , b) = (b , a)
+
+×-swap-IsEquiv : {A : Type ℓ} {B : Type ℓ'} → IsEquiv (×-swap {A = A} {B = B})
+×-swap-IsEquiv = HasInverse→IsEquiv ×-swap (λ { (a , b) → refl }) (λ { (b , a) → refl })

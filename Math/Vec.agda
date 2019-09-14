@@ -40,8 +40,11 @@ cons = concat ∘ ×-map singleton id
 cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
 cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-IsEquiv
 
+0-vector : Vec 0 A
+0-vector = λ i → ⊥-elim (¬Fin0 i)
+
 1-vector : A → Vec 1 A
-1-vector = singleton
+1-vector a₀ = cons (a₀ , 0-vector)
 
 2-vector : A → A → Vec 2 A
 2-vector a₀ a₁ = cons (a₀ , 1-vector a₁)

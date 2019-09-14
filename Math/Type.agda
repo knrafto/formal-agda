@@ -4,7 +4,7 @@ module Math.Type where
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; _≡_; Σ; Σ-syntax; _,_; fst; snd)
 open import Cubical.Foundations.HLevels public using (ΣProp≡) renaming (propPi to Π-IsProp; isSetPi to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
-open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst) renaming (cong to ap; isProp to IsProp; isSet to IsSet; isProp→isSet to IsProp→IsSet)
+open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isProp→isSet to IsProp→IsSet)
 open import Cubical.Data.Empty public using (⊥; ⊥-elim) renaming (isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isPropUnit to ⊤-IsProp)
@@ -27,6 +27,12 @@ case x of f = f x
 
 case_return_of_ : {A : Type ℓ} (x : A) (B : Type ℓ') → (∀ x → B) → B
 case x return P of f = f x
+
+the : {A : Type ℓ} → IsContr A → A
+the = fst
+
+the≡ : {A : Type ℓ} {a : A} → (A-IsContr : IsContr A) → the A-IsContr ≡ a
+the≡ {a = a} A-IsContr = snd A-IsContr a
 
 Lift-IsProp : {A : Type ℓ} → IsProp A → IsProp (Lift {j = ℓ'} A)
 Lift-IsProp A-IsProp (lift a) (lift b) = ap lift (A-IsProp a b) 

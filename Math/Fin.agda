@@ -13,6 +13,9 @@ private
   variable
     ℓ : Level
 
+Fin1-IsContr : IsContr (Fin 1)
+Fin1-IsContr = fzero , λ { (zero , _) → toℕ-IsInjective refl ; (suc n , p) → contradiction (suc-reflects-< p) ¬-<-zero }
+
 ¬fzero≡fsuc : {n : ℕ} {i : Fin n} → ¬ fzero ≡ fsuc i
 ¬fzero≡fsuc p = ¬zero≡suc (ap toℕ p)
 
@@ -56,6 +59,7 @@ Fin-* {zero} {n} = ⊥-elim ∘ fst ∘ ×-map ¬Fin0 id
 Fin-* {suc m} {n} = Fin-+ ∘ ⊎-map snd Fin-* ∘ ⊎-distribute ∘ ×-map (inv Fin-suc-IsEquiv) id
 
 Fin-*-IsEquiv : {m n : ℕ} → IsEquiv (Fin-* {m = m} {n = n})
+-- TODO: rewrite: any function between empty types is an equivalence
 Fin-*-IsEquiv {zero} {n} = ⊥-elim-IsEquiv ¬Fin0 ∘-IsEquiv (¬-IsEquiv fst) ∘-IsEquiv ×-map-IsEquiv (¬-IsEquiv ¬Fin0) id-IsEquiv 
 Fin-*-IsEquiv {suc m} {n} = 
   Fin-+-IsEquiv ∘-IsEquiv

@@ -10,6 +10,7 @@ open import Cubical.Foundations.Function public using (_∘_)
 open import Cubical.Foundations.HLevels using (inhProp→isContr)
 open import Cubical.Foundations.HAEquiv using (isHAEquiv; equiv→HAEquiv)
 open import Cubical.Foundations.Isomorphism using (iso)
+open import Cubical.Foundations.Prelude public using (funExt)
 
 open import Math.Type
 
@@ -78,3 +79,21 @@ _∘-IsEquiv_ {g = g} {f = f} g-IsEquiv f-IsEquiv = snd (compEquiv (f , f-IsEqui
 
   ¬-rightInv : (b : ⊥) → ¬A (⊥-elim b) ≡ b
   ¬-rightInv b = ⊥-elim b
+
+∘f-IsEquiv : {C : Type ℓ''} {f : A → B} → IsEquiv f → IsEquiv (_∘ f)
+∘f-IsEquiv {A = A} {B = B} {C = C} {f = f} f-IsEquiv = HasInverse→IsEquiv ∘f-inv ∘f-inv-∘f ∘f-∘f-inv
+  where
+  ∘f-inv : (A → C) → (B → C)
+  ∘f-inv = _∘ inv f-IsEquiv
+
+  ∘f-inv-∘f : (g : B → C) → g ∘ f ∘ inv f-IsEquiv ≡ g
+  ∘f-inv-∘f g = funExt λ x → ap g (rightInv f-IsEquiv x)
+
+  ∘f-∘f-inv : (g : A → C) → g ∘ inv f-IsEquiv ∘ f ≡ g
+  ∘f-∘f-inv g = funExt λ x → ap g (leftInv f-IsEquiv x)
+
+const : A → (B → A)
+const a = λ _ → a
+
+const-IsEquiv : IsContr B → IsEquiv (const {A = A} {B = B})
+const-IsEquiv B-IsContr = HasInverse→IsEquiv (λ f → f (the B-IsContr)) (λ _ → refl) (λ g → funExt λ b → ap g (the≡ B-IsContr))

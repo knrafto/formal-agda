@@ -2,7 +2,10 @@
 module Math.Vec where
 
 open import Math.Fin
+open import Math.Function
 open import Math.Nat
+open import Math.Prod
+open import Math.Sum
 open import Math.Type
 
 private
@@ -16,8 +19,38 @@ Vec n A = Fin n → A
 Vec-IsSet : {n : ℕ} → IsSet A → IsSet (Vec n A)
 Vec-IsSet A-IsSet = Π-IsSet (λ _ → A-IsSet)
 
-head : {n : ℕ} → Vec (suc n) A → A
-head v = v fzero
+concat : {m n : ℕ} → Vec m A × Vec n A → Vec (m + n) A
+concat = (_∘ inv Fin-+-IsEquiv) ∘ pair
 
-tail : {n : ℕ} → Vec (suc n) A → Vec n A
-tail v = λ i → v (fsuc i)
+concat-IsEquiv : {m n : ℕ} → IsEquiv (concat {A = A} {m = m} {n = n})
+concat-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-+-IsEquiv) ∘-IsEquiv pair-IsEquiv
+
+split : {m n : ℕ} → Vec (m + n) A → Vec m A × Vec n A
+split = inv concat-IsEquiv
+
+singleton : A → Vec 1 A
+singleton a = const a
+
+singleton-IsEquiv : IsEquiv (singleton {A = A})
+singleton-IsEquiv = const-IsEquiv Fin1-IsContr
+
+cons : {n : ℕ} → A × Vec n A → Vec (suc n) A
+cons = concat ∘ ×-map singleton id
+
+cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
+cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-IsEquiv
+
+1-vector : A → Vec 1 A
+1-vector = singleton
+
+2-vector : A → A → Vec 2 A
+2-vector a₀ a₁ = cons (a₀ , 1-vector a₁)
+
+3-vector : A → A → A → Vec 3 A
+3-vector a₀ a₁ a₂ = cons (a₀ , 2-vector a₁ a₂)
+
+4-vector : A → A → A → A → Vec 4 A
+4-vector a₀ a₁ a₂ a₃ = cons (a₀ , 3-vector a₁ a₂ a₃)
+
+5-vector : A → A → A → A → A → Vec 5 A
+5-vector a₀ a₁ a₂ a₃ a₄ = cons (a₀ , 4-vector a₁ a₂ a₃ a₄)

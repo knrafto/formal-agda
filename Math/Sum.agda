@@ -85,3 +85,19 @@ private
   ⊎-distribute-factor : (b : (A × C) ⊎ (B × C)) → ⊎-distribute (⊎-factor b) ≡ b
   ⊎-distribute-factor (inl (a , c)) = refl
   ⊎-distribute-factor (inr (b , c)) = refl
+
+pair : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → (A → C) × (B → C) → (A ⊎ B → C)
+pair (f , g) (inl a) = f a
+pair (f , g) (inr b) = g b
+
+pair-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → IsEquiv (pair {A = A} {B = B} {C = C})
+pair-IsEquiv = HasInverse→IsEquiv unpair unpair-pair pair-unpair
+  where
+  unpair : (A ⊎ B → C) → (A → C) × (B → C)
+  unpair h = (λ a → h (inl a)), (λ b → h (inr b))
+  
+  unpair-pair : (fg : (A → C) × (B → C)) → unpair (pair fg) ≡ fg
+  unpair-pair (f , g) = refl
+
+  pair-unpair : (h : A ⊎ B → C) → pair (unpair h) ≡ h
+  pair-unpair h = funExt λ { (inl a) → refl ; (inr b) → refl }

@@ -11,7 +11,7 @@ infixr 8 _^_
 
 _^_ : ℕ → ℕ → ℕ
 b ^ zero = 1
-b ^ suc e = (b ^ e) * b
+b ^ suc e = b * (b ^ e)
 
 suc-preserves-< : {m n : ℕ} → m < n → suc m < suc n
 suc-preserves-< = suc-≤-suc

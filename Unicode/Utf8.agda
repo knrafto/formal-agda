@@ -11,50 +11,50 @@ open import Math.Vec
 open import Unicode.Char
 
 continuationByte : Vec 6 Bit → Byte
-continuationByte bs = concat (bs , 2-vector 0₂ 1₂)
+continuationByte bs = concat (2-vector 1₂ 0₂ , bs)
 
 encode1Byte : Fin 0x0080 → List Byte
-encode1Byte n = concat (digits , 1-vector 0₂) ∷ []
+encode1Byte n = concat (1-vector 0₂ , digits) ∷ []
   where
   digits : Vec 7 Bit
   digits = toBits n
 
 encode2Bytes : Fin 0x0800 → List Byte
-encode2Bytes n = concat (snd splitDigits , 3-vector 0₂ 1₂ 1₂) ∷ continuationByte (fst splitDigits) ∷ []
+encode2Bytes n = concat (3-vector 1₂ 1₂ 0₂ , fst splitDigits) ∷ continuationByte (snd splitDigits) ∷ []
   where
   digits : Vec 11 Bit
   digits = toBits n
 
-  splitDigits : Vec 6 Bit × Vec 5 Bit
+  splitDigits : Vec 5 Bit × Vec 6 Bit
   splitDigits = split digits
 
 encode3Bytes : Fin 0x10000 → List Byte
-encode3Bytes n = concat (snd splitDigits₁ , 4-vector 0₂ 1₂ 1₂ 1₂) ∷ continuationByte (fst splitDigits₁) ∷ continuationByte (fst splitDigits₀)  ∷ []
+encode3Bytes n = concat (4-vector 1₂ 1₂ 1₂ 0₂ , fst splitDigits₁) ∷ continuationByte (snd splitDigits₁) ∷ continuationByte (snd splitDigits₀)  ∷ []
   where
   digits : Vec 16 Bit
   digits = toBits n
 
-  splitDigits₀ : Vec 6 Bit × Vec 10 Bit
+  splitDigits₀ : Vec 10 Bit × Vec 6 Bit
   splitDigits₀ = split digits
 
-  splitDigits₁ : Vec 6 Bit × Vec 4 Bit
-  splitDigits₁ = split (snd splitDigits₀)
+  splitDigits₁ : Vec 4 Bit × Vec 6 Bit
+  splitDigits₁ = split (fst splitDigits₀)
 
 encode4Bytes : Fin 0x200000 → List Byte
-encode4Bytes n = concat (snd splitDigits₂ , 5-vector 0₂ 1₂ 1₂ 1₂ 1₂)
-  ∷ continuationByte (fst splitDigits₂) ∷ continuationByte (fst splitDigits₁) ∷ continuationByte (fst splitDigits₀) ∷ []
+encode4Bytes n = concat (5-vector 0₂ 1₂ 1₂ 1₂ 1₂ , fst splitDigits₂)
+  ∷ continuationByte (snd splitDigits₂) ∷ continuationByte (snd splitDigits₁) ∷ continuationByte (snd splitDigits₀) ∷ []
   where
   digits : Vec 21 Bit
   digits = toBits n
 
-  splitDigits₀ : Vec 6 Bit × Vec 15 Bit
+  splitDigits₀ : Vec 15 Bit × Vec 6 Bit
   splitDigits₀ = split digits
 
-  splitDigits₁ : Vec 6 Bit × Vec 9 Bit
-  splitDigits₁ = split (snd splitDigits₀)
+  splitDigits₁ : Vec 9 Bit × Vec 6 Bit
+  splitDigits₁ = split (fst splitDigits₀)
 
-  splitDigits₂ : Vec 6 Bit × Vec 3 Bit
-  splitDigits₂ = split (snd splitDigits₁)
+  splitDigits₂ : Vec 3 Bit × Vec 6 Bit
+  splitDigits₂ = split (fst splitDigits₁)
 
 encodeChar : Char → List Byte
 encodeChar (n , _) with <-Dec n 0x0080 | <-Dec n 0x0800 | <-Dec n 0x10000

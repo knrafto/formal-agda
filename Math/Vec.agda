@@ -61,11 +61,11 @@ cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-Is
 Vec0-IsContr : IsContr (Vec 0 A)
 Vec0-IsContr = 0-vector , λ y → funExt λ i → ⊥-elim (¬Fin0 i)
 
--- Note digits are in *little-endian* order.
+-- Note digits are in big-endian order.
 fromDigits : {d n : ℕ} → Vec n (Fin d) → Fin (d ^ n)
 fromDigits {n = zero} = const fzero
-fromDigits {n = suc n} = Fin-* ∘ ×-map fromDigits id ∘ ×-swap ∘ inv cons-IsEquiv
+fromDigits {n = suc n} = Fin-* ∘ ×-map id fromDigits ∘ inv cons-IsEquiv
 
 fromDigits-IsEquiv : {d n : ℕ} → IsEquiv (fromDigits {d = d} {n = n})
 fromDigits-IsEquiv {n = zero} = IsContr→IsContr→IsEquiv Vec0-IsContr Fin1-IsContr
-fromDigits-IsEquiv {n = suc n} = Fin-*-IsEquiv ∘-IsEquiv (×-map-IsEquiv fromDigits-IsEquiv id-IsEquiv) ∘-IsEquiv ×-swap-IsEquiv ∘-IsEquiv (inv-IsEquiv cons-IsEquiv)
+fromDigits-IsEquiv {n = suc n} = Fin-*-IsEquiv ∘-IsEquiv (×-map-IsEquiv id-IsEquiv fromDigits-IsEquiv) ∘-IsEquiv (inv-IsEquiv cons-IsEquiv)

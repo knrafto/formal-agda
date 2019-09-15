@@ -34,6 +34,10 @@ private
   ×-map-rightInv : (x : C × D) → ×-map f g (×-map (inv f-IsEquiv) (inv g-IsEquiv) x) ≡ x
   ×-map-rightInv (c , d) = ×≡ (rightInv f-IsEquiv c , rightInv g-IsEquiv d)
 
+×-map-IsEmbedding : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {D : Type ℓ'''} {f : A → C} {g : B → D} → IsEmbedding f → IsEmbedding g → IsEmbedding (×-map f g)
+×-map-IsEmbedding {A = A} {B = B} {C = C} {D = D} {f = f} {g = g} f-IsEmbedding g-IsEmbedding _ _ =
+  ×≡-IsEquiv ∘-IsEquiv (×-map-IsEquiv (f-IsEmbedding _ _) (g-IsEmbedding _ _)) ∘-IsEquiv (inv-IsEquiv ×≡-IsEquiv)
+
 ×-swap : {A : Type ℓ} {B : Type ℓ'} → A × B → B × A
 ×-swap (a , b) = (b , a)
 

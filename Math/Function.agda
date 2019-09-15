@@ -2,7 +2,7 @@
 module Math.Function where
 
 open import Cubical.Core.Everything public using () renaming (isEquiv to IsEquiv)
-open import Cubical.Foundations.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding)
+open import Cubical.Foundations.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding)
 open import Cubical.Foundations.Equiv public using (fiber)
 open import Cubical.Foundations.Equiv using (idEquiv; isoToEquiv; invEquiv; compEquiv)
 -- TODO: rename (maybe export in Math.Type)?
@@ -38,6 +38,12 @@ IsInjective×IsSurjective→IsEquiv A-IsSet B-IsSet f-IsInjective f-IsSurjective
 HasInverse→IsEquiv : {f : A → B} (g : B → A) → ((a : A) → g (f a) ≡ a) → ((b : B) → f (g b) ≡ b) → IsEquiv f
 HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
 
+IsEquiv→fiber-IsContr : {f : A → B} → IsEquiv f → ((b : B) → IsContr (fiber f b))
+IsEquiv→fiber-IsContr = IsEquiv.equiv-proof
+
+IsEquiv→IsEmbedding : {f : A → B} → IsEquiv f → IsEmbedding f
+IsEquiv→IsEmbedding f-IsEquiv = fiber-IsProp→IsEmbedding λ b → IsContr→IsProp (IsEquiv→fiber-IsContr f-IsEquiv b)
+
 id : A → A
 id a = a
 
@@ -65,6 +71,11 @@ infixr 9 _∘-IsEquiv_
 
 _∘-IsEquiv_ : {g : B → C} {f : A → B} → IsEquiv g → IsEquiv f → IsEquiv (g ∘ f)
 _∘-IsEquiv_ {g = g} {f = f} g-IsEquiv f-IsEquiv = snd (compEquiv (f , f-IsEquiv) (g , g-IsEquiv))
+
+infixr 9 _∘-IsEmbedding_
+
+_∘-IsEmbedding_ : {g : B → C} {f : A → B} → IsEmbedding g → IsEmbedding f → IsEmbedding (g ∘ f)
+_∘-IsEmbedding_ {g = g} {f = f} g-IsEmbedding f-IsEmbedding _ _ = (g-IsEmbedding _ _) ∘-IsEquiv (f-IsEmbedding _ _)
 
 ⊥-elim-IsEquiv : {A : Type ℓ} → ¬ A → IsEquiv (⊥-elim {A = A})
 ⊥-elim-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ¬A ⊥-elim-leftInv ⊥-elim-rightInv

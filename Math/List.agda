@@ -5,6 +5,7 @@ open import Math.Fin
 open import Math.Function
 open import Math.Id
 open import Math.Nat
+open import Math.Prod
 open import Math.Type
 open import Math.Vec
 
@@ -14,12 +15,35 @@ private
 
 data List (A : Type ℓ) : Type ℓ where
   [] : List A
+  -- TODO: rename to just cons?
   List-cons : A × List A → List A
 
 infixr 5 _∷_
 
 _∷_ : {A : Type ℓ} → A → List A → List A
 a ∷ l = List-cons (a , l)
+
+[]-IsEmbedding : {A : Type ℓ} → IsEmbedding {B = List A} (⊤-elim [])
+[]-IsEmbedding {A = A} a₀ x₀ = decode-IsEquiv []
+  where
+  Code : List A → Type _
+  Code [] = a₀ ≡ tt
+  Code (List-cons _) = Lift ⊥
+
+  encode : (x : List A) → [] ≡ x → Code x
+  encode x p = subst Code p refl
+
+  decode : (x : List A) → Code x → [] ≡ x
+  decode [] p = ap (⊤-elim []) p
+
+  decode-encode : (x : List A) (p : [] ≡ x) → decode x (encode x p) ≡ p
+  decode-encode _ = pathInd (λ x p → decode x (encode x p) ≡ p) (ap {y = refl} (decode []) (subst-refl Code))
+
+  encode-decode : (x : List A) (p : Code x) → encode x (decode x p) ≡ p
+  encode-decode [] p = refl
+
+  decode-IsEquiv : (x : List A) → IsEquiv (decode x)
+  decode-IsEquiv x = HasInverse→IsEquiv (encode x) (encode-decode x) (decode-encode x)
 
 -- TODO: is there a shorter proof of this?
 List-cons-IsEmbedding : {A : Type ℓ} → IsEmbedding (List-cons {A = A})
@@ -45,4 +69,10 @@ List-cons-IsEmbedding {A = A} a₀ x₀ = decode-IsEquiv (List-cons x₀)
   decode-IsEquiv x = HasInverse→IsEquiv (encode x) (encode-decode x) (decode-encode x)
 
 List-singleton : {A : Type ℓ} → A → List A
-List-singleton a = a ∷ []
+List-singleton a = List-cons (a , [])
+
+List-singleton-IsEmbedding : {A : Type ℓ} → IsEmbedding (List-singleton {A = A})
+List-singleton-IsEmbedding =
+  List-cons-IsEmbedding ∘-IsEmbedding
+  ×-map-IsEmbedding (IsEquiv→IsEmbedding id-IsEquiv) []-IsEmbedding ∘-IsEmbedding
+  IsEquiv→IsEmbedding (inv-IsEquiv ⊤-fst-IsEquiv)

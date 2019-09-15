@@ -10,6 +10,7 @@ open import Cubical.Foundations.HLevels using (inhProp→isContr)
 open import Cubical.Foundations.HAEquiv using (isHAEquiv; equiv→HAEquiv)
 open import Cubical.Foundations.Isomorphism using (iso)
 open import Cubical.Foundations.Prelude public using (funExt)
+open import Cubical.Foundations.Univalence using () renaming (ua to uaPrim)
 
 open import Math.Type
 
@@ -19,6 +20,9 @@ private
     A : Type ℓ
     B : Type ℓ'
     C : Type ℓ''
+
+ua : {A B : Type ℓ} {f : A → B} → IsEquiv f → A ≡ B
+ua {f = f} f-IsEquiv = uaPrim (f , f-IsEquiv)
 
 IsInjective : (f : A → B) → Type _
 IsInjective {A = A} f = {a₁ a₂ : A} → f a₁ ≡ f a₂ → a₁ ≡ a₂
@@ -94,6 +98,9 @@ _∘-IsEmbedding_ {g = g} {f = f} g-IsEmbedding f-IsEmbedding _ _ = (g-IsEmbeddi
 
   ¬-rightInv : (b : ⊥) → ¬A (⊥-elim b) ≡ b
   ¬-rightInv b = ⊥-elim b
+
+⊤-elim-IsEmbedding : {A : Type ℓ} → IsSet A → {a : A} → IsEmbedding (⊤-elim a)
+⊤-elim-IsEmbedding A-IsSet _ _ = HasInverse→IsEquiv (λ _ → ⊤-IsProp _ _) (λ _ → IsProp→IsSet ⊤-IsProp _ _ _ _) (λ _ → A-IsSet _ _ _ _)
 
 ∘f-IsEquiv : {C : Type ℓ''} {f : A → B} → IsEquiv f → IsEquiv (_∘ f)
 ∘f-IsEquiv {A = A} {B = B} {C = C} {f = f} f-IsEquiv = HasInverse→IsEquiv ∘f-inv ∘f-inv-∘f ∘f-∘f-inv

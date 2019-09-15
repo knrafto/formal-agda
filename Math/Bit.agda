@@ -35,6 +35,9 @@ toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from
   to-from (suc zero , _) = toℕ-IsInjective refl
   to-from (suc (suc _) , p) = contradiction (suc-reflects-< (suc-reflects-< p)) ¬-<-zero
 
+Bit-IsSet : IsSet Bit
+Bit-IsSet = subst IsSet (sym (ua toFin2-IsEquiv)) Fin-IsSet
+
 fromBits : {n : ℕ} → Vec n Bit → Fin (2 ^ n)
 fromBits = fromDigits ∘ (toFin2 ∘_)
 
@@ -43,3 +46,6 @@ fromBits-IsEquiv = fromDigits-IsEquiv ∘-IsEquiv f∘-IsEquiv toFin2-IsEquiv
 
 toBits : {n : ℕ} → Fin (2 ^ n) → Vec n Bit
 toBits = inv fromBits-IsEquiv
+
+toBits-IsEquiv : {n : ℕ} → IsEquiv (toBits {n = n})
+toBits-IsEquiv = inv-IsEquiv fromBits-IsEquiv

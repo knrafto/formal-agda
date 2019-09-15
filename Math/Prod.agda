@@ -18,6 +18,9 @@ private
 ×≡-IsEquiv : {x y : A × B} → IsEquiv (×≡ {x = x} {y = y})
 ×≡-IsEquiv = HasInverse→IsEquiv (λ p → (λ i → fst (p i)) , (λ i → snd (p i))) (λ _ → refl) (λ _ → refl)
 
+⊤-fst-IsEquiv : {A : Type ℓ} → IsEquiv (fst {A = A} {B = λ _ → ⊤})
+⊤-fst-IsEquiv = HasInverse→IsEquiv (λ a → (a , tt)) (λ { (a , tt) → refl }) (λ _ → refl)
+
 ⊤-snd-IsEquiv : {A : Type ℓ} → IsEquiv (snd {A = ⊤} {B = λ _ → A})
 ⊤-snd-IsEquiv = HasInverse→IsEquiv (λ a → (tt , a)) (λ { (tt , a) → refl }) (λ _ → refl)
 
@@ -43,3 +46,9 @@ private
 
 ×-swap-IsEquiv : {A : Type ℓ} {B : Type ℓ'} → IsEquiv (×-swap {A = A} {B = B})
 ×-swap-IsEquiv = HasInverse→IsEquiv ×-swap (λ { (a , b) → refl }) (λ { (b , a) → refl })
+
+c,-IsEmbedding : {A : Type ℓ} {B : Type ℓ'} → IsSet A → {c : A} → IsEmbedding {A = B} (c ,_)
+c,-IsEmbedding A-IsSet = ×-map-IsEmbedding (⊤-elim-IsEmbedding A-IsSet) (IsEquiv→IsEmbedding id-IsEquiv) ∘-IsEmbedding IsEquiv→IsEmbedding (inv-IsEquiv ⊤-snd-IsEquiv)
+
+,c-IsEmbedding : {A : Type ℓ} {B : Type ℓ'} → IsSet B → {c : B} → IsEmbedding {A = A} (_, c)
+,c-IsEmbedding B-IsSet = ×-map-IsEmbedding (IsEquiv→IsEmbedding id-IsEquiv) (⊤-elim-IsEmbedding B-IsSet) ∘-IsEmbedding IsEquiv→IsEmbedding (inv-IsEquiv ⊤-fst-IsEquiv)

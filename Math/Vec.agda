@@ -28,6 +28,9 @@ concat-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-+-IsEquiv) ∘-IsEquiv pair-IsEqu
 split : {m n : ℕ} → Vec (m + n) A → Vec m A × Vec n A
 split = inv concat-IsEquiv
 
+split-IsEquiv : {m n : ℕ} → IsEquiv (split {A = A} {m = m} {n = n})
+split-IsEquiv = inv-IsEquiv concat-IsEquiv
+
 singleton : A → Vec 1 A
 singleton a = const a
 

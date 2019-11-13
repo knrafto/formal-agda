@@ -19,6 +19,9 @@ Vec n A = Fin n → A
 Vec-IsSet : {n : ℕ} → IsSet A → IsSet (Vec n A)
 Vec-IsSet A-IsSet = Π-IsSet (λ _ → A-IsSet)
 
+Vec0-IsContr : IsContr (Vec 0 A)
+Vec0-IsContr = (λ i → ⊥-elim (¬Fin0 i)) , λ y → funExt λ i → ⊥-elim (¬Fin0 i)
+
 concat : {m n : ℕ} → Vec m A × Vec n A → Vec (m + n) A
 concat = (_∘ inv Fin-+-IsEquiv) ∘ pair
 
@@ -60,9 +63,6 @@ cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-Is
 
 5-vector : A → A → A → A → A → Vec 5 A
 5-vector a₀ a₁ a₂ a₃ a₄ = cons (a₀ , 4-vector a₁ a₂ a₃ a₄)
-
-Vec0-IsContr : IsContr (Vec 0 A)
-Vec0-IsContr = 0-vector , λ y → funExt λ i → ⊥-elim (¬Fin0 i)
 
 -- Note digits are in big-endian order.
 fromDigits : {d n : ℕ} → Vec n (Fin d) → Fin (d ^ n)

@@ -38,13 +38,16 @@ toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from
 Bit-IsSet : IsSet Bit
 Bit-IsSet = subst IsSet (sym (ua toFin2-IsEquiv)) Fin-IsSet
 
-fromBits : {n : ℕ} → Vec n Bit → Fin (2 ^ n)
+Bits : ℕ → Type₀
+Bits n = Vec n Bit
+
+fromBits : {n : ℕ} → Bits n → Fin (2 ^ n)
 fromBits = fromDigits ∘ (toFin2 ∘_)
 
 fromBits-IsEquiv : {n : ℕ} → IsEquiv (fromBits {n = n})
 fromBits-IsEquiv = fromDigits-IsEquiv ∘-IsEquiv f∘-IsEquiv toFin2-IsEquiv
 
-toBits : {n : ℕ} → Fin (2 ^ n) → Vec n Bit
+toBits : {n : ℕ} → Fin (2 ^ n) → Bits n
 toBits = inv fromBits-IsEquiv
 
 toBits-IsEquiv : {n : ℕ} → IsEquiv (toBits {n = n})

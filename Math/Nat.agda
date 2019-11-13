@@ -2,8 +2,8 @@
 module Math.Nat where
 
 open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; _*_) renaming (injSuc to suc-IsInjective; znots to ¬zero≡suc)
-open import Cubical.Data.Nat.Order public using (_<_; _≤_; <≤-trans; ≤<-trans; ¬-<-zero)
-open import Cubical.Data.Nat.Order using (¬-<-zero; zero-≤; suc-≤-suc; pred-≤-pred)
+open import Cubical.Data.Nat.Order public using (_<_; _≤_; <≤-trans; ≤<-trans; ¬-<-zero; zero-≤)
+open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred)
 open import Math.Decidable
 open import Math.Type
 
@@ -12,6 +12,12 @@ infixr 8 _^_
 _^_ : ℕ → ℕ → ℕ
 b ^ zero = 1
 b ^ suc e = b * (b ^ e)
+
+suc-preserves-≤ : {m n : ℕ} → m ≤ n → suc m ≤ suc n
+suc-preserves-≤ = suc-≤-suc
+
+suc-reflects-≤ : {m n : ℕ} → suc m ≤ suc n → m ≤ n
+suc-reflects-≤ = pred-≤-pred
 
 suc-preserves-< : {m n : ℕ} → m < n → suc m < suc n
 suc-preserves-< = suc-≤-suc

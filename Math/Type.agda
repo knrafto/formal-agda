@@ -4,7 +4,7 @@ module Math.Type where
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; _≡_; Σ; Σ-syntax; _,_; fst; snd)
 open import Cubical.Foundations.HLevels public using (ΣProp≡) renaming (propPi to Π-IsProp; isSetPi to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
-open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
+open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst) renaming (cong to ap; transport to coe; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
 open import Cubical.Data.Empty public using (⊥; ⊥-elim) renaming (isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
@@ -16,7 +16,12 @@ private
   variable
     ℓ ℓ' : Level
 
+infix 4 _≡[_]≡_
 infixr 5 _×_
+
+-- Equality over another equality.
+_≡[_]≡_ : ∀ {ℓ} {A B : Type ℓ} → A → A ≡ B → B → Type ℓ
+a ≡[ p ]≡ b = coe p a ≡ b
 
 -- Cubical defines × as a new record, but being compatible with Σ-type maxes it much easier to work with.
 _×_ : (A : Type ℓ) (B : Type ℓ') → Type (ℓ-max ℓ ℓ')

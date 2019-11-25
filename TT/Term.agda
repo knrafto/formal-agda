@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical #-}
-module TT.Syntax where
+module TT.Term where
 
 open import Math.Type hiding (Π)
 

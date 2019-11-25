@@ -49,7 +49,7 @@ data Subst where
 
   εη : ∀{Γ}{σ : Subst Γ ∙} → σ ≡ ε
   ,s∘ : ∀{Γ Δ Σ}{σ : Subst Γ Δ}{δ : Subst Δ Σ}{A : Ty Σ}{t : Tm Δ (A [ δ ]T)}
-    → (δ ,s t) ∘ σ ≡ (δ ∘ σ) ,s coe (TmΓ≡ [][]T) (t [ σ ]t)
+    → (δ ,s t) ∘ σ ≡ (δ ∘ σ) ,s transport (TmΓ≡ [][]T) (t [ σ ]t)
   π₁β : ∀{Γ Δ}{σ : Subst Γ Δ}{A : Ty Δ}{t : Tm Γ (A [ σ ]T)} → π₁ (σ ,s t) ≡ σ
   πη : ∀{Γ Δ}{A : Ty Δ}{σ : Subst Γ (Δ ,c A)} → (π₁ σ ,s π₂ σ) ≡ σ
 
@@ -57,7 +57,7 @@ wk : ∀{Γ}{A : Ty Γ} → Subst (Γ ,c A) Γ
 wk = π₁ id
 
 _↑_ : ∀{Γ Δ} → (σ : Subst Γ Δ) (A : Ty Δ) → Subst (Γ ,c A [ σ ]T) (Δ ,c A)
-σ ↑ A = σ ∘ wk ,s coe (TmΓ≡ [][]T) (π₂ id)
+σ ↑ A = σ ∘ wk ,s transport (TmΓ≡ [][]T) (π₂ id)
 
 data Ty where
   _[_]T-con : ∀{Γ Δ} → Ty Δ → Subst Γ Δ → Ty Γ
@@ -74,7 +74,7 @@ data Ty where
   El[] : ∀{Γ Δ}{σ : Subst Γ Δ}{t : Tm Δ U} → El t [ σ ]T ≡ U
 
 ⟨_⟩ : ∀ {Γ A} → Tm Γ A → Subst Γ (Γ ,c A)
-⟨ t ⟩ = id ,s coe (TmΓ≡ (sym [id]T)) t
+⟨ t ⟩ = id ,s transport (TmΓ≡ (sym [id]T)) t
 
 data Tm  where
   π₂-con : ∀{Γ Δ}{A : Ty Δ} → (σ : Subst Γ (Δ ,c A)) → Tm Γ (A [ π₁ σ ]T)

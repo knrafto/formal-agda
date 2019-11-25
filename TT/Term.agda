@@ -19,7 +19,7 @@ data Ty : Con → Type₀
 data Tm : (Γ : Con) → Ty Γ → Type₀
 
 data Con where
-  ∙ : Con
+  [] : Con
   _,c_ : (Γ : Con) → Ty Γ → Con
 
 -- Forward declarations.
@@ -38,7 +38,7 @@ TmΓ≡ = ap (Tm _)
 data Subst where
   id-con : ∀{Γ} → Subst Γ Γ
   _∘-con_ : ∀{Γ Δ Σ} → Subst Δ Σ → Subst Γ Δ → Subst Γ Σ
-  ε : ∀{Γ} → Subst Γ ∙
+  ε : ∀{Γ} → Subst Γ []
   _,s_ : ∀{Γ Δ}(σ : Subst Γ Δ){A : Ty Δ} → Tm Γ (A [ σ ]T) → Subst Γ (Δ ,c A)
   π₁-con : ∀{Γ Δ}{A : Ty Δ} → Subst Γ (Δ ,c A) → Subst Γ Δ
 
@@ -47,7 +47,7 @@ data Subst where
   assoc : ∀{Γ Δ Σ Ω}{σ : Subst Γ Δ}{δ : Subst Δ Σ}{θ : Subst Σ Ω}
     → (θ ∘ δ) ∘ σ ≡ θ ∘ (δ ∘ σ)
 
-  εη : ∀{Γ}{σ : Subst Γ ∙} → σ ≡ ε
+  εη : ∀{Γ}{σ : Subst Γ []} → σ ≡ ε
   ,s∘ : ∀{Γ Δ Σ}{σ : Subst Γ Δ}{δ : Subst Δ Σ}{A : Ty Σ}{t : Tm Δ (A [ δ ]T)}
     → (δ ,s t) ∘ σ ≡ (δ ∘ σ) ,s transport (TmΓ≡ [][]T) (t [ σ ]t)
   π₁β : ∀{Γ Δ}{σ : Subst Γ Δ}{A : Ty Δ}{t : Tm Γ (A [ σ ]T)} → π₁ (σ ,s t) ≡ σ

@@ -2,7 +2,7 @@
 module Unicode.Utf8 where
 
 open import Math.Bit
-open import Math.Decidable
+open import Math.Dec
 open import Math.Fin
 open import Math.Function
 open import Math.List

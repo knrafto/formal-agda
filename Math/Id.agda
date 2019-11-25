@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Id where
 
-open import Cubical.Foundations.Prelude using (J; substRefl)
+open import Cubical.Foundations.Prelude using (J; substRefl; transportRefl)
 open import Cubical.Foundations.GroupoidLaws using (lUnit; rUnit)
 open import Math.Function
 open import Math.Type
@@ -26,3 +26,14 @@ subst-refl P {x = x} = substRefl {B = P} x
 
 subst-a≡ : {A : Type ℓ} {a x y : A} {p : x ≡ y} {q : a ≡ x} → subst (a ≡_) p q ≡ q ∙ p
 subst-a≡ {a = a} {p = p} {q = q} = pathInd (λ x p → subst (a ≡_) p q ≡ q ∙ p) (subst-refl (a ≡_) ∙ sym (∙-refl)) p
+
+transport-refl : {A : Type ℓ} {a : A} → transport refl a ≡ a
+transport-refl = transportRefl _
+
+-- TODO: needs a better name
+subst-fun : {A : Type ℓ} (P Q : A → Type ℓ') (f : (x : A) → P x → Q x) {x y : A} {p : x ≡ y} {u : P x}
+  → subst Q p (f x u) ≡ f y (subst P p u)
+subst-fun P Q f {x = x} {p = p} {u = u} =
+  pathInd
+    (λ y p → subst Q p (f x u) ≡ f y (subst P p u))
+    (subst-refl Q ∙ ap (f x) (sym (subst-refl P))) p

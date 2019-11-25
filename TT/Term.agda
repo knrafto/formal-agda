@@ -65,6 +65,9 @@ postulate
 wk : ∀{Γ}{A : Ty Γ} → Subst (Γ ,c A) Γ
 wk = π₁ id
 
+⟨_⟩ : ∀ {Γ A} → Tm Γ A → Subst Γ (Γ ,c A)
+⟨ t ⟩ = id ,s coe (TmΓ≡ (sym [id]T)) t
+
 _↑_ : ∀{Γ Δ} → (σ : Subst Γ Δ) (A : Ty Δ) → Subst (Γ ,c A [ σ ]T) (Δ ,c A)
 σ ↑ A = σ ∘ wk ,s coe (TmΓ≡ [][]T) (π₂ id)
 

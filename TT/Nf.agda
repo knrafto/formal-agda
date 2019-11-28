@@ -81,6 +81,30 @@ data Ne where
   neVar : ∀ {Γ A} → Var Γ A → Ne Γ A
   neApp : ∀ {Γ A B} → Ne Γ (Π A B) → (a : Nf Γ A) → Ne Γ (B [ ⟨ nfTerm a ⟩ ]T)
 
+neApp-neVar-disjoint : ∀ {Γ A₀ A₁ B} (f : Ne Γ (Π A₀ B)) (a : Nf Γ A₀) (x : Var Γ A₁)
+  → (p : B [ ⟨ nfTerm a ⟩ ]T ≡ A₁) → neApp f a ≡[ ap (Ne Γ) p ]≡ neVar x → ⊥
+neApp-neVar-disjoint {Γ = Γ} {B = B} f a x p q = transport (sym (Code-subst-neApp p) ∙ ap Code q) tt
+  where
+    Code : ∀ {A} → Ne Γ A → Type₀
+    Code (neVar x) = ⊥
+    Code (neApp f a) = ⊤
+
+    Code-subst-neApp : ∀ {A} → (p : B [ ⟨ nfTerm a ⟩ ]T ≡ A) → Code (subst (Ne Γ) p (neApp f a)) ≡ ⊤
+    Code-subst-neApp = pathInd (λ _ p → Code (subst (Ne Γ) p (neApp f a)) ≡ ⊤) (ap Code transport-refl)
+
+neVar-IsInjective : ∀ {Γ A₀ A₁} (p : A₀ ≡ A₁) (x : Var Γ A₀) (y : Var Γ A₁) → neVar x ≡[ ap (Ne Γ) p ]≡ neVar y → x ≡[ ap (Var Γ) p ]≡ y
+neVar-IsInjective {Γ = Γ} {A₀ = A₀} =
+  pathInd
+    (λ A₁ p → (x : Var Γ A₀) (y : Var Γ A₁) → neVar x ≡[ ap (Ne Γ) p ]≡ neVar y → x ≡[ ap (Var Γ) p ]≡ y)
+    λ x y q → transport-refl ∙ neVar-IsInjective' x y (sym transport-refl ∙ q)
+  where
+    neVar-IsInjective' : (x : Var Γ A₀) (y : Var Γ A₀) → neVar x ≡ neVar y → x ≡ y
+    neVar-IsInjective' x y p = subst Code p refl
+      where
+        Code : Ne Γ A₀ → Type₀
+        Code (neVar y) = x ≡ y
+        Code (neApp c a) = ⊥
+
 data Nf where
   nfU : ∀ {Γ} → Ne Γ U → Nf Γ U
   nfEl : ∀ {Γ t} → Ne Γ (El t) → Nf Γ (El t)
@@ -99,9 +123,11 @@ decNf : ∀ {Γ A} → (v₀ v₁ : Nf Γ A) → Dec (v₀ ≡ v₁)
 
 decNe (neVar x) (neVar y) with decVar x y
 decNe {Γ = Γ} (neVar x) (neVar y) | yes (p , q) = yes (p , subst-fun (Var Γ) (Ne Γ) (λ A → neVar {A = A}) ∙ ap neVar q)
-decNe (neVar x) (neVar y) | no ¬d = no λ { (p , q) → ¬d (p , {!!}) }
-decNe (neVar x) (neApp f a) = no {!!}
-decNe (neApp f a) (neVar x) = no {!!}
+decNe (neVar x) (neVar y) | no ¬d = no λ { (p , q) → ¬d (p , neVar-IsInjective p x y q) }
+decNe {Γ = Γ} (neVar x) (neApp f a) = no λ { (p , q) → neApp-neVar-disjoint f a x (sym p) (sym-≡[]≡ (ap (Ne Γ) p) q) }
+decNe (neApp f a) (neVar x) = no λ { (p , q) → neApp-neVar-disjoint f a x p q }
 decNe (neApp f₀ a₀) (neApp f₁ a₁) with decNe f₀ f₁
-decNe (neApp f₀ a₀) (neApp f₁ a₁) | yes (p , q) = {!!}
+decNe {Γ = Γ} (neApp f₀ a₀) (neApp f₁ a₁) | yes (p , q) with decNf (subst (Nf Γ) {!!} a₀) a₁
+decNe (neApp f₀ a₀) (neApp f₁ a₁) | yes (p , q) | yes r = yes {!!}
+decNe (neApp f₀ a₀) (neApp f₁ a₁) | yes (p , q) | no ¬r = no {!!}
 decNe (neApp f₀ a₀) (neApp f₁ a₁) | no ¬d = no {!!}

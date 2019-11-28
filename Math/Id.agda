@@ -37,3 +37,10 @@ subst-fun P Q f {x = x} {p = p} {u = u} =
   pathInd
     (λ y p → subst Q p (f x u) ≡ f y (subst P p u))
     (subst-refl Q ∙ ap (f x) (sym (subst-refl P))) p
+
+sym-≡[]≡ : {A B : Type ℓ} (p : A ≡ B) {x : A} {y : B} → x ≡[ p ]≡ y → y ≡[ sym p ]≡ x
+sym-≡[]≡ {A = A} p {x = x} {y = y} =
+  pathInd
+    (λ B p → (x : A) (y : B) → x ≡[ p ]≡ y → y ≡[ sym p ]≡ x)
+    (λ x y p → transport-refl ∙ sym p ∙ transport-refl)
+    p x y

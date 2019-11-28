@@ -19,11 +19,57 @@ open import TT.Term
 
 data Var : (Γ : Con) → Ty Γ → Type₀ where
   vz : ∀ {Γ A} → Var (Γ ,c A) (A [ wk ]T)
-  vs : ∀ {Γ A B} → Var Γ A → Var (Γ ,c B) (A [ wk ]T)
+  vs : ∀ {Γ A B} → Var Γ B → Var (Γ ,c A) (B [ wk ]T)
 
 varTerm : ∀ {Γ A} → Var Γ A → Tm Γ A
 varTerm vz     = π₂ id
 varTerm (vs v) = varTerm v [ wk ]t
+
+¬vz≡vs : ∀ {Γ A₀ A₁ B} (p : A₀ [ wk ]T ≡ B) (q : A₁ [ wk ]T ≡ B) (x : Var Γ A₁)
+  → subst (Var (Γ ,c A₀)) p vz ≡ subst (Var (Γ ,c A₀)) q (vs x) → ⊥
+¬vz≡vs {Γ = Γ} {A₀ = A₀} p q x r =
+    transport (sym (Code-subst-vz p) ∙ ap Code r ∙ Code-subst-vs x q) tt
+  where
+    Code : ∀ {B} → Var (Γ ,c A₀) B → Type₀
+    Code vz = ⊤
+    Code (vs x) = ⊥
+
+    Code-subst-vz : ∀ {B} (p : A₀ [ wk ]T ≡ B) → Code (subst (Var (Γ ,c A₀)) p vz) ≡ ⊤
+    Code-subst-vz =
+      pathInd (λ _ p → Code (subst (Var (Γ ,c A₀)) p vz) ≡ ⊤)
+        (ap Code transport-refl)
+
+    Code-subst-vs : ∀ {A₁ B} (x : Var Γ A₁) (q : A₁ [ wk ]T ≡ B)
+      → Code (subst (Var (Γ ,c A₀)) q (vs x)) ≡ ⊥
+    Code-subst-vs x =
+      pathInd (λ _ q → Code (subst (Var (Γ ,c A₀)) q (vs x)) ≡ ⊥)
+        (ap Code transport-refl)
+
+vs-IsInjective : ∀ {Γ A B₀ B₁} (p : B₀ [ wk ]T ≡ B₁ [ wk ]T)
+  → (x : Var Γ B₀) (y : Var Γ B₁)
+  → vs x ≡[ ap (Var (Γ ,c A)) p ]≡ vs y
+  → Σ (B₀ ≡ B₁) λ q → x ≡[ ap (Var Γ) q ]≡ y
+vs-IsInjective {Γ = Γ} {A = A} {B₀ = B₀} p x y q = transport (sym (Code-subst-l p) ∙ ap Code q) (refl , transport-refl)
+  where
+    Code : ∀ {B} → Var (Γ ,c A) B → Type₀
+    Code vz = ⊥
+    Code (vs y) = Σ (B₀ ≡ _) λ q → x ≡[ ap (Var Γ) q ]≡ y
+
+    Code-subst-l : ∀ {B} (p : B₀ [ wk ]T ≡ B)
+      → Code (subst (Var (Γ ,c A)) p (vs x)) ≡ Σ (B₀ ≡ _) λ q → x ≡[ ap (Var Γ) q ]≡ x
+    Code-subst-l =
+      pathInd
+        (λ _ p → Code (subst (Var (Γ ,c A)) p (vs x)) ≡ Σ (B₀ ≡ _) λ q → x ≡[ ap (Var Γ) q ]≡ x)
+        (ap Code transport-refl)
+
+decVar : ∀ {Γ A₀ A₁} → (x₀ : Var Γ A₀) → (x₁ : Var Γ A₁)
+  → Dec (Σ (A₀ ≡ A₁) λ p → x₀ ≡[ ap (Var Γ) p ]≡ x₁)
+decVar vz vz = yes (refl , transport-refl)
+decVar vz (vs y) = no λ { (p , q) → ¬vz≡vs p refl y (q ∙ sym transport-refl) }
+decVar (vs x) vz = no λ { (p , q) → ¬vz≡vs refl p x (transport-refl ∙ sym q) }
+decVar (vs x) (vs y) with decVar x y
+decVar {Γ = (Γ ,c B)} (vs x) (vs y) | yes (p , q) = yes (ap (λ ty → ty [ wk ]T) p , subst-fun (Var Γ) (λ ty → Var (Γ ,c B) (ty [ wk ]T)) (λ B → vs {B = B}) ∙ ap vs q)
+decVar (vs x) (vs y) | no ¬d = no λ { (p , q) → ¬d (vs-IsInjective p x y q) }
 
 data Ne : (Γ : Con) → Ty Γ → Type₀
 data Nf : (Γ : Con) → Ty Γ → Type₀
@@ -46,18 +92,6 @@ neTerm (neApp f a) = app (neTerm f) [ ⟨ nfTerm a ⟩ ]t
 nfTerm (nfU t) = neTerm t
 nfTerm (nfEl t) = neTerm t
 nfTerm (nfLam t) = lam (nfTerm t)
-
-¬vz≡vs : ∀ {Γ A₀ A₁} → (x : Var Γ A₁) (p : A₀ [ wk ]T ≡ A₁ [ wk ]T) → vz ≡[ ap (Var (Γ ,c A₀)) p ]≡ vs x → ⊥
-¬vz≡vs = {!!}
-
-decVar : ∀ {Γ A₀ A₁} → (x₀ : Var Γ A₀) → (x₁ : Var Γ A₁)
-  → Dec (Σ (A₀ ≡ A₁) λ p → x₀ ≡[ ap (Var Γ) p ]≡ x₁)
-decVar vz vz = yes (refl , transport-refl)
-decVar vz (vs y) = no λ { (p , q) → {!!} }
-decVar (vs x) vz = no λ { (p , q) → {!!} }
-decVar (vs x) (vs y) with decVar x y
-decVar {Γ = (Γ ,c B)} (vs x) (vs y) | yes (p , q) = yes (ap (λ ty → ty [ wk ]T) p , subst-fun (Var Γ) (λ ty → Var (Γ ,c B) (ty [ wk ]T)) (λ A → vs {A = A}) ∙ ap vs q)
-decVar (vs x₀) (vs x₁) | no ¬d = no {!!}
 
 decNe : ∀ {Γ A₀ A₁} → (n₀ : Ne Γ A₀) → (n₁ : Ne Γ A₁)
   → Dec (Σ (A₀ ≡ A₁) λ q → n₀ ≡[ ap (Ne Γ) q ]≡ n₁)

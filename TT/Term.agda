@@ -71,7 +71,7 @@ data Ty where
   Π[] : ∀{Γ Δ}{σ : Subst Γ Δ}{A : Ty Δ}{B : Ty (Δ ,c A)}
     → (Π A B) [ σ ]T ≡ Π (A [ σ ]T) (B [ σ ↑ A ]T)
   U[] : ∀{Γ Δ}{σ : Subst Γ Δ} → U [ σ ]T ≡ U
-  El[] : ∀{Γ Δ}{σ : Subst Γ Δ}{t : Tm Δ U} → El t [ σ ]T ≡ U
+  El[] : ∀{Γ Δ}{σ : Subst Γ Δ}{t : Tm Δ U} → El t [ σ ]T ≡ El (subst (Tm Γ) U[] (t [ σ ]t))
 
 ⟨_⟩ : ∀ {Γ A} → Tm Γ A → Subst Γ (Γ ,c A)
 ⟨ t ⟩ = id ,s transport (TmΓ≡ (sym [id]T)) t

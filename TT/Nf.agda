@@ -17,6 +17,43 @@ open import TT.Term
     Code [] = ⊥
     Code (Γ ,c A) = Σ (Γ₀ ≡ Γ) λ p → A₀ ≡[ ap Ty p ]≡ A
 
+data NTy : Con → Type₀
+ntyTerm : ∀ {Γ} → NTy Γ → Ty Γ
+
+data NTy where
+  NU : ∀ {Γ} → NTy Γ
+  NΠ : ∀ {Γ} → (A : NTy Γ) → NTy (Γ ,c ntyTerm A) → NTy Γ
+  NEl : ∀ {Γ} → Tm Γ U → NTy Γ
+
+ntyTerm NU = U
+ntyTerm (NΠ A B) = Π (ntyTerm A) (ntyTerm B)
+ntyTerm (NEl t) = El t
+
+ntySubst : ∀ {Γ Δ} → Subst Γ Δ → NTy Δ → NTy Γ
+ntyTerm-ntySubst : ∀ {Γ Δ} (σ : Subst Γ Δ) (A : NTy Δ) → ntyTerm A [ σ ]T ≡ ntyTerm (ntySubst σ A)
+
+ntySubst σ NU = NU
+ntySubst {Γ = Γ} σ (NΠ A B) =
+  NΠ (ntySubst σ A) (subst (λ A → NTy (Γ ,c A)) (ntyTerm-ntySubst σ A) (ntySubst (σ ↑ ntyTerm A) B))
+ntySubst {Γ = Γ} σ (NEl t) = NEl (subst (Tm Γ) U[] (t [ σ ]t))
+
+ntyTerm-ntySubst σ NU = U[]
+ntyTerm-ntySubst {Γ = Γ} σ (NΠ A B) = Π[] ∙ {!!}
+ntyTerm-ntySubst σ (NEl t) = El[]
+
+elimTy : ∀ {Γ} (A : Ty Γ) → Σ (NTy Γ) λ A' → A ≡ ntyTerm A'
+elimTy (A [ σ ]T-con) with elimTy A
+elimTy (A [ σ ]T-con) | A' , p = ntySubst σ A' , ap (λ A → A [ σ ]T) p ∙ ntyTerm-ntySubst σ A'
+elimTy (Π A B) with elimTy A | elimTy B
+elimTy (Π A B) | A' , p | B' , q = NΠ A' (subst _ p B') , {!!}
+elimTy U = NU , refl
+elimTy (El t) = NEl t , refl
+elimTy ([id]T i) = {!!}
+elimTy ([][]T-con i) = {!!}
+elimTy (Π[] i) = {!!}
+elimTy (U[] i) = {!!}
+elimTy (El[] i) = {!!}
+
 data Var : (Γ : Con) → Ty Γ → Type₀ where
   vz : ∀ {Γ A} → Var (Γ ,c A) (A [ wk ]T)
   vs : ∀ {Γ A B} → Var Γ B → Var (Γ ,c A) (B [ wk ]T)

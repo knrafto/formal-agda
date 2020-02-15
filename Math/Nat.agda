@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Nat where
 
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; _*_) renaming (injSuc to suc-IsInjective; znots to ¬zero≡suc)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_) renaming (injSuc to suc-IsInjective; znots to ¬zero≡suc)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <≤-trans; ≤<-trans; ¬-<-zero; zero-≤)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred)
 open import Math.Dec
@@ -31,3 +31,16 @@ suc-reflects-< = pred-≤-pred
 <-Dec (suc m) (suc n) with <-Dec m n
 <-Dec (suc m) (suc n) | yes m<n = yes (suc-preserves-< m<n)
 <-Dec (suc m) (suc n) | no ¬m<n = no (λ sm<sn → contradiction (suc-reflects-< sm<sn) ¬m<n)
+
+1-* : ∀ n → 1 * n ≡ n
+1-* n = +-zero n
+
+-- TODO: name?
+*-dist-r : ∀ m n o → (n + o) * m ≡ n * m + o * m
+*-dist-r _ zero _ = refl
+*-dist-r m (suc n) o = ap (m +_) (*-dist-r m n o) ∙ +-assoc m (n * m) (o * m)
+
+-- TODO: contribute to cubical?
+*-assoc : ∀ m n o → m * (n * o) ≡ (m * n) * o
+*-assoc zero _ _ = refl
+*-assoc (suc m) n o = ap (n * o +_) (*-assoc m n o) ∙ sym (*-dist-r o n (m * n))

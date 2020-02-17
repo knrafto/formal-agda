@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical #-}
-module Asm.Asm where
+module Asm.Factorial where
 
 open import Math.Bit
 open import Math.Nat

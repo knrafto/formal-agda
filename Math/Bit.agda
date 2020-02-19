@@ -14,6 +14,18 @@ data Bit : Type₀ where
 Byte : Type₀
 Byte = Vec 8 Bit
 
+Word8 : Type₀
+Word8 = Vec 8 Bit
+
+Word16 : Type₀
+Word16 = Vec 16 Bit
+
+Word32 : Type₀
+Word32 = Vec 32 Bit
+
+Word64 : Type₀
+Word64 = Vec 64 Bit
+
 toFin2 : Bit → Fin 2
 toFin2 0₂ = fzero
 toFin2 1₂ = fsuc fzero

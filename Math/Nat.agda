@@ -2,7 +2,7 @@
 module Math.Nat where
 
 open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm) renaming (injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero)
-open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ¬-<-zero; zero-≤)
+open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ¬-<-zero; zero-≤; Trichotomy; lt; eq; gt; _≟_; <-asym)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred)
 open import Math.Dec
 open import Math.Type

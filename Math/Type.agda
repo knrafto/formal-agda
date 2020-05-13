@@ -10,6 +10,7 @@ open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ)
 open import Cubical.Data.Sigma using (sigmaPath→pathSigma)
+open import Cubical.HITs.PropositionalTruncation public using (∥_∥; ∣_∣) renaming (propTruncIsProp to ∥∥-IsProp)
 open import Cubical.Relation.Nullary public using (¬_)
 
 private

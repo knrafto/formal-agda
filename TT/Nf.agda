@@ -105,7 +105,7 @@ decVar vz vz = yes (refl , transport-refl)
 decVar vz (vs y) = no λ { (p , q) → ¬vz≡vs p refl y (q ∙ sym transport-refl) }
 decVar (vs x) vz = no λ { (p , q) → ¬vz≡vs refl p x (transport-refl ∙ sym q) }
 decVar (vs x) (vs y) with decVar x y
-decVar {Γ = (Γ ,c B)} (vs x) (vs y) | yes (p , q) = yes (ap (λ ty → ty [ wk ]T) p , subst-fun (Var Γ) (λ ty → Var (Γ ,c B) (ty [ wk ]T)) (λ B → vs {B = B}) ∙ ap vs q)
+decVar {Γ = (Γ ,c B)} (vs x) (vs y) | yes (p , q) = yes (ap (λ ty → ty [ wk ]T) p , subst-nat (Var Γ) (λ ty → Var (Γ ,c B) (ty [ wk ]T)) (λ B → vs {B = B}) ∙ ap vs q)
 decVar (vs x) (vs y) | no ¬d = no λ { (p , q) → ¬d (vs-IsInjective p x y q) }
 
 data Ne : (Γ : Con) → Ty Γ → Type₀
@@ -159,7 +159,7 @@ decNe : ∀ {Γ A₀ A₁} → (n₀ : Ne Γ A₀) → (n₁ : Ne Γ A₁)
 decNf : ∀ {Γ A} → (v₀ v₁ : Nf Γ A) → Dec (v₀ ≡ v₁)
 
 decNe (neVar x) (neVar y) with decVar x y
-decNe {Γ = Γ} (neVar x) (neVar y) | yes (p , q) = yes (p , subst-fun (Var Γ) (Ne Γ) (λ A → neVar {A = A}) ∙ ap neVar q)
+decNe {Γ = Γ} (neVar x) (neVar y) | yes (p , q) = yes (p , subst-nat (Var Γ) (Ne Γ) (λ A → neVar {A = A}) ∙ ap neVar q)
 decNe (neVar x) (neVar y) | no ¬d = no λ { (p , q) → ¬d (p , neVar-IsInjective p x y q) }
 decNe {Γ = Γ} (neVar x) (neApp f a) = no λ { (p , q) → neApp-neVar-disjoint f a x (sym p) (sym-≡[]≡ (ap (Ne Γ) p) q) }
 decNe (neApp f a) (neVar x) = no λ { (p , q) → neApp-neVar-disjoint f a x p q }

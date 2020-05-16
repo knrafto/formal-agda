@@ -30,10 +30,9 @@ subst-a≡ {a = a} {p = p} {q = q} = pathInd (λ x p → subst (a ≡_) p q ≡ 
 transport-refl : {A : Type ℓ} {a : A} → transport refl a ≡ a
 transport-refl = transportRefl _
 
--- TODO: needs a better name
-subst-fun : {A : Type ℓ} (P Q : A → Type ℓ') (f : (x : A) → P x → Q x) {x y : A} {p : x ≡ y} {u : P x}
+subst-nat : {A : Type ℓ} (P Q : A → Type ℓ') (f : (x : A) → P x → Q x) {x y : A} {p : x ≡ y} {u : P x}
   → subst Q p (f x u) ≡ f y (subst P p u)
-subst-fun P Q f {x = x} {p = p} {u = u} =
+subst-nat P Q f {x = x} {p = p} {u = u} =
   pathInd
     (λ y p → subst Q p (f x u) ≡ f y (subst P p u))
     (subst-refl Q ∙ ap (f x) (sym (subst-refl P))) p

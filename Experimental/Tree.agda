@@ -7,7 +7,8 @@ open import Math.Nat
 open import Math.Type
 
 -- See https://ncatlab.org/nlab/show/tree#as_functors
-module _
+-- In set theory, one might call this a "finite-ish forest": http://math.huji.ac.il/~sunger/cmu/TreesTalk.pdf
+module Tree
     (A : Type₀)
     (A-IsSet : IsSet A)
     (depth : A → ℕ)
@@ -49,7 +50,6 @@ module _
     k₂+[k₁+l]≡[k₂+k₁]+l : ∀ {k₂} → k₂ + (k₁ + l) ≡ (k₂ + k₁) + l
     k₂+[k₁+l]≡[k₂+k₁]+l {k₂} = +-assoc k₂ k₁ l
 
-    -- naturality for parent
     parent-nat : ∀ {m n} {p : m ≡ n} {x : T (suc m)} → subst T p (parent x) ≡ parent (subst T (ap suc p) x)
     parent-nat = subst-nat (λ n → T (suc n)) (λ n → T n) (λ n x → parent x)
 
@@ -67,6 +67,7 @@ module _
     goal : parent^ (k₂ + k₁) (subst T n≡[k₂+k₁]+l x) ≡ parent^ k₁ (subst T (sym k₁+l≡m) (parent^ k₂ (subst T (sym k₂+m≡n) x)))
     goal = ap (parent^ (k₂ + k₁)) lemma₁ ∙ lemma₂ {k₂ = k₂} ∙ ap (parent^ k₁) (lemma₃ {k₂ = k₂})      
 
+  -- "is ancestor of" relation
   _≤T_ : A → A → Type₀
   a ≤T b = Σ[ p ∈ depth a ≤ depth b ] ancestor p (toT b) ≡ toT a
 
@@ -75,13 +76,6 @@ module _
 
   ≤T-depth : ∀ a b → a ≤T b → depth a ≤ depth b
   ≤T-depth _ _ (m≤n , _) = m≤n
-
-  ≤T-refl : ∀ a → a ≤T a
-  ≤T-refl a = ≤-refl , ancestor-refl (a , refl)
-
-  ≤T-trans : ∀ a b c → a ≤T b → b ≤T c → a ≤T c
-  ≤T-trans a b c (da≤db , p₁) (db≤dc , p₂)
-    = ≤-trans da≤db db≤dc , ancestor-trans da≤db db≤dc (c , refl) ∙ ap (ancestor da≤db) p₂ ∙ p₁
 
   ≤T-unique : ∀ a b c → a ≤T c → b ≤T c → depth a ≡ depth b → a ≡ b
   ≤T-unique a b c (da≤db , p₁) (db≤dc , p₂) da≡db =
@@ -97,6 +91,14 @@ module _
 
       lemma₂ : subst T da≡db (toT a) ≡ toT b
       lemma₂ = ap (subst T da≡db) (sym p₁) ∙ lemma₁ (depth a) (depth b) (depth c) (toT c) da≡db da≤db db≤dc ∙ p₂
+
+  -- ≤T is a partial order
+  ≤T-refl : ∀ a → a ≤T a
+  ≤T-refl a = ≤-refl , ancestor-refl (a , refl)
+
+  ≤T-trans : ∀ a b c → a ≤T b → b ≤T c → a ≤T c
+  ≤T-trans a b c (da≤db , p₁) (db≤dc , p₂)
+    = ≤-trans da≤db db≤dc , ancestor-trans da≤db db≤dc (c , refl) ∙ ap (ancestor da≤db) p₂ ∙ p₁
 
   ≤T-antisym : ∀ a b → a ≤T b → b ≤T a → a ≡ b
   ≤T-antisym a b (m≤n , p₁) (n≤m , p₂)

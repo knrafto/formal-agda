@@ -3,7 +3,8 @@ module Math.Nat where
 
 open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym) renaming (m≤n-isProp to ≤-IsProp)
-open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred)
+open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
+open import Cubical.Induction.WellFounded
 open import Math.Dec
 open import Math.Type
 
@@ -17,6 +18,7 @@ b ^ suc e = b * (b ^ e)
 ≤-trans : ∀ {k m n} → k ≤ m → m ≤ n → k ≤ n
 ≤-trans {k} {m} {n} (i , p) (j , q) = j + i , sym (+-assoc j i k) ∙ ap (j +_) p ∙ q
 
+-- TODO: not sold on these names
 suc-preserves-≤ : {m n : ℕ} → m ≤ n → suc m ≤ suc n
 suc-preserves-≤ = suc-≤-suc
 
@@ -51,3 +53,9 @@ suc-reflects-< = pred-≤-pred
 *-assoc : ∀ m n o → m * (n * o) ≡ (m * n) * o
 *-assoc zero _ _ = refl
 *-assoc (suc m) n o = ap (n * o +_) (*-assoc m n o) ∙ sym (*-dist-r o n (m * n))
+
+<-ind : ∀ {ℓ} {P : ℕ → Type ℓ} → (∀ n → (∀ k → k < n → P k) → P n) → (n : ℕ) → P n
+<-ind {P = P} = WFI.induction <-wellfounded {P = P}
+
+<-ind-step : ∀ {ℓ} {P : ℕ → Type ℓ} (f : ∀ n → (∀ k → k < n → P k) → P n) (n : ℕ) → <-ind f n ≡ f n (λ i _ → <-ind f i)
+<-ind-step {P = P} = WFI.induction-compute <-wellfounded {P = P}

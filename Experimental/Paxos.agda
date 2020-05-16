@@ -1,6 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Experimental.Paxos where
 
+open import Experimental.Tree
 open import Math.Dec
 open import Math.Nat
 open import Math.Type
@@ -40,96 +41,98 @@ Promise : Acceptor → Proposal → Type₀
 Promise a p = ∀ i → i < p → Dec (IsAccepted a i)
 
 postulate
-  -- Every proposal must have some quorum of acceptors that responded to the
-  -- prepare phase
+  -- Every proposal must have some quorum of acceptors that responded in the prepare phase with a promise
   prepareQuorum : Proposal → Quorum
   preparePromise : (p : Proposal) (a : Acceptor) → a ∈ prepareQuorum p → Promise a p
 
--- We say a proposal is chosen if it is accepted by a quorum of acceptors. This
--- is independent of time, so it means "was or will be chosen" rather than
--- "is known to be chosen as of now".
-IsChosen : Proposal → Type₀
-IsChosen p = ∥ Σ[ q ∈ Quorum ] ((a : Acceptor) → a ∈ q → IsAccepted a p) ∥
-
--- Acceptors may accept proposals.
-IsChosen-IsProp : ∀ p → IsProp (IsChosen p)
-IsChosen-IsProp _ = ∥∥-IsProp
-
-IsSeen : Proposal → Proposal → Type₀
-IsSeen p q = ∥ Σ[ a ∈ Acceptor ] (a ∈ prepareQuorum q → p < q → IsAccepted a p) ∥
-
-IsSeen-IsProp : ∀ p q → IsProp (IsSeen p q)
-IsSeen-IsProp _ _ = ∥∥-IsProp
+-- A proposal is visible to another proposal if at least one acceptor
+-- in the later proposal's prepare quorum has accepted it.
+IsVisible : Proposal → Proposal → Type₀
+IsVisible p q = (p < q) × ∥ Σ[ a ∈ Acceptor ] (a ∈ prepareQuorum q → p < q → IsAccepted a p) ∥
 
 -- TODO: we need finite quorums for this
-IsSeen-Dec : ∀ p q → Dec (IsSeen p q)
-IsSeen-Dec = {!!}
+IsVisible-Dec : ∀ p q → Dec (IsVisible p q)
+IsVisible-Dec = {!!}
 
 -- max seen proposal (decidable)
-MaxSeenProposal : Proposal → Type₀
-MaxSeenProposal p = Σ[ i ∈ Proposal ] {!!}
+-- TODO: make it a max
+MaxVisibleProposal : Proposal → Type₀
+MaxVisibleProposal p = Σ[ i ∈ Proposal ] IsVisible i p
 
-MaxSeenProposal-IsProp : ∀ p → IsProp (MaxSeenProposal p)
-MaxSeenProposal-IsProp = {!!}
+MaxVisibleProposal-IsProp : ∀ p → IsProp (MaxVisibleProposal p)
+MaxVisibleProposal-IsProp = {!!}
 
-MaxSeenProposal-Dec : ∀ p → Dec (MaxSeenProposal p)
-MaxSeenProposal-Dec = {!!}
+MaxVisibleProposal-Dec : ∀ p → Dec (MaxVisibleProposal p)
+MaxVisibleProposal-Dec = {!!}
 
--- depth of proposals
+-- The tree of proposals
+depth-step : (n : Proposal) → (∀ i → i < n → ℕ) → ℕ
+depth-step n rec with MaxVisibleProposal-Dec n
+... | yes (i , i<p , _) = suc (rec i i<p)
+... | no _              = zero
+
 depth : Proposal → ℕ
-depth p with MaxSeenProposal-Dec p
-depth p | yes (i , _) = {!!}
-depth p | no  _       = 0
+depth = <-ind depth-step
 
--- parent of proposals
-parent : ∀ n → (Σ[ p ∈ Proposal ] depth p ≡ suc n) → (Σ[ p ∈ Proposal ] depth p ≡ n)
-parent = {!!}
+parent : ∀ {n} → (Σ[ p ∈ Proposal ] depth p ≡ suc n) → (Σ[ p ∈ Proposal ] depth p ≡ n)
+parent (p , dp≡sucn) with MaxVisibleProposal-Dec p
+parent (p , dp≡sucn) | yes mvp = fst mvp , suc-IsInjective (sym (lemma₁ p mvp) ∙ sym (<-ind-step depth-step p) ∙ dp≡sucn)
+  where
+  lemma₁ : ∀ p → (mvp : MaxVisibleProposal p) → depth-step p (λ i _ → depth i) ≡ suc (depth (fst mvp))
+  lemma₁ p mvp with MaxVisibleProposal-Dec p
+  ... | yes mvp' = ap (λ mvp → suc (depth (fst mvp))) (MaxVisibleProposal-IsProp p mvp' mvp)
+  ... | no ¬mvp  = ⊥-elim (¬mvp mvp)
 
--- ancestor relation
-_≤T_ : Proposal → Proposal → Type₀
-_≤T_ = {!!}
+parent (p , dp≡sucn) | no ¬mvp = ⊥-elim (¬zero≡suc (sym (lemma₂ p ¬mvp) ∙ dp≡sucn))
+  where
+  lemma₁ : ∀ p → ¬ (MaxVisibleProposal p) → depth-step p (λ i _ → depth i) ≡ zero
+  lemma₁ p ¬mvp with MaxVisibleProposal-Dec p
+  ... | yes mvp = ⊥-elim (¬mvp mvp)
+  ... | no _    = refl
 
-≤T-IsProp : ∀ p q → IsProp (p ≤T q)
-≤T-IsProp = {!!}
+  lemma₂ : ∀ p → ¬ (MaxVisibleProposal p) → depth p ≡ zero
+  lemma₂ p ¬mvp = <-ind-step depth-step p ∙ lemma₁ p ¬mvp
 
-≤T-Dec : ∀ p q → Dec (p ≤T q)
-≤T-Dec = {!!}
+open Tree Proposal ℕ-IsSet depth parent
 
-≤T-trans : ∀ p q r → p ≤T q → q ≤T r → p ≤T r
-≤T-trans = {!!}
+-- We say a proposal is "acked" if it is accepted by a quorum of acceptors. This
+-- is independent of time, so it means "was or will be acked" rather than
+-- "is known to be acked as of now".
+IsAcked : Proposal → Type₀
+IsAcked p = ∥ Σ[ q ∈ Quorum ] ((a : Acceptor) → a ∈ q → IsAccepted a p) ∥
 
--- only one ancestor at each depth
-ancestor-unique : ∀ p₁ p₂ q → depth p₁ ≡ depth p₂ → p₁ ≤T q → p₂ ≤T q → p₁ ≡ p₂
-ancestor-unique = {!!}
+-- Crucially, acked proposals are always ancestors to later proposals.
+IsAcked-≤T : ∀ p q → p < q → IsAcked p → p ≤T q
+IsAcked-≤T = {!!}
 
--- chosen proposals are always ancestors
-chosen-≤T : ∀ p q → p < q → IsChosen p → p ≤T q
-chosen-≤T = {!!}
-
+-- We say a proposal is "committed" if it is the ancestor of an acked proposal.
 IsCommitted : Proposal → Type₀
-IsCommitted p = ∥ Σ[ q ∈ Proposal ] IsChosen q × p ≤T q ∥
+IsCommitted p = ∥ Σ[ q ∈ Proposal ] IsAcked q × p ≤T q ∥
 
 IsCommitted-IsProp : ∀ p → IsProp (IsCommitted p)
 IsCommitted-IsProp p = ∥∥-IsProp
 
--- ancestor of committed proposal is committed
+-- The ancestor of committed proposal is committed
 ancestor-IsCommitted : ∀ p₁ p₂ → p₁ ≤T p₂ → IsCommitted p₂ → IsCommitted p₁
 ancestor-IsCommitted p₁ p₂ p₁≤Tp₂ =
-  ∥∥-rec (IsCommitted-IsProp p₁) λ { (q , q-IsChosen , p₂≤Tq) →
-    ∣ q , q-IsChosen , ≤T-trans p₁ p₂ q p₁≤Tp₂ p₂≤Tq ∣ }
+  ∥∥-rec (IsCommitted-IsProp p₁) λ { (q , q-IsAcked , p₂≤Tq) →
+    ∣ q , q-IsAcked , ≤T-trans p₁ p₂ q p₁≤Tp₂ p₂≤Tq ∣ }
 
--- at most one committed proposal at each depth
+-- There is at most one committed proposal at each depth
 committed-unique : ∀ p₁ p₂ → depth p₁ ≡ depth p₂
   → IsCommitted p₁ → IsCommitted p₂ → p₁ ≡ p₂
 committed-unique p₁ p₂ dp₁≡dp₂ =
-  ∥∥-rec (Π-IsProp λ _ → ℕ-IsSet p₁ p₂) λ { (q₁ , q₁-IsChosen , p₁≤Tq₁) →
-  ∥∥-rec (ℕ-IsSet p₁ p₂) λ { (q₂ , q₂-IsChosen , p₂≤Tq₂) →
-  case q₁ ≟ q₂ return p₁ ≡ p₂ of λ {
-    (lt q₁<q₂) → ancestor-unique p₁ p₂ q₂ dp₁≡dp₂
-      (≤T-trans p₁ q₁ q₂ p₁≤Tq₁ (chosen-≤T q₁ q₂ q₁<q₂ q₁-IsChosen))
-      p₂≤Tq₂ ;
-    (eq q₁≡q₂) → ancestor-unique p₁ p₂ q₂ dp₁≡dp₂ (subst (p₁ ≤T_) q₁≡q₂ p₁≤Tq₁) p₂≤Tq₂ ;
-    (gt q₂<q₁) → ancestor-unique p₁ p₂ q₁ dp₁≡dp₂
+  ∥∥-rec (Π-IsProp λ _ → ℕ-IsSet p₁ p₂) λ { (q₁ , q₁-IsAcked , p₁≤Tq₁) →
+  ∥∥-rec (ℕ-IsSet p₁ p₂) λ { (q₂ , q₂-IsAcked , p₂≤Tq₂) →
+  case q₁ ≟ q₂ return p₁ ≡ p₂ of λ
+    { (lt q₁<q₂) → ≤T-unique p₁ p₂ q₂
+      (≤T-trans p₁ q₁ q₂ p₁≤Tq₁ (IsAcked-≤T q₁ q₂ q₁<q₂ q₁-IsAcked))
+      p₂≤Tq₂
+      dp₁≡dp₂
+    ; (eq q₁≡q₂) → ≤T-unique p₁ p₂ q₂ (subst (p₁ ≤T_) q₁≡q₂ p₁≤Tq₁) p₂≤Tq₂ dp₁≡dp₂
+    ; (gt q₂<q₁) → ≤T-unique p₁ p₂ q₁
       p₁≤Tq₁
-      (≤T-trans p₂ q₂ q₁ p₂≤Tq₂ (chosen-≤T q₂ q₁ q₂<q₁ q₂-IsChosen)) } } }
+      (≤T-trans p₂ q₂ q₁ p₂≤Tq₂ (IsAcked-≤T q₂ q₁ q₂<q₁ q₂-IsAcked))
+      dp₁≡dp₂
+    } } }
     

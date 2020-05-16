@@ -55,6 +55,9 @@ contradiction a ¬A = ⊥-elim (¬A a)
 Σ≡ : {A : Type ℓ} {B : A → Type ℓ'} {x y : Σ A B} (p : fst x ≡ fst y) → subst B p (snd x) ≡ snd y → x ≡ y
 Σ≡ {x = x} {y = y} p q = sigmaPath→pathSigma x y (p , q)
 
+Σ-IsSet : {A : Type ℓ} {B : A → Type ℓ'} → IsSet A → ((a : A) → IsSet (B a)) → IsSet (Σ A B)
+Σ-IsSet A-IsSet B-IsSet = isOfHLevelΣ 2 A-IsSet B-IsSet
+
 HasHLevel× : {A : Type ℓ} {B : Type ℓ'} (n : ℕ) → isOfHLevel n A → isOfHLevel n B → isOfHLevel n (A × B)
 HasHLevel× n a b = isOfHLevelΣ n a (λ _ → b)
 

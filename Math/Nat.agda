@@ -2,7 +2,7 @@
 module Math.Nat where
 
 open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero)
-open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; ≤-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; Trichotomy; lt; eq; gt; _≟_; <-asym) renaming (m≤n-isProp to ≤-IsProp)
+open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym) renaming (m≤n-isProp to ≤-IsProp)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred)
 open import Math.Dec
 open import Math.Type
@@ -12,6 +12,10 @@ infixr 8 _^_
 _^_ : ℕ → ℕ → ℕ
 b ^ zero = 1
 b ^ suc e = b * (b ^ e)
+
+-- The use of j + i rather than cubical's i + j makes this version a little easier to work with in proofs
+≤-trans : ∀ {k m n} → k ≤ m → m ≤ n → k ≤ n
+≤-trans {k} {m} {n} (i , p) (j , q) = j + i , sym (+-assoc j i k) ∙ ap (j +_) p ∙ q
 
 suc-preserves-≤ : {m n : ℕ} → m ≤ n → suc m ≤ suc n
 suc-preserves-≤ = suc-≤-suc

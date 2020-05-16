@@ -47,3 +47,18 @@ sym-≡[]≡ {A = A} p {x = x} {y = y} =
 happly : {A : Type ℓ} {B : A → Type ℓ'} {f g : (x : A) → B x} → f ≡ g → (x : A) → f x ≡ g x
 happly {A = A} {B = B} {f = f} =
   pathInd (λ (g : (x : A) → B x) (p : f ≡ g) → (x : A) → f x ≡ g x) λ _ → refl
+
+sym-∙ : ∀ {A : Type ℓ} {a b c : A} {p : a ≡ b} {q : b ≡ c} → sym (p ∙ q) ≡ sym q ∙ sym p
+sym-∙ {p = p} {q = q} = pathInd (λ c q → sym (p ∙ q) ≡ sym q ∙ sym p) (ap sym (∙-refl {p = p}) ∙ sym refl-∙) q
+
+subst-∙ : {A : Type ℓ} (P : A → Type ℓ') {a b c : A} {p : a ≡ b} {q : b ≡ c} {x : P a}
+  → subst P (p ∙ q) x ≡ subst P q (subst P p x)
+subst-∙ P {p = p} {q = q} {x = x} =
+  pathInd
+    (λ c q → subst P (p ∙ q) x ≡ subst P q (subst P p x))
+    (ap (λ p → subst P p x) ∙-refl ∙ sym (subst-refl P))
+    q
+
+subst-const : {A : Type ℓ} {B : Type ℓ'} {a b : A} {x : B} (p : a ≡ b) → subst (λ _ → B) p x ≡ x
+subst-const {A = A} {B = B} {a = a} {x = x} =
+  pathInd (λ b p → subst (λ _ → B) p x ≡ x) (subst-refl {A = A} (λ _ → B) {a = a})

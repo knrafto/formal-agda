@@ -65,7 +65,7 @@ module Tree
     lemma₃ {suc k₂} {x} = ap (parent^ k₂) (sym parent-nat) ∙ lemma₃ {k₂ = k₂}
 
     goal : parent^ (k₂ + k₁) (subst T n≡[k₂+k₁]+l x) ≡ parent^ k₁ (subst T (sym k₁+l≡m) (parent^ k₂ (subst T (sym k₂+m≡n) x)))
-    goal = ap (parent^ (k₂ + k₁)) lemma₁ ∙ lemma₂ {k₂ = k₂} ∙ ap (parent^ k₁) (lemma₃ {k₂ = k₂})      
+    goal = ap (parent^ (k₂ + k₁)) lemma₁ ∙ lemma₂ {k₂ = k₂} ∙ ap (parent^ k₁) (lemma₃ {k₂ = k₂})
 
   -- "is ancestor of" relation
   _≤T_ : A → A → Type₀
@@ -76,6 +76,9 @@ module Tree
 
   ≤T-depth : ∀ a b → a ≤T b → depth a ≤ depth b
   ≤T-depth _ _ (m≤n , _) = m≤n
+
+  parent-≤T : ∀ {n} (x : T (suc n)) → fst (parent x) ≤T fst x
+  parent-≤T {n} x = {!!}
 
   ≤T-unique : ∀ a b c → a ≤T c → b ≤T c → depth a ≡ depth b → a ≡ b
   ≤T-unique a b c (da≤db , p₁) (db≤dc , p₂) da≡db =
@@ -94,11 +97,11 @@ module Tree
 
   -- ≤T is a partial order
   ≤T-refl : ∀ a → a ≤T a
-  ≤T-refl a = ≤-refl , ancestor-refl (a , refl)
+  ≤T-refl a = ≤-refl , ancestor-refl (toT a)
 
   ≤T-trans : ∀ a b c → a ≤T b → b ≤T c → a ≤T c
   ≤T-trans a b c (da≤db , p₁) (db≤dc , p₂)
-    = ≤-trans da≤db db≤dc , ancestor-trans da≤db db≤dc (c , refl) ∙ ap (ancestor da≤db) p₂ ∙ p₁
+    = ≤-trans da≤db db≤dc , ancestor-trans da≤db db≤dc (toT c) ∙ ap (ancestor da≤db) p₂ ∙ p₁
 
   ≤T-antisym : ∀ a b → a ≤T b → b ≤T a → a ≡ b
   ≤T-antisym a b (m≤n , p₁) (n≤m , p₂)

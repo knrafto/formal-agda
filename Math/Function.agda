@@ -27,6 +27,9 @@ ua {f = f} f-IsEquiv = uaPrim (f , f-IsEquiv)
 IsInjective : (f : A → B) → Type _
 IsInjective {A = A} f = {a₁ a₂ : A} → f a₁ ≡ f a₂ → a₁ ≡ a₂
 
+IsInjective→fiber-IsProp : {A B : Type ℓ} {f : A → B} → IsSet A → IsSet B → IsInjective f → ∀ y → IsProp (fiber f y)
+IsInjective→fiber-IsProp A-IsSet B-IsSet f-IsInjective = IsEmbedding→fiber-IsProp (IsInjective→IsEmbedding A-IsSet B-IsSet f-IsInjective)
+
 -- TODO: Truncate to make a proposition.
 -- TODO: make b implicit?
 IsSurjective : (f : A → B) → Type _

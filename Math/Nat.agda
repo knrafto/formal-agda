@@ -2,7 +2,7 @@
 module Math.Nat where
 
 open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero)
-open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym) renaming (m≤n-isProp to ≤-IsProp)
+open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
 open import Cubical.Induction.WellFounded
 open import Math.Dec
@@ -30,6 +30,9 @@ suc-preserves-< = suc-≤-suc
 
 suc-reflects-< : {m n : ℕ} → suc m < suc n → m < n
 suc-reflects-< = pred-≤-pred
+
+<-IsProp : ∀ {m n} → IsProp (m < n)
+<-IsProp = ≤-IsProp
 
 <-Dec : ∀ m n → Dec (m < n)
 <-Dec _ zero = no ¬-<-zero

@@ -69,3 +69,7 @@ HasHLevel× n a b = isOfHLevelΣ n a (λ _ → b)
 
 ⊤-IsSet : IsSet ⊤
 ⊤-IsSet = IsProp→IsSet ⊤-IsProp
+
+-- Rearranged version of ∥∥-rec
+with-∥∥ : {A : Type ℓ} {P : Type ℓ'} → ∥ P ∥ → IsProp A → (P → A) → A
+with-∥∥ p A-IsProp f = ∥∥-rec A-IsProp f p

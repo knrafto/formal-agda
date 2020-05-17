@@ -48,7 +48,10 @@ postulate
 -- A proposal is visible to another proposal if at least one acceptor
 -- in the later proposal's prepare quorum has accepted it.
 IsVisible : Proposal → Proposal → Type₀
-IsVisible p q = (p < q) × ∥ Σ[ a ∈ Acceptor ] (a ∈ prepareQuorum q → p < q → IsAccepted a p) ∥
+IsVisible p q = (p < q) × ∥ Σ[ a ∈ Acceptor ] a ∈ prepareQuorum q × IsAccepted a p ∥
+
+IsVisible-IsProp : ∀ p q → IsProp (IsVisible p q)
+IsVisible-IsProp p q = ×-IsProp <-IsProp ∥∥-IsProp
 
 -- TODO: we need finite quorums for this
 IsVisible-Dec : ∀ p q → Dec (IsVisible p q)
@@ -93,6 +96,7 @@ parent (p , dp≡sucn) | no ¬mvp = ⊥-elim (¬zero≡suc (sym (lemma₂ p ¬mv
   lemma₂ : ∀ p → ¬ (MaxVisibleProposal p) → depth p ≡ zero
   lemma₂ p ¬mvp = <-ind-step depth-step p ∙ lemma₁ p ¬mvp
 
+-- For ≤T and friends
 open Tree Proposal ℕ-IsSet depth parent
 
 -- We say a proposal is "acked" if it is accepted by a quorum of acceptors. This
@@ -101,9 +105,28 @@ open Tree Proposal ℕ-IsSet depth parent
 IsAcked : Proposal → Type₀
 IsAcked p = ∥ Σ[ q ∈ Quorum ] ((a : Acceptor) → a ∈ q → IsAccepted a p) ∥
 
--- Crucially, acked proposals are always ancestors to later proposals.
-IsAcked-≤T : ∀ p q → p < q → IsAcked p → p ≤T q
-IsAcked-≤T = {!!}
+IsAcked-IsProp : ∀ p → IsProp (IsAcked p)
+IsAcked-IsProp p = ∥∥-IsProp
+
+-- Acked proposals are always visible to later proposals, because the quorum that acked this
+-- proposal overlaps the prepare quorum for the later proposal.
+IsAcked-IsVisible : ∀ p q → p < q → IsAcked p → IsVisible p q
+IsAcked-IsVisible p q p<q =
+   ∥∥-rec (IsVisible-IsProp p q) λ { (Qp , Qp-IsAccepted) →
+   with-∥∥ (quorumOverlap Qp (prepareQuorum q)) (IsVisible-IsProp p q) λ { (a , a∈Qp , a∈Qq) →
+   p<q , ∣ a , a∈Qq , Qp-IsAccepted a a∈Qp ∣ } }
+
+-- Thus, acked proposals are always ancestors to later proposals.
+IsAcked-≤T : ∀ p q → IsAcked p → p < q → p ≤T q
+IsAcked-≤T p = <-ind λ q rec p-IsAcked p<q →
+  let mvp = {!!}
+      i = fst mvp
+  in
+  case p ≟ i return p ≤T q of λ
+    { (lt p<i) → ≤T-trans p i q (rec i {!!} p-IsAcked p<i) {!!}
+    ; (eq p≡i) → {!!}
+    ; (gt i<p) → {!!}
+    } 
 
 -- We say a proposal is "committed" if it is the ancestor of an acked proposal.
 IsCommitted : Proposal → Type₀
@@ -126,13 +149,12 @@ committed-unique p₁ p₂ dp₁≡dp₂ =
   ∥∥-rec (ℕ-IsSet p₁ p₂) λ { (q₂ , q₂-IsAcked , p₂≤Tq₂) →
   case q₁ ≟ q₂ return p₁ ≡ p₂ of λ
     { (lt q₁<q₂) → ≤T-unique p₁ p₂ q₂
-      (≤T-trans p₁ q₁ q₂ p₁≤Tq₁ (IsAcked-≤T q₁ q₂ q₁<q₂ q₁-IsAcked))
+      (≤T-trans p₁ q₁ q₂ p₁≤Tq₁ (IsAcked-≤T q₁ q₂ q₁-IsAcked q₁<q₂))
       p₂≤Tq₂
       dp₁≡dp₂
     ; (eq q₁≡q₂) → ≤T-unique p₁ p₂ q₂ (subst (p₁ ≤T_) q₁≡q₂ p₁≤Tq₁) p₂≤Tq₂ dp₁≡dp₂
     ; (gt q₂<q₁) → ≤T-unique p₁ p₂ q₁
       p₁≤Tq₁
-      (≤T-trans p₂ q₂ q₁ p₂≤Tq₂ (IsAcked-≤T q₂ q₁ q₂<q₁ q₂-IsAcked))
+      (≤T-trans p₂ q₂ q₁ p₂≤Tq₂ (IsAcked-≤T q₂ q₁ q₂-IsAcked q₂<q₁))
       dp₁≡dp₂
     } } }
-    

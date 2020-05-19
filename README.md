@@ -1,4 +1,3 @@
-# `Math` library
+Experiments in formalizing and specifying computer systems.
 
-Core mathematics that are applicable to any computer science problem. Only these
-modules can import the `cubical` library.
+Based of the Agda `cubical` library: https://github.com/agda/cubical

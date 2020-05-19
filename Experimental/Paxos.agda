@@ -5,14 +5,13 @@ module Experimental.Paxos where
 
 open import Experimental.Tree
 open import Math.Dec
+open import Math.Finite
 open import Math.Nat
 open import Math.Type
 
 private
   variable
     ℓ ℓ' : Level
-
-infix 6 _∈_
 
 -- Paxos proposals must have a unique id. For simplicity, we'll let them be the
 -- naturals as in most presentations.
@@ -23,14 +22,14 @@ postulate
   -- Paxos requires a set of acceptors with stable storage.
   Acceptor : Type₀
 
-  -- Quorums, which are subsets of the acceptors.
-  -- TODO: need finiteness
+  -- Quorums, which are finite subsets of the acceptors.
   Quorum : Type₀
-  _∈_ : Acceptor → Quorum → Type₀
-  ∈-IsProp : ∀ a q → IsProp (a ∈ q)
+  Member : Quorum → Type₀
+  Member-IsFinite : ∀ {q} → IsFinite (Member q)
+  acceptor : ∀ {q} → Member q → Acceptor
 
   -- Any two quorums overlap.
-  quorumOverlap : (q₁ q₂ : Quorum) → ∥ Σ[ a ∈ Acceptor ] a ∈ q₁ × a ∈ q₂ ∥
+  quorumOverlap : (q₁ q₂ : Quorum) → ∥ Σ[ m₁ ∈ Member q₁ ] Σ[ m₂ ∈ Member q₂ ] acceptor m₁ ≡ acceptor m₂ ∥
 
   -- Acceptors may accept proposals. This is independent of time, so it means
   -- "was or will be accepted" rather than "is known to be accepted as of now".
@@ -42,19 +41,24 @@ postulate
 
   -- A promise not to accept a proposal in the future means its acceptance is now
   -- decidable.
-  preparePromise : ∀ a i p → a ∈ prepareQuorum p → i < p → Dec (IsAccepted a i)
+  preparePromise : ∀ p q → p < q → (m : Member (prepareQuorum q)) → Dec (IsAccepted (acceptor m) p)
 
 -- A proposal is visible to another proposal if at least one acceptor
 -- in the later proposal's prepare quorum has accepted it.
 IsVisible : Proposal → Proposal → Type₀
-IsVisible p q = (p < q) × ∥ Σ[ a ∈ Acceptor ] a ∈ prepareQuorum q × IsAccepted a p ∥
+IsVisible p q = (p < q) × ∥ Σ[ m ∈ Member (prepareQuorum q) ] IsAccepted (acceptor m) p ∥
 
 IsVisible-IsProp : ∀ p q → IsProp (IsVisible p q)
 IsVisible-IsProp p q = ×-IsProp <-IsProp ∥∥-IsProp
 
--- TODO: we need finite quorums for this
 IsVisible-Dec : ∀ p q → Dec (IsVisible p q)
-IsVisible-Dec p q = ×-Dec (<-Dec p q) {!!}
+IsVisible-Dec p q = case (<-Dec p q) return Dec (IsVisible p q) of λ
+  { (yes p<q) → case IsFinite-∃-Dec Member-IsFinite (preparePromise p q p<q) return Dec (IsVisible p q) of λ
+    { (yes m) → yes (p<q , m)
+    ; (no ¬m) → no λ { (_ , m) → ¬m m }
+    }
+  ; (no ¬p<q) → no λ { (p<q , _) → ¬p<q p<q }
+  }
 
 -- The proposal's parent is the maximum visible proposal.
 HasParent : Proposal → Type₀
@@ -161,7 +165,7 @@ HasParent-≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) (parent-�
 -- is independent of time, so it means "was or will be acked" rather than
 -- "is known to be acked as of now".
 IsAcked : Proposal → Type₀
-IsAcked p = ∥ Σ[ q ∈ Quorum ] ((a : Acceptor) → a ∈ q → IsAccepted a p) ∥
+IsAcked p = ∥ Σ[ q ∈ Quorum ] ((m : Member q) → IsAccepted (acceptor m) p) ∥
 
 IsAcked-IsProp : ∀ p → IsProp (IsAcked p)
 IsAcked-IsProp p = ∥∥-IsProp
@@ -171,8 +175,8 @@ IsAcked-IsProp p = ∥∥-IsProp
 IsAcked→IsVisible : ∀ {p q} → p < q → IsAcked p → IsVisible p q
 IsAcked→IsVisible {p} {q} p<q =
    ∥∥-rec (IsVisible-IsProp p q) λ { (Qp , Qp-IsAccepted) →
-   with-∥∥ (quorumOverlap Qp (prepareQuorum q)) (IsVisible-IsProp p q) λ { (a , a∈Qp , a∈Qq) →
-   p<q , ∣ a , a∈Qq , Qp-IsAccepted a a∈Qp ∣ } }
+   with-∥∥ (quorumOverlap Qp (prepareQuorum q)) (IsVisible-IsProp p q) λ { (m₁ , m₂ , am₁≡am₂) →
+   p<q , ∣ m₂ , subst (λ a → IsAccepted a p) am₁≡am₂ (Qp-IsAccepted m₁) ∣ } }
 
 -- Thus, acked proposals are always ancestors to later proposals.
 IsAcked-≤T : ∀ p → IsAcked p → ∀ q → p < q → p ≤T q

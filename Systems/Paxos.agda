@@ -1,14 +1,14 @@
 {-# OPTIONS --cubical #-}
 -- Overview: we posulate acceptors and the prepare phase, which come from the implementation.
 -- From this, we can define what a "committed" proposal is, and show that committed proposals are serializable.
-module Experimental.Paxos where
+module Systems.Paxos where
 
-open import Experimental.Log
-open import Experimental.Tree
 open import Math.Dec
 open import Math.Finite
 open import Math.Nat
 open import Math.Type
+open import Systems.Log
+open import Systems.Tree
 
 private
   variable

@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical #-}
-module Experimental.Log where
+module Systems.Log where
 
 open import Math.Fin
 open import Math.Function

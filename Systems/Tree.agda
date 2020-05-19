@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical #-}
-module Experimental.Tree where
+module Systems.Tree where
 
 open import Math.Function
 open import Math.Id

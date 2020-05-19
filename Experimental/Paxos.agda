@@ -186,7 +186,7 @@ IsAcked-≤T p p-IsAcked = <-ind IsAcked-≤T-step
   IsAcked-≤T-step q rec p<q with HasParent-Dec q
   ... | no ¬h = ⊥-elim (¬h (IsVisible→HasParent (IsAcked→IsVisible p<q p-IsAcked)))
   ... | yes h@(i , i-IsVisible , i-max) with p ≟ i
-  ...   | lt p<i = ≤T-trans p i q (rec i (fst i-IsVisible) p<i) (HasParent-≤T q h)
+  ...   | lt p<i = ≤T-trans (rec i (fst i-IsVisible) p<i) (HasParent-≤T q h)
   ...   | eq p≡i = subst (λ p → p ≤T q) (sym p≡i) (HasParent-≤T q h)
   ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsAcked→IsVisible p<q p-IsAcked)))
 
@@ -197,13 +197,16 @@ IsCommitted p = ∥ Σ[ q ∈ Proposal ] IsAcked q × p ≤T q ∥
 IsCommitted-IsProp : ∀ p → IsProp (IsCommitted p)
 IsCommitted-IsProp p = ∥∥-IsProp
 
+IsAcked→IsCommitted : ∀ p → IsAcked p → IsCommitted p
+IsAcked→IsCommitted p p-IsAcked = ∣ p , p-IsAcked , ≤T-refl ∣
+
 -- TODO: what properties do we need for linearizability?
 
 -- The ancestor of committed proposal is committed
 ancestor-IsCommitted : ∀ p₁ p₂ → p₁ ≤T p₂ → IsCommitted p₂ → IsCommitted p₁
 ancestor-IsCommitted p₁ p₂ p₁≤Tp₂ =
   ∥∥-rec (IsCommitted-IsProp p₁) λ { (q , q-IsAcked , p₂≤Tq) →
-    ∣ q , q-IsAcked , ≤T-trans p₁ p₂ q p₁≤Tp₂ p₂≤Tq ∣ }
+    ∣ q , q-IsAcked , ≤T-trans p₁≤Tp₂ p₂≤Tq ∣ }
 
 -- There is at most one committed proposal at each depth
 committed-unique : ∀ p₁ p₂ → depth p₁ ≡ depth p₂
@@ -213,12 +216,12 @@ committed-unique p₁ p₂ dp₁≡dp₂ =
   ∥∥-rec (ℕ-IsSet p₁ p₂) λ { (q₂ , q₂-IsAcked , p₂≤Tq₂) →
   case q₁ ≟ q₂ return p₁ ≡ p₂ of λ
     { (lt q₁<q₂) → ≤T-unique p₁ p₂ q₂
-      (≤T-trans p₁ q₁ q₂ p₁≤Tq₁ (IsAcked-≤T q₁ q₁-IsAcked q₂ q₁<q₂))
+      (≤T-trans p₁≤Tq₁ (IsAcked-≤T q₁ q₁-IsAcked q₂ q₁<q₂))
       p₂≤Tq₂
       dp₁≡dp₂
     ; (eq q₁≡q₂) → ≤T-unique p₁ p₂ q₂ (subst (p₁ ≤T_) q₁≡q₂ p₁≤Tq₁) p₂≤Tq₂ dp₁≡dp₂
     ; (gt q₂<q₁) → ≤T-unique p₁ p₂ q₁
       p₁≤Tq₁
-      (≤T-trans p₂ q₂ q₁ p₂≤Tq₂ (IsAcked-≤T q₂ q₂-IsAcked q₁ q₂<q₁))
+      (≤T-trans p₂≤Tq₂ (IsAcked-≤T q₂ q₂-IsAcked q₁ q₂<q₁))
       dp₁≡dp₂
     } } }

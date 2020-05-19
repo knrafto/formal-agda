@@ -129,13 +129,13 @@ module Tree
       lemma = ap (subst T da≡db) (sym p₁) ∙ subst-ancestor (toT c) da≡db da≤db db≤dc ∙ p₂
 
   -- ≤T is a partial order
-  ≤T-refl : ∀ a → a ≤T a
-  ≤T-refl a = ≤-refl , ancestor-refl (toT a)
+  ≤T-refl : ∀ {a} → a ≤T a
+  ≤T-refl {a} = ≤-refl , ancestor-refl (toT a)
 
-  ≤T-trans : ∀ a b c → a ≤T b → b ≤T c → a ≤T c
-  ≤T-trans a b c (da≤db , p₁) (db≤dc , p₂)
+  ≤T-trans : ∀ {a b c} → a ≤T b → b ≤T c → a ≤T c
+  ≤T-trans {c = c} (da≤db , p₁) (db≤dc , p₂)
     = ≤-trans da≤db db≤dc , ancestor-trans da≤db db≤dc (toT c) ∙ ap (ancestor da≤db) p₂ ∙ p₁
 
-  ≤T-antisym : ∀ a b → a ≤T b → b ≤T a → a ≡ b
-  ≤T-antisym a b (m≤n , p₁) (n≤m , p₂)
-    = ≤T-unique a b a (≤T-refl a) (n≤m , p₂) (≤-antisym m≤n n≤m)
+  ≤T-antisym : ∀ {a b} → a ≤T b → b ≤T a → a ≡ b
+  ≤T-antisym {a} {b} (m≤n , p₁) (n≤m , p₂)
+    = ≤T-unique a b a ≤T-refl (n≤m , p₂) (≤-antisym m≤n n≤m)

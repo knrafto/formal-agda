@@ -1,8 +1,9 @@
 {-# OPTIONS --cubical #-}
 module Math.Fin where
 
-open import Cubical.Data.Fin public using (Fin; toℕ; fzero; fsuc; ¬Fin0) renaming (toℕ-injective to toℕ-IsInjective; isSetFin to Fin-IsSet)
+open import Cubical.Data.Fin public using (Fin; toℕ; fzero; fsuc; ¬Fin0; fsplit) renaming (toℕ-injective to toℕ-IsInjective; isSetFin to Fin-IsSet)
 
+open import Math.Dec
 open import Math.Function
 open import Math.Nat
 open import Math.Prod
@@ -66,3 +67,24 @@ Fin-*-IsEquiv {suc m} {n} =
   ⊎-map-IsEquiv ⊤-snd-IsEquiv Fin-*-IsEquiv ∘-IsEquiv
   ⊎-distribute-IsEquiv ∘-IsEquiv
   ×-map-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) id-IsEquiv
+
+Fin-∀-Dec : {n : ℕ} {P : Fin n → Type ℓ} → (∀ i → Dec (P i)) → Dec (∀ i → P i)
+Fin-∀-Dec {n = zero}  {P} P-Dec = yes λ i → ⊥-elim (¬Fin0 i)
+Fin-∀-Dec {n = suc k} {P} P-Dec with P-Dec fzero | Fin-∀-Dec (λ i → P-Dec (fsuc i))
+... | yes P-fzero | yes P-rest = yes λ i → case fsplit i return P i of λ
+    { (inl fzero≡i) → subst P fzero≡i P-fzero
+    ; (inr (i' , fsuci'≡i)) → subst P fsuci'≡i (P-rest i')
+    }
+... | yes P-fzero | no ¬P-rest = no λ f → ¬P-rest λ i → f (fsuc i)
+... | no ¬P-fzero | _ = no λ f → ¬P-fzero (f fzero)
+
+Fin-∃-Dec : ∀ {ℓ} {n} {P : Fin n → Type ℓ} → (∀ i → Dec (P i)) → Dec ∥ Σ[ i ∈ Fin n ] P i ∥
+Fin-∃-Dec {n = zero}  {P} P-Dec = no (∥∥-rec ⊥-IsProp λ { (i , _) → ¬Fin0 i })
+Fin-∃-Dec {n = suc k} {P} P-Dec with P-Dec fzero | Fin-∃-Dec (λ i → P-Dec (fsuc i))
+... | yes P-fzero | _          = yes ∣ fzero , P-fzero ∣
+... | no ¬P-fzero | yes P-rest = with-∥∥ P-rest (Dec-IsProp ∥∥-IsProp) λ { (i , P-fsuci) → yes ∣ fsuc i , P-fsuci ∣ }
+... | no ¬P-fzero | no ¬P-rest = no (∥∥-rec ⊥-IsProp λ { (i , P-i) → case fsplit i of λ
+    { (inl fzero≡i) → ¬P-fzero (subst P (sym fzero≡i) P-i)
+    ; (inr (i' , fsuci'≡i)) → ¬P-rest ∣ i' , subst P (sym fsuci'≡i) P-i ∣
+    } })
+

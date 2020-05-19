@@ -18,9 +18,6 @@ n≤2^clog2n = {!!}
 Max : {A : Type₀} → (_<_ : A → A → Type₀) → (P : A → Type₀) → Type₀
 Max = {!!}
 
-<-ind : ∀ {ℓ} {P : ℕ → Type ℓ} → (∀ n → (∀ k → k < n → P k) → P n) → ∀ n → P n
-<-ind = {!!}
-
 theorem : ∀ n → 2 ≤ n → (P : Fin n → Type₀) → (∀ i → Dec (P i)) → Dec (Max <-Fin P)
 theorem = <-ind λ n rec 2≤n P P-Dec →
   case n ≟ 2 return Dec (Max <-Fin P) of λ

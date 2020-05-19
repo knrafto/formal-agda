@@ -6,7 +6,7 @@ open import Math.Function
 open import Math.Nat
 open import Math.Type
 
-module _
+module Log
     (A : Type₀)
     (A-IsSet : IsSet A)
     (depth : A → ℕ)

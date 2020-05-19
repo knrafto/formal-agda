@@ -3,6 +3,7 @@
 -- From this, we can define what a "committed" proposal is, and show that committed proposals are serializable.
 module Experimental.Paxos where
 
+open import Experimental.Log
 open import Experimental.Tree
 open import Math.Dec
 open import Math.Finite
@@ -154,7 +155,7 @@ tree-parent (p , dp≡sucn) with HasParent-Dec p
 open Tree Proposal ℕ-IsSet depth tree-parent
 
 HasParent-≤T : ∀ p → (h : HasParent p) → parent h ≤T p
-HasParent-≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) (parent-≤T (p , depth-suc p h))
+HasParent-≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) parent-≤T
   where
   lemma : ∀ {n} (x : depth p ≡ suc n) → fst (tree-parent (p , x)) ≡ parent h
   lemma x with HasParent-Dec p
@@ -194,18 +195,16 @@ IsAcked-≤T p p-IsAcked = <-ind IsAcked-≤T-step
 IsCommitted : Proposal → Type₀
 IsCommitted p = ∥ Σ[ q ∈ Proposal ] IsAcked q × p ≤T q ∥
 
-IsCommitted-IsProp : ∀ p → IsProp (IsCommitted p)
-IsCommitted-IsProp p = ∥∥-IsProp
+IsCommitted-IsProp : ∀ {p} → IsProp (IsCommitted p)
+IsCommitted-IsProp = ∥∥-IsProp
 
-IsAcked→IsCommitted : ∀ p → IsAcked p → IsCommitted p
-IsAcked→IsCommitted p p-IsAcked = ∣ p , p-IsAcked , ≤T-refl ∣
-
--- TODO: what properties do we need for linearizability?
+IsAcked→IsCommitted : ∀ {p} → IsAcked p → IsCommitted p
+IsAcked→IsCommitted {p} p-IsAcked = ∣ p , p-IsAcked , ≤T-refl ∣
 
 -- The ancestor of committed proposal is committed
 ancestor-IsCommitted : ∀ p₁ p₂ → p₁ ≤T p₂ → IsCommitted p₂ → IsCommitted p₁
 ancestor-IsCommitted p₁ p₂ p₁≤Tp₂ =
-  ∥∥-rec (IsCommitted-IsProp p₁) λ { (q , q-IsAcked , p₂≤Tq) →
+  ∥∥-rec IsCommitted-IsProp λ { (q , q-IsAcked , p₂≤Tq) →
     ∣ q , q-IsAcked , ≤T-trans p₁≤Tp₂ p₂≤Tq ∣ }
 
 -- There is at most one committed proposal at each depth
@@ -225,3 +224,28 @@ committed-unique p₁ p₂ dp₁≡dp₂ =
       (≤T-trans p₂≤Tq₂ (IsAcked-≤T q₂ q₂-IsAcked q₁ q₂<q₁))
       dp₁≡dp₂
     } } }
+
+CommittedProposal : Type₀
+CommittedProposal = Σ[ p ∈ Proposal ] IsCommitted p
+
+CommittedProposal-IsSet : IsSet CommittedProposal
+CommittedProposal-IsSet = Σ-IsSet ℕ-IsSet (λ _ → IsProp→IsSet IsCommitted-IsProp)
+
+committedDepth : CommittedProposal → ℕ
+committedDepth (p , _) = depth p
+
+committedDepth-IsInjective : ∀ {p₁ p₂ : CommittedProposal} → committedDepth p₁ ≡ committedDepth p₂ → p₁ ≡ p₂
+committedDepth-IsInjective {p₁ , p₁-IsCommitted} {p₂ , p₂-IsCommitted} dp₁≡dp₂ =
+  ΣProp≡ (λ _ → IsCommitted-IsProp) (committed-unique p₁ p₂ dp₁≡dp₂ p₁-IsCommitted p₂-IsCommitted)
+
+committedParent : ∀ {n} → (Σ[ p ∈ CommittedProposal ] committedDepth p ≡ suc n) → (Σ[ p ∈ CommittedProposal ] committedDepth p ≡ n)
+committedParent {n} ((p , p-IsCommitted) , dp≡sucn) =
+    (p' , ancestor-IsCommitted p' p parent-≤T p-IsCommitted) , dp'≡n
+  where
+  p' : Proposal
+  p' = fst (tree-parent (p , dp≡sucn))
+
+  dp'≡n : depth p' ≡ n
+  dp'≡n = snd (tree-parent (p , dp≡sucn))
+
+open Log CommittedProposal CommittedProposal-IsSet committedDepth committedDepth-IsInjective committedParent

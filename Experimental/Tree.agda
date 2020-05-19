@@ -96,8 +96,8 @@ module Tree
   ≤T-depth : ∀ a b → a ≤T b → depth a ≤ depth b
   ≤T-depth _ _ (m≤n , _) = m≤n
 
-  parent-≤T : ∀ {n} (x : T (suc n)) → fst (parent x) ≤T fst x
-  parent-≤T {n} x@(b , db≡sucn) = da≤db , goal
+  parent-≤T : ∀ {n} {x : T (suc n)} → fst (parent x) ≤T fst x
+  parent-≤T {n} {x@(b , db≡sucn)} = da≤db , goal
     where
     a : A
     a = fst (parent x)

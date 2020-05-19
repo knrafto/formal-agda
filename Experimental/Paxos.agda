@@ -1,4 +1,6 @@
 {-# OPTIONS --cubical #-}
+-- Overview: we posulate acceptors and the prepare phase, which come from the implementation.
+-- From this, we can define what a "committed" proposal is, and show that committed proposals are serializable.
 module Experimental.Paxos where
 
 open import Experimental.Tree
@@ -35,15 +37,12 @@ postulate
   IsAccepted : Acceptor → Proposal → Type₀
   IsAccepted-IsProp : ∀ a p → IsProp (IsAccepted a p)
 
--- A promise not to accept a proposal in the future means its acceptance is now
--- decidable.
-Promise : Acceptor → Proposal → Type₀
-Promise a p = ∀ i → i < p → Dec (IsAccepted a i)
-
-postulate
   -- Every proposal must have some quorum of acceptors that responded in the prepare phase with a promise
   prepareQuorum : Proposal → Quorum
-  preparePromise : (p : Proposal) (a : Acceptor) → a ∈ prepareQuorum p → Promise a p
+
+  -- A promise not to accept a proposal in the future means its acceptance is now
+  -- decidable.
+  preparePromise : ∀ a i p → a ∈ prepareQuorum p → i < p → Dec (IsAccepted a i)
 
 -- A proposal is visible to another proposal if at least one acceptor
 -- in the later proposal's prepare quorum has accepted it.
@@ -55,22 +54,61 @@ IsVisible-IsProp p q = ×-IsProp <-IsProp ∥∥-IsProp
 
 -- TODO: we need finite quorums for this
 IsVisible-Dec : ∀ p q → Dec (IsVisible p q)
-IsVisible-Dec = {!!}
+IsVisible-Dec p q = ×-Dec (<-Dec p q) {!!}
 
 -- The proposal's parent is the maximum visible proposal.
 HasParent : Proposal → Type₀
 HasParent p = Σ[ i ∈ Proposal ] IsVisible i p × (∀ i' → IsVisible i' p → i' ≤ i)
 
+-- There is at most one possible parent.
 HasParent-IsProp : ∀ p → IsProp (HasParent p)
 HasParent-IsProp p (i₁ , i₁-IsVisible , i₁-max) (i₂ , i₂-IsVisible , i₂-max)
   = ΣProp≡ (λ i → ×-IsProp (IsVisible-IsProp i p) (Π-IsProp λ _ → Π-IsProp λ _ → ≤-IsProp))
       (≤-antisym (i₂-max i₁ i₁-IsVisible) (i₁-max i₂ i₂-IsVisible))
 
-HasParent-Dec : ∀ p → Dec (HasParent p)
-HasParent-Dec = {!!}
+HasParent-or-¬IsVisible : ∀ p → HasParent p ⊎ (∀ i → ¬ IsVisible i p)
+HasParent-or-¬IsVisible p = case lemma p return HasParent p ⊎ (∀ i → ¬ IsVisible i p) of λ
+  { (inl (i , (i<n , i-IsVisible) , i-max)) → inl (i , i-IsVisible , λ i' i'-IsVisible → i-max i' (fst i'-IsVisible , i'-IsVisible))
+  ; (inr ¬-IsVisible<) → inr λ i i-IsVisible → ¬-IsVisible< i (fst i-IsVisible , i-IsVisible)
+  }
+  where
+  IsVisible< : ℕ → ℕ → Type₀
+  IsVisible< i n = (i < n) × IsVisible i p
 
-¬HasParent-¬IsVisible : ∀ i p → ¬ (HasParent p) → ¬ (IsVisible i p)
-¬HasParent-¬IsVisible = {!!}
+  P : ℕ → Type₀
+  P n = (Σ[ i ∈ Proposal ] IsVisible< i n × (∀ i' → IsVisible< i' n → i' ≤ i)) ⊎ (∀ i → ¬ IsVisible< i n)
+
+  lemma : ∀ n → P n
+  lemma zero      = inr λ i i-IsVisible< → ¬-<-zero (fst i-IsVisible<)
+  lemma n@(suc k) = case IsVisible-Dec k p return P n of λ
+    { (yes k-IsVisible) → inl (k , (≤-refl , k-IsVisible) , λ { i (i<suck , i-IsVisible) → suc-reflects-≤ i<suck })
+    ; (no ¬k-IsVisible) → case lemma k return P n of λ
+      { (inl (i , (i<k , i-IsVisible) , i-max)) → inl (i , (≤-suc i<k , i-IsVisible) , λ {
+        i' (i'<suck , i'-IsVisible) → case <-split i'<suck of λ
+          { (inl i'<k) → i-max i' (i'<k , i'-IsVisible)
+          ; (inr i'≡k) → ⊥-elim (¬k-IsVisible (subst (λ i → IsVisible i p) i'≡k i'-IsVisible))
+          }
+        })
+      ; (inr ¬-IsVisible<) → inr λ {
+        i (i<suck , i-IsVisible) → case <-split i<suck of λ
+          { (inl i<k) → ¬-IsVisible< i (i<k , i-IsVisible)
+          ; (inr i≡k) → ¬k-IsVisible (subst (λ i → IsVisible i p) i≡k i-IsVisible)
+          }
+        }
+      }
+    }
+
+HasParent-Dec : ∀ p → Dec (HasParent p)
+HasParent-Dec p = case HasParent-or-¬IsVisible p return Dec (HasParent p) of λ
+  { (inl h) → yes h
+  ; (inr ¬IsVisible) → no λ { (i , i-isVisible , _) → ¬IsVisible i i-isVisible }
+  }
+
+IsVisible→HasParent : ∀ {i p} → IsVisible i p → HasParent p
+IsVisible→HasParent {i} {p} i-IsVisible = case HasParent-or-¬IsVisible p return HasParent p of λ
+  { (inl h) → h
+  ; (inr ¬IsVisible) → ⊥-elim (¬IsVisible i i-IsVisible)
+  }
 
 parent : ∀ {p} → HasParent p → Proposal
 parent = fst
@@ -78,6 +116,7 @@ parent = fst
 parent-< : ∀ {p} (h : HasParent p) → parent h < p
 parent-< (i , (i<p , _) , _) = i<p
 
+-- TODO: are all these withs to get this to compute necessary?
 depth-step : (n : Proposal) → (∀ i → i < n → ℕ) → ℕ
 depth-step n rec with HasParent-Dec n
 ... | yes h = suc (rec (parent h) (parent-< h))
@@ -129,8 +168,8 @@ IsAcked-IsProp p = ∥∥-IsProp
 
 -- Acked proposals are always visible to later proposals, because the quorum that acked this
 -- proposal overlaps the prepare quorum for the later proposal.
-IsAcked-IsVisible : ∀ p q → p < q → IsAcked p → IsVisible p q
-IsAcked-IsVisible p q p<q =
+IsAcked→IsVisible : ∀ {p q} → p < q → IsAcked p → IsVisible p q
+IsAcked→IsVisible {p} {q} p<q =
    ∥∥-rec (IsVisible-IsProp p q) λ { (Qp , Qp-IsAccepted) →
    with-∥∥ (quorumOverlap Qp (prepareQuorum q)) (IsVisible-IsProp p q) λ { (a , a∈Qp , a∈Qq) →
    p<q , ∣ a , a∈Qq , Qp-IsAccepted a a∈Qp ∣ } }
@@ -141,11 +180,11 @@ IsAcked-≤T p p-IsAcked = <-ind IsAcked-≤T-step
   where
   IsAcked-≤T-step : ∀ q → (∀ i → i < q → p < i → p ≤T i) → p < q → p ≤T q
   IsAcked-≤T-step q rec p<q with HasParent-Dec q
-  ... | no ¬h = ⊥-elim (¬HasParent-¬IsVisible p q ¬h (IsAcked-IsVisible p q p<q p-IsAcked))
+  ... | no ¬h = ⊥-elim (¬h (IsVisible→HasParent (IsAcked→IsVisible p<q p-IsAcked)))
   ... | yes h@(i , i-IsVisible , i-max) with p ≟ i
   ...   | lt p<i = ≤T-trans p i q (rec i (fst i-IsVisible) p<i) (HasParent-≤T q h)
   ...   | eq p≡i = subst (λ p → p ≤T q) (sym p≡i) (HasParent-≤T q h)
-  ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsAcked-IsVisible p q p<q p-IsAcked)))
+  ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsAcked→IsVisible p<q p-IsAcked)))
 
 -- We say a proposal is "committed" if it is the ancestor of an acked proposal.
 IsCommitted : Proposal → Type₀

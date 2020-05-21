@@ -100,19 +100,19 @@ HasParent-or-¬IsVisible p = case lemma p return HasParent p ⊎ (∀ i → ¬ I
 
   lemma : ∀ n → P n
   lemma zero      = inr λ i i-IsVisible< → ¬-<-zero (fst i-IsVisible<)
-  lemma n@(suc k) = case IsVisible-Dec k p return P n of λ
-    { (yes k-IsVisible) → inl (k , (≤-refl , k-IsVisible) , λ { i (i<suck , i-IsVisible) → suc-reflects-≤ i<suck })
-    ; (no ¬k-IsVisible) → case lemma k return P n of λ
-      { (inl (i , (i<k , i-IsVisible) , i-max)) → inl (i , (≤-suc i<k , i-IsVisible) , λ {
-        i' (i'<suck , i'-IsVisible) → case <-split i'<suck of λ
-          { (inl i'<k) → i-max i' (i'<k , i'-IsVisible)
-          ; (inr i'≡k) → ⊥-elim (¬k-IsVisible (subst (λ i → IsVisible i p) i'≡k i'-IsVisible))
+  lemma n@(suc j) = case IsVisible-Dec j p return P n of λ
+    { (yes j-IsVisible) → inl (j , (≤-refl , j-IsVisible) , λ { i (i<sucj , i-IsVisible) → suc-reflects-≤ i<sucj })
+    ; (no ¬j-IsVisible) → case lemma j return P n of λ
+      { (inl (i , (i<j , i-IsVisible) , i-max)) → inl (i , (≤-suc i<j , i-IsVisible) , λ {
+        i' (i'<sucj , i'-IsVisible) → case <-split i'<sucj of λ
+          { (inl i'<j) → i-max i' (i'<j , i'-IsVisible)
+          ; (inr i'≡j) → ⊥-elim (¬j-IsVisible (subst (λ i → IsVisible i p) i'≡j i'-IsVisible))
           }
         })
       ; (inr ¬-IsVisible<) → inr λ {
-        i (i<suck , i-IsVisible) → case <-split i<suck of λ
-          { (inl i<k) → ¬-IsVisible< i (i<k , i-IsVisible)
-          ; (inr i≡k) → ¬k-IsVisible (subst (λ i → IsVisible i p) i≡k i-IsVisible)
+        i (i<sucj , i-IsVisible) → case <-split i<sucj of λ
+          { (inl i<j) → ¬-IsVisible< i (i<j , i-IsVisible)
+          ; (inr i≡j) → ¬j-IsVisible (subst (λ i → IsVisible i p) i≡j i-IsVisible)
           }
         }
       }

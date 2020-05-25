@@ -123,7 +123,7 @@ HasParent-or-¬IsVisible p = case lemma p return HasParent p ⊎ (∀ i → ¬ I
 HasParent-Dec : ∀ p → Dec (HasParent p)
 HasParent-Dec p = case HasParent-or-¬IsVisible p return Dec (HasParent p) of λ
   { (inl h) → yes h
-  ; (inr ¬IsVisible) → no λ { (i , i-isVisible , _) → ¬IsVisible i i-isVisible }
+  ; (inr ¬IsVisible) → no λ { (i , i-IsVisible , _) → ¬IsVisible i i-IsVisible }
   }
 
 -- If any proposal is visible to p, then p has a parent.

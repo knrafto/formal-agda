@@ -45,7 +45,7 @@ postulate
   prepareQuorum : Proposal → Quorum
   preparePromise : ∀ i p → i < p → (m : Member (prepareQuorum p)) → Dec (IsAccepted (acceptor m) i)
 
--- First, we define a forest of proposals, where each proposal is either a root or attached
+-- Next, we define a forest of proposals, where each proposal is either a root or attached
 -- to some other proposal (its "parent"). A proposal's p parent will be the maximum proposal that is accepted
 -- by any member the prepare quorum for p, if it exists. If no member in the prepare quorum accepted any proposal,
 -- then p is a root.

@@ -257,14 +257,14 @@ CommittedProposal = Σ[ p ∈ Proposal ] IsCommitted p
 CommittedProposal-IsSet : IsSet CommittedProposal
 CommittedProposal-IsSet = Σ-IsSet Proposal-IsSet (λ _ → IsProp→IsSet IsCommitted-IsProp)
 
-committedDepth : CommittedProposal → ℕ
-committedDepth (p , _) = depth p
+index : CommittedProposal → ℕ
+index (p , _) = depth p
 
-committedDepth-IsInjective : ∀ {p₁ p₂ : CommittedProposal} → committedDepth p₁ ≡ committedDepth p₂ → p₁ ≡ p₂
-committedDepth-IsInjective {p₁ , p₁-IsCommitted} {p₂ , p₂-IsCommitted} dp₁≡dp₂ =
+index-IsInjective : ∀ {p₁ p₂ : CommittedProposal} → index p₁ ≡ index p₂ → p₁ ≡ p₂
+index-IsInjective {p₁ , p₁-IsCommitted} {p₂ , p₂-IsCommitted} dp₁≡dp₂ =
   ΣProp≡ (λ _ → IsCommitted-IsProp) (committed-unique p₁ p₂ dp₁≡dp₂ p₁-IsCommitted p₂-IsCommitted)
 
-committedParent : ∀ {n} → (Σ[ p ∈ CommittedProposal ] committedDepth p ≡ suc n) → (Σ[ p ∈ CommittedProposal ] committedDepth p ≡ n)
+committedParent : ∀ {n} → (Σ[ p ∈ CommittedProposal ] index p ≡ suc n) → (Σ[ p ∈ CommittedProposal ] index p ≡ n)
 committedParent {n} ((p , p-IsCommitted) , dp≡sucn) =
     (p' , ancestor-IsCommitted p' p parent-≤T p-IsCommitted) , dp'≡n
   where
@@ -274,4 +274,4 @@ committedParent {n} ((p , p-IsCommitted) , dp≡sucn) =
   dp'≡n : depth p' ≡ n
   dp'≡n = snd (tree-parent (p , dp≡sucn))
 
-open Log CommittedProposal CommittedProposal-IsSet committedDepth committedDepth-IsInjective committedParent
+open Log CommittedProposal CommittedProposal-IsSet index index-IsInjective committedParent

@@ -9,23 +9,23 @@ open import Math.Type
 module Log
     (A : Type₀)
     (A-IsSet : IsSet A)
-    (depth : A → ℕ)
-    (depth-IsInjective : IsInjective depth)
-    (parent : ∀ {n} → fiber depth (suc n) → fiber depth n)
+    (index : A → ℕ)
+    (index-IsInjective : IsInjective index)
+    (parent : ∀ {n} → fiber index (suc n) → fiber index n)
     where
 
   P : ℕ → Type₀
-  P = fiber depth
+  P = fiber index
 
   P-IsProp : ∀ {a} → IsProp (P a)
-  P-IsProp = IsInjective→fiber-IsProp A-IsSet ℕ-IsSet depth-IsInjective _
+  P-IsProp = IsInjective→fiber-IsProp A-IsSet ℕ-IsSet index-IsInjective _
 
   parent^ : ∀ {n} k → P (k + n) → P n
   parent^ zero    = id
   parent^ (suc k) = parent^ k ∘ parent
 
-  _<T_ : A → A → Type₀
-  a <T b = depth a < depth b
+  _<L_ : A → A → Type₀
+  a <L b = index a < index b
 
-  <T-IsProp : ∀ {a b} → IsProp (a < b)
-  <T-IsProp = <-IsProp
+  <L-IsProp : ∀ {a b} → IsProp (a <L b)
+  <L-IsProp = <-IsProp

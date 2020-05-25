@@ -177,18 +177,17 @@ open Forest Proposal Proposal-IsSet depth tree-parent
 -- We'll define what it means for a proposal to be "committed", and show that committed proposals
 -- form a log.
 
--- First, we say a proposal is "acked" if it is accepted by some quorum of acceptors.
--- In "Paxos Made Simple", this property is called "chosen" rather than "acked".
-IsAcked : Proposal → Type₀
-IsAcked p = ∥ Σ[ q ∈ Quorum ] ((m : Member q) → IsAccepted (acceptor m) p) ∥
+-- First, we say a proposal is "chosen" if it is accepted by some quorum of acceptors.
+IsChosen : Proposal → Type₀
+IsChosen p = ∥ Σ[ q ∈ Quorum ] ((m : Member q) → IsAccepted (acceptor m) p) ∥
 
-IsAcked-IsProp : ∀ p → IsProp (IsAcked p)
-IsAcked-IsProp p = ∥∥-IsProp
+IsChosen-IsProp : ∀ p → IsProp (IsChosen p)
+IsChosen-IsProp p = ∥∥-IsProp
 
--- Acked proposals are always visible to later proposals, because the quorum that acked this
+-- Chosen proposals are always visible to later proposals, because the quorum that accepted this
 -- proposal overlaps the prepare quorum for the later proposal.
-IsAcked→IsVisible : ∀ {p q} → p < q → IsAcked p → IsVisible p q
-IsAcked→IsVisible {p} {q} p<q =
+IsChosen→IsVisible : ∀ {p q} → p < q → IsChosen p → IsVisible p q
+IsChosen→IsVisible {p} {q} p<q =
    ∥∥-rec (IsVisible-IsProp p q) λ { (Qp , Qp-IsAccepted) →
    with-∥∥ (quorumOverlap Qp (prepareQuorum q)) (IsVisible-IsProp p q) λ { (m₁ , m₂ , am₁≡am₂) →
    p<q , ∣ m₂ , subst (λ a → IsAccepted a p) am₁≡am₂ (Qp-IsAccepted m₁) ∣ } }
@@ -202,34 +201,34 @@ HasParent-≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) parent-�
   ... | yes h' = ap parent (HasParent-IsProp p h' h)
   ... | no ¬h  = ⊥-elim (¬h h)
 
--- Acked proposals are always ancestors to later proposals.
-IsAcked-≤T : ∀ p → IsAcked p → ∀ q → p < q → p ≤T q
-IsAcked-≤T p p-IsAcked = <-ind IsAcked-≤T-step
+-- Chosen proposals are always ancestors to later proposals.
+IsChosen-≤T : ∀ p → IsChosen p → ∀ q → p < q → p ≤T q
+IsChosen-≤T p p-IsChosen = <-ind IsChosen-≤T-step
   where
-  IsAcked-≤T-step : ∀ q → (∀ i → i < q → p < i → p ≤T i) → p < q → p ≤T q
-  IsAcked-≤T-step q rec p<q with HasParent-Dec q
-  ... | no ¬h = ⊥-elim (¬h (IsVisible→HasParent (IsAcked→IsVisible p<q p-IsAcked)))
+  IsChosen-≤T-step : ∀ q → (∀ i → i < q → p < i → p ≤T i) → p < q → p ≤T q
+  IsChosen-≤T-step q rec p<q with HasParent-Dec q
+  ... | no ¬h = ⊥-elim (¬h (IsVisible→HasParent (IsChosen→IsVisible p<q p-IsChosen)))
   ... | yes h@(i , i-IsVisible , i-max) with p ≟ i
   ...   | lt p<i = ≤T-trans (rec i (fst i-IsVisible) p<i) (HasParent-≤T q h)
   ...   | eq p≡i = subst (λ p → p ≤T q) (sym p≡i) (HasParent-≤T q h)
-  ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsAcked→IsVisible p<q p-IsAcked)))
+  ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsChosen→IsVisible p<q p-IsChosen)))
 
--- We say a proposal is "committed" if it is the ancestor of some acked proposal.
+-- We say a proposal is "committed" if it is the ancestor of some chosen proposal.
 IsCommitted : Proposal → Type₀
-IsCommitted p = ∥ Σ[ q ∈ Proposal ] IsAcked q × p ≤T q ∥
+IsCommitted p = ∥ Σ[ q ∈ Proposal ] IsChosen q × p ≤T q ∥
 
 IsCommitted-IsProp : ∀ {p} → IsProp (IsCommitted p)
 IsCommitted-IsProp = ∥∥-IsProp
 
--- Acked proposals are committed.
-IsAcked→IsCommitted : ∀ {p} → IsAcked p → IsCommitted p
-IsAcked→IsCommitted {p} p-IsAcked = ∣ p , p-IsAcked , ≤T-refl ∣
+-- Chosen proposals are committed.
+IsChosen→IsCommitted : ∀ {p} → IsChosen p → IsCommitted p
+IsChosen→IsCommitted {p} p-IsChosen = ∣ p , p-IsChosen , ≤T-refl ∣
 
 -- The ancestor of committed proposal is committed.
 ancestor-IsCommitted : ∀ p₁ p₂ → p₁ ≤T p₂ → IsCommitted p₂ → IsCommitted p₁
 ancestor-IsCommitted p₁ p₂ p₁≤Tp₂ =
-  ∥∥-rec IsCommitted-IsProp λ { (q , q-IsAcked , p₂≤Tq) →
-    ∣ q , q-IsAcked , ≤T-trans p₁≤Tp₂ p₂≤Tq ∣ }
+  ∥∥-rec IsCommitted-IsProp λ { (q , q-IsChosen , p₂≤Tq) →
+    ∣ q , q-IsChosen , ≤T-trans p₁≤Tp₂ p₂≤Tq ∣ }
 
 -- The crucial property: there is at most one committed proposal at each depth.
 -- Together with the above property, this implies that committed proposals lie
@@ -237,17 +236,17 @@ ancestor-IsCommitted p₁ p₂ p₁≤Tp₂ =
 committed-unique : ∀ p₁ p₂ → depth p₁ ≡ depth p₂
   → IsCommitted p₁ → IsCommitted p₂ → p₁ ≡ p₂
 committed-unique p₁ p₂ dp₁≡dp₂ =
-  ∥∥-rec (Π-IsProp λ _ → Proposal-IsSet p₁ p₂) λ { (q₁ , q₁-IsAcked , p₁≤Tq₁) →
-  ∥∥-rec (Proposal-IsSet p₁ p₂) λ { (q₂ , q₂-IsAcked , p₂≤Tq₂) →
+  ∥∥-rec (Π-IsProp λ _ → Proposal-IsSet p₁ p₂) λ { (q₁ , q₁-IsChosen , p₁≤Tq₁) →
+  ∥∥-rec (Proposal-IsSet p₁ p₂) λ { (q₂ , q₂-IsChosen , p₂≤Tq₂) →
   case q₁ ≟ q₂ return p₁ ≡ p₂ of λ
     { (lt q₁<q₂) → ≤T-unique p₁ p₂ q₂
-      (≤T-trans p₁≤Tq₁ (IsAcked-≤T q₁ q₁-IsAcked q₂ q₁<q₂))
+      (≤T-trans p₁≤Tq₁ (IsChosen-≤T q₁ q₁-IsChosen q₂ q₁<q₂))
       p₂≤Tq₂
       dp₁≡dp₂
     ; (eq q₁≡q₂) → ≤T-unique p₁ p₂ q₂ (subst (p₁ ≤T_) q₁≡q₂ p₁≤Tq₁) p₂≤Tq₂ dp₁≡dp₂
     ; (gt q₂<q₁) → ≤T-unique p₁ p₂ q₁
       p₁≤Tq₁
-      (≤T-trans p₂≤Tq₂ (IsAcked-≤T q₂ q₂-IsAcked q₁ q₂<q₁))
+      (≤T-trans p₂≤Tq₂ (IsChosen-≤T q₂ q₂-IsChosen q₁ q₂<q₁))
       dp₁≡dp₂
     } } }
 

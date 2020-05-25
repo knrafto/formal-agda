@@ -5,8 +5,8 @@ open import Math.Dec
 open import Math.Finite
 open import Math.Nat
 open import Math.Type
+open import Systems.Forest
 open import Systems.Log
-open import Systems.Tree
 
 private
   variable
@@ -171,7 +171,7 @@ tree-parent (p , dp≡sucn) with HasParent-Dec p
 -- generic definitions about forest that we now bring into scope. Particularly important is
 -- the "ancestor" relation: for two proposals p and q, p ≤T q means that p is an ancestor of q
 -- in the forest.
-open Tree Proposal Proposal-IsSet depth tree-parent
+open Forest Proposal Proposal-IsSet depth tree-parent
 
 -- Now, we'll pick out a single "branch" of the proposal forest, which will be our consensus log.
 -- We'll define what it means for a proposal to be "committed", and show that committed proposals

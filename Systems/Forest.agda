@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical #-}
-module Systems.Tree where
+module Systems.Forest where
 
 open import Math.Function
 open import Math.Id
@@ -8,7 +8,7 @@ open import Math.Type
 
 -- See https://ncatlab.org/nlab/show/tree#as_functors
 -- In set theory, one might call this a "finite-ish forest": http://math.huji.ac.il/~sunger/cmu/TreesTalk.pdf
-module Tree
+module Forest
     (A : Type₀)
     (A-IsSet : IsSet A)
     (depth : A → ℕ)

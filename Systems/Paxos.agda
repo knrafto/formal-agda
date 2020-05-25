@@ -109,9 +109,9 @@ HasParent-or-¬IsVisible p = case lemma p return HasParent p ⊎ (∀ i → ¬ I
           ; (inr i'≡j) → ⊥-elim (¬j-IsVisible (subst (λ i → IsVisible i p) i'≡j i'-IsVisible))
           }
         })
-      ; (inr ¬-IsVisible<) → inr λ {
+      ; (inr ¬IsVisible<) → inr λ {
         i (i<sucj , i-IsVisible) → case <-split i<sucj of λ
-          { (inl i<j) → ¬-IsVisible< i (i<j , i-IsVisible)
+          { (inl i<j) → ¬IsVisible< i (i<j , i-IsVisible)
           ; (inr i≡j) → ¬j-IsVisible (subst (λ i → IsVisible i p) i≡j i-IsVisible)
           }
         }

@@ -193,8 +193,8 @@ IsChosen→IsVisible {p} {q} p<q =
    p<q , ∣ m₂ , subst (λ a → IsAccepted a p) am₁≡am₂ (Qp-IsAccepted m₁) ∣ } }
 
 -- (Another lemma.)
-HasParent-≤T : ∀ p → (h : HasParent p) → parent h ≤T p
-HasParent-≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) parent-≤T
+HasParent→≤T : ∀ p → (h : HasParent p) → parent h ≤T p
+HasParent→≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) parent-≤T
   where
   lemma : ∀ {n} (x : depth p ≡ suc n) → fst (tree-parent (p , x)) ≡ parent h
   lemma x with HasParent-Dec p
@@ -202,15 +202,15 @@ HasParent-≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) parent-�
   ... | no ¬h  = ⊥-elim (¬h h)
 
 -- Chosen proposals are always ancestors to later proposals.
-IsChosen-≤T : ∀ p → IsChosen p → ∀ q → p < q → p ≤T q
-IsChosen-≤T p p-IsChosen = <-ind IsChosen-≤T-step
+IsChosen→≤T : ∀ p → IsChosen p → ∀ q → p < q → p ≤T q
+IsChosen→≤T p p-IsChosen = <-ind IsChosen-≤T-step
   where
   IsChosen-≤T-step : ∀ q → (∀ i → i < q → p < i → p ≤T i) → p < q → p ≤T q
   IsChosen-≤T-step q rec p<q with HasParent-Dec q
   ... | no ¬h = ⊥-elim (¬h (IsVisible→HasParent (IsChosen→IsVisible p<q p-IsChosen)))
   ... | yes h@(i , i-IsVisible , i-max) with p ≟ i
-  ...   | lt p<i = ≤T-trans (rec i (fst i-IsVisible) p<i) (HasParent-≤T q h)
-  ...   | eq p≡i = subst (λ p → p ≤T q) (sym p≡i) (HasParent-≤T q h)
+  ...   | lt p<i = ≤T-trans (rec i (fst i-IsVisible) p<i) (HasParent→≤T q h)
+  ...   | eq p≡i = subst (λ p → p ≤T q) (sym p≡i) (HasParent→≤T q h)
   ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsChosen→IsVisible p<q p-IsChosen)))
 
 -- We say a proposal is "committed" if it is the ancestor of some chosen proposal.
@@ -240,13 +240,13 @@ committed-unique p₁ p₂ dp₁≡dp₂ =
   ∥∥-rec (Proposal-IsSet p₁ p₂) λ { (q₂ , q₂-IsChosen , p₂≤Tq₂) →
   case q₁ ≟ q₂ return p₁ ≡ p₂ of λ
     { (lt q₁<q₂) → ≤T-unique p₁ p₂ q₂
-      (≤T-trans p₁≤Tq₁ (IsChosen-≤T q₁ q₁-IsChosen q₂ q₁<q₂))
+      (≤T-trans p₁≤Tq₁ (IsChosen→≤T q₁ q₁-IsChosen q₂ q₁<q₂))
       p₂≤Tq₂
       dp₁≡dp₂
     ; (eq q₁≡q₂) → ≤T-unique p₁ p₂ q₂ (subst (p₁ ≤T_) q₁≡q₂ p₁≤Tq₁) p₂≤Tq₂ dp₁≡dp₂
     ; (gt q₂<q₁) → ≤T-unique p₁ p₂ q₁
       p₁≤Tq₁
-      (≤T-trans p₂≤Tq₂ (IsChosen-≤T q₂ q₂-IsChosen q₁ q₂<q₁))
+      (≤T-trans p₂≤Tq₂ (IsChosen→≤T q₂ q₂-IsChosen q₁ q₂<q₁))
       dp₁≡dp₂
     } } }
 

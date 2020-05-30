@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Nat where
 
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm; *-assoc) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero; *-identityˡ to 1-*; *-identityʳ to *-1)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
 open import Cubical.Induction.WellFounded
@@ -40,22 +40,6 @@ suc-reflects-< = pred-≤-pred
 <-Dec (suc m) (suc n) with <-Dec m n
 <-Dec (suc m) (suc n) | yes m<n = yes (suc-preserves-< m<n)
 <-Dec (suc m) (suc n) | no ¬m<n = no (λ sm<sn → contradiction (suc-reflects-< sm<sn) ¬m<n)
-
-1-* : ∀ n → 1 * n ≡ n
-1-* n = +-zero n
-
-*-1 : ∀ n → n * 1 ≡ n
-*-1 n = *-comm n 1 ∙ 1-* n
-
--- TODO: name?
-*-dist-r : ∀ m n o → (n + o) * m ≡ n * m + o * m
-*-dist-r _ zero _ = refl
-*-dist-r m (suc n) o = ap (m +_) (*-dist-r m n o) ∙ +-assoc m (n * m) (o * m)
-
--- TODO: contribute to cubical?
-*-assoc : ∀ m n o → m * (n * o) ≡ (m * n) * o
-*-assoc zero _ _ = refl
-*-assoc (suc m) n o = ap (n * o +_) (*-assoc m n o) ∙ sym (*-dist-r o n (m * n))
 
 <-ind : ∀ {ℓ} {P : ℕ → Type ℓ} → (∀ n → (∀ k → k < n → P k) → P n) → (n : ℕ) → P n
 <-ind {P = P} = WFI.induction <-wellfounded {P = P}

@@ -10,7 +10,7 @@ open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-elim; isP
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ)
-open import Cubical.Data.Sigma public using (ΣProp≡)
+open import Cubical.Data.Sigma public using (_×_; ΣProp≡)
 open import Cubical.Data.Sigma using (sigmaPath→pathSigma)
 open import Cubical.HITs.PropositionalTruncation public using (∥_∥; ∣_∣) renaming (propTruncIsProp to ∥∥-IsProp; rec to ∥∥-rec)
 open import Cubical.Relation.Nullary public using (¬_)
@@ -20,15 +20,10 @@ private
     ℓ ℓ' : Level
 
 infix 4 _≡[_]≡_
-infixr 5 _×_
 
 -- Equality over another equality.
 _≡[_]≡_ : ∀ {ℓ} {A B : Type ℓ} → A → A ≡ B → B → Type ℓ
 a ≡[ p ]≡ b = transport p a ≡ b
-
--- Cubical defines × as a new record, but being compatible with Σ-type maxes it much easier to work with.
-_×_ : (A : Type ℓ) (B : Type ℓ') → Type (ℓ-max ℓ ℓ')
-A × B = Σ[ x ∈ A ] B
 
 case_of_ : {A : Type ℓ} {B : A → Type ℓ'} → (x : A) → (∀ x → B x) → B x
 case x of f = f x

@@ -106,7 +106,7 @@ HasParent-or-¬IsVisible p = case lemma p return HasParent p ⊎ (∀ i → ¬ I
       { (inl (i , (i<j , i-IsVisible) , i-max)) → inl (i , (≤-suc i<j , i-IsVisible) , λ {
         i' (i'<sucj , i'-IsVisible) → case <-split i'<sucj of λ
           { (inl i'<j) → i-max i' (i'<j , i'-IsVisible)
-          ; (inr i'≡j) → ⊥-elim (¬j-IsVisible (subst (λ i → IsVisible i p) i'≡j i'-IsVisible))
+          ; (inr i'≡j) → ⊥-rec (¬j-IsVisible (subst (λ i → IsVisible i p) i'≡j i'-IsVisible))
           }
         })
       ; (inr ¬IsVisible<) → inr λ {
@@ -130,7 +130,7 @@ HasParent-Dec p = case HasParent-or-¬IsVisible p return Dec (HasParent p) of λ
 IsVisible→HasParent : ∀ {i p} → IsVisible i p → HasParent p
 IsVisible→HasParent {i} {p} i-IsVisible = case HasParent-or-¬IsVisible p return HasParent p of λ
   { (inl h) → h
-  ; (inr ¬IsVisible) → ⊥-elim (¬IsVisible i i-IsVisible)
+  ; (inr ¬IsVisible) → ⊥-rec (¬IsVisible i i-IsVisible)
   }
 
 -- (A helper function to make proofs about the depth function easier.)
@@ -149,7 +149,7 @@ depth-zero p ¬h = <-ind-step depth-step p ∙ lemma
   where
   lemma : depth-step p (λ i _ → depth i) ≡ zero
   lemma with HasParent-Dec p
-  ... | yes h = ⊥-elim (¬h h)
+  ... | yes h = ⊥-rec (¬h h)
   ... | no  _ = refl
 
 -- The depth of a non-root proposal is one more than the depth of its parent.
@@ -159,13 +159,13 @@ depth-suc p h = <-ind-step depth-step p ∙ lemma
   lemma : depth-step p (λ i _ → depth i) ≡ suc (depth (parent h))
   lemma with HasParent-Dec p
   ... | yes h' = ap (λ h → suc (depth (parent h))) (HasParent-IsProp p h' h)
-  ... | no ¬h  = ⊥-elim (¬h h)
+  ... | no ¬h  = ⊥-rec (¬h h)
 
 -- The "parent" function of the forest, which takes a node at depth n + 1 to its parent node at depth n.
 tree-parent : ∀ {n} → (Σ[ p ∈ Proposal ] depth p ≡ suc n) → (Σ[ p ∈ Proposal ] depth p ≡ n)
 tree-parent (p , dp≡sucn) with HasParent-Dec p
 ... | yes h = parent h , suc-IsInjective (sym (depth-suc p h) ∙ dp≡sucn)
-... | no ¬h = ⊥-elim (¬zero≡suc (sym (depth-zero p ¬h) ∙ dp≡sucn))
+... | no ¬h = ⊥-rec (¬zero≡suc (sym (depth-zero p ¬h) ∙ dp≡sucn))
 
 -- This completes the description of the forest of proposals. The "Tree" module contains some
 -- generic definitions about forest that we now bring into scope. Particularly important is
@@ -199,7 +199,7 @@ HasParent→≤T p h = subst (λ i → i ≤T p) (lemma (depth-suc p h)) parent-
   lemma : ∀ {n} (x : depth p ≡ suc n) → fst (tree-parent (p , x)) ≡ parent h
   lemma x with HasParent-Dec p
   ... | yes h' = ap parent (HasParent-IsProp p h' h)
-  ... | no ¬h  = ⊥-elim (¬h h)
+  ... | no ¬h  = ⊥-rec (¬h h)
 
 -- Chosen proposals are always ancestors to later proposals.
 IsChosen→≤T : ∀ p → IsChosen p → ∀ q → p < q → p ≤T q
@@ -207,11 +207,11 @@ IsChosen→≤T p p-IsChosen = <-ind IsChosen-≤T-step
   where
   IsChosen-≤T-step : ∀ q → (∀ i → i < q → p < i → p ≤T i) → p < q → p ≤T q
   IsChosen-≤T-step q rec p<q with HasParent-Dec q
-  ... | no ¬h = ⊥-elim (¬h (IsVisible→HasParent (IsChosen→IsVisible p<q p-IsChosen)))
+  ... | no ¬h = ⊥-rec (¬h (IsVisible→HasParent (IsChosen→IsVisible p<q p-IsChosen)))
   ... | yes h@(i , i-IsVisible , i-max) with p ≟ i
   ...   | lt p<i = ≤T-trans (rec i (fst i-IsVisible) p<i) (HasParent→≤T q h)
   ...   | eq p≡i = subst (λ p → p ≤T q) (sym p≡i) (HasParent→≤T q h)
-  ...   | gt p>i = ⊥-elim (<-asym p>i (i-max p (IsChosen→IsVisible p<q p-IsChosen)))
+  ...   | gt p>i = ⊥-rec (<-asym p>i (i-max p (IsChosen→IsVisible p<q p-IsChosen)))
 
 -- We say a proposal is "committed" if it is the ancestor of some chosen proposal.
 IsCommitted : Proposal → Type₀

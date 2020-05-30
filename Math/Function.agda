@@ -84,26 +84,26 @@ infixr 9 _∘-IsEmbedding_
 _∘-IsEmbedding_ : {g : B → C} {f : A → B} → IsEmbedding g → IsEmbedding f → IsEmbedding (g ∘ f)
 _∘-IsEmbedding_ {g = g} {f = f} g-IsEmbedding f-IsEmbedding _ _ = (g-IsEmbedding _ _) ∘-IsEquiv (f-IsEmbedding _ _)
 
-⊥-elim-IsEquiv : {A : Type ℓ} → ¬ A → IsEquiv (⊥-elim {A = A})
-⊥-elim-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ¬A ⊥-elim-leftInv ⊥-elim-rightInv
+⊥-rec-IsEquiv : {A : Type ℓ} → ¬ A → IsEquiv (⊥-rec {A = A})
+⊥-rec-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ¬A ⊥-rec-leftInv ⊥-rec-rightInv
   where
-  ⊥-elim-leftInv : (a : ⊥) → ¬A (⊥-elim a) ≡ a
-  ⊥-elim-leftInv ()
+  ⊥-rec-leftInv : (a : ⊥) → ¬A (⊥-rec a) ≡ a
+  ⊥-rec-leftInv ()
 
-  ⊥-elim-rightInv : (a : A) → ⊥-elim (¬A a) ≡ a
-  ⊥-elim-rightInv a = ⊥-elim (¬A a)
+  ⊥-rec-rightInv : (a : A) → ⊥-rec (¬A a) ≡ a
+  ⊥-rec-rightInv a = ⊥-rec (¬A a)
 
 ¬-IsEquiv : {A : Type ℓ} (¬A : ¬ A) → IsEquiv ¬A
-¬-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ⊥-elim ¬-leftInv ¬-rightInv
+¬-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ⊥-rec ¬-leftInv ¬-rightInv
   where
-  ¬-leftInv : (a : A) → ⊥-elim (¬A a) ≡ a
-  ¬-leftInv a = ⊥-elim (¬A a)
+  ¬-leftInv : (a : A) → ⊥-rec (¬A a) ≡ a
+  ¬-leftInv a = ⊥-rec (¬A a)
 
-  ¬-rightInv : (b : ⊥) → ¬A (⊥-elim b) ≡ b
-  ¬-rightInv b = ⊥-elim b
+  ¬-rightInv : (b : ⊥) → ¬A (⊥-rec b) ≡ b
+  ¬-rightInv b = ⊥-rec b
 
-⊤-elim-IsEmbedding : {A : Type ℓ} → IsSet A → {a : A} → IsEmbedding (⊤-elim a)
-⊤-elim-IsEmbedding A-IsSet _ _ = HasInverse→IsEquiv (λ _ → ⊤-IsProp _ _) (λ _ → IsProp→IsSet ⊤-IsProp _ _ _ _) (λ _ → A-IsSet _ _ _ _)
+⊤-rec-IsEmbedding : {A : Type ℓ} → IsSet A → {a : A} → IsEmbedding (⊤-rec a)
+⊤-rec-IsEmbedding A-IsSet _ _ = HasInverse→IsEquiv (λ _ → ⊤-IsProp _ _) (λ _ → IsProp→IsSet ⊤-IsProp _ _ _ _) (λ _ → A-IsSet _ _ _ _)
 
 ∘f-IsEquiv : {C : Type ℓ''} {f : A → B} → IsEquiv f → IsEquiv (_∘ f)
 ∘f-IsEquiv {A = A} {B = B} {C = C} {f = f} f-IsEquiv = HasInverse→IsEquiv ∘f-inv ∘f-inv-∘f ∘f-∘f-inv

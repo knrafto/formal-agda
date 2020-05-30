@@ -5,8 +5,7 @@ open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-
 open import Cubical.Foundations.HLevels public using () renaming (isPropΠ to Π-IsProp; isPropΣ to Σ-IsProp; isSetΠ to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
 open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst; transport) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
--- TODO: rename ⊥-elim to ⊥-rec
-open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-elim; isProp⊥ to ⊥-IsProp)
+open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-rec; isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ)
@@ -41,7 +40,7 @@ Lift-IsProp : {A : Type ℓ} → IsProp A → IsProp (Lift {j = ℓ'} A)
 Lift-IsProp A-IsProp (lift a) (lift b) = ap lift (A-IsProp a b)
 
 contradiction : {A : Type ℓ} {B : Type ℓ'} → A → ¬ A → B
-contradiction a ¬A = ⊥-elim (¬A a)
+contradiction a ¬A = ⊥-rec (¬A a)
 
 Π : (A : Type ℓ) (B : A → Type ℓ') → Type (ℓ-max ℓ ℓ')
 Π A B = (a : A) → B a
@@ -61,8 +60,8 @@ HasHLevel× n a b = isOfHLevelΣ n a (λ _ → b)
 ×-IsProp : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → IsProp (A × B)
 ×-IsProp = HasHLevel× 1
 
-⊤-elim : {A : Type ℓ} → A → (⊤ → A)
-⊤-elim a tt = a
+⊤-rec : {A : Type ℓ} → A → (⊤ → A)
+⊤-rec a tt = a
 
 ⊤-IsSet : IsSet ⊤
 ⊤-IsSet = IsProp→IsSet ⊤-IsProp

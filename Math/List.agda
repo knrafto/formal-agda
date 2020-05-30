@@ -23,7 +23,7 @@ infixr 5 _∷_
 _∷_ : {A : Type ℓ} → A → List A → List A
 a ∷ l = List-cons (a , l)
 
-[]-IsEmbedding : {A : Type ℓ} → IsEmbedding {B = List A} (⊤-elim [])
+[]-IsEmbedding : {A : Type ℓ} → IsEmbedding {B = List A} (⊤-rec [])
 []-IsEmbedding {A = A} a₀ x₀ = decode-IsEquiv []
   where
   Code : List A → Type _
@@ -34,7 +34,7 @@ a ∷ l = List-cons (a , l)
   encode x p = subst Code p refl
 
   decode : (x : List A) → Code x → [] ≡ x
-  decode [] p = ap (⊤-elim []) p
+  decode [] p = ap (⊤-rec []) p
 
   decode-encode : (x : List A) (p : [] ≡ x) → decode x (encode x p) ≡ p
   decode-encode _ = pathInd (λ x p → decode x (encode x p) ≡ p) (ap {y = refl} (decode []) (subst-refl Code))

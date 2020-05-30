@@ -20,7 +20,7 @@ Vec-IsSet : {n : ℕ} → IsSet A → IsSet (Vec n A)
 Vec-IsSet A-IsSet = Π-IsSet (λ _ → A-IsSet)
 
 Vec0-IsContr : IsContr (Vec 0 A)
-Vec0-IsContr = (λ i → ⊥-elim (¬Fin0 i)) , λ y → funExt λ i → ⊥-elim (¬Fin0 i)
+Vec0-IsContr = (λ i → ⊥-rec (¬Fin0 i)) , λ y → funExt λ i → ⊥-rec (¬Fin0 i)
 
 concat : {m n : ℕ} → Vec m A × Vec n A → Vec (m + n) A
 concat = (_∘ inv Fin-+-IsEquiv) ∘ pair
@@ -47,7 +47,7 @@ cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
 cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-IsEquiv
 
 0-vector : Vec 0 A
-0-vector = λ i → ⊥-elim (¬Fin0 i)
+0-vector = λ i → ⊥-rec (¬Fin0 i)
 
 1-vector : A → Vec 1 A
 1-vector a₀ = cons (a₀ , 0-vector)

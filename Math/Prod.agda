@@ -48,7 +48,7 @@ private
 ×-swap-IsEquiv = HasInverse→IsEquiv ×-swap (λ { (a , b) → refl }) (λ { (b , a) → refl })
 
 c,-IsEmbedding : {A : Type ℓ} {B : Type ℓ'} → IsSet A → {c : A} → IsEmbedding {A = B} (c ,_)
-c,-IsEmbedding A-IsSet = ×-map-IsEmbedding (⊤-elim-IsEmbedding A-IsSet) (IsEquiv→IsEmbedding id-IsEquiv) ∘-IsEmbedding IsEquiv→IsEmbedding (inv-IsEquiv ⊤-snd-IsEquiv)
+c,-IsEmbedding A-IsSet = ×-map-IsEmbedding (⊤-rec-IsEmbedding A-IsSet) (IsEquiv→IsEmbedding id-IsEquiv) ∘-IsEmbedding IsEquiv→IsEmbedding (inv-IsEquiv ⊤-snd-IsEquiv)
 
 ,c-IsEmbedding : {A : Type ℓ} {B : Type ℓ'} → IsSet B → {c : B} → IsEmbedding {A = A} (_, c)
-,c-IsEmbedding B-IsSet = ×-map-IsEmbedding (IsEquiv→IsEmbedding id-IsEquiv) (⊤-elim-IsEmbedding B-IsSet) ∘-IsEmbedding IsEquiv→IsEmbedding (inv-IsEquiv ⊤-fst-IsEquiv)
+,c-IsEmbedding B-IsSet = ×-map-IsEmbedding (IsEquiv→IsEmbedding id-IsEquiv) (⊤-rec-IsEmbedding B-IsSet) ∘-IsEmbedding IsEquiv→IsEmbedding (inv-IsEquiv ⊤-fst-IsEquiv)

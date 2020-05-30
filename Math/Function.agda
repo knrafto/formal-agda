@@ -2,15 +2,15 @@
 module Math.Function where
 
 open import Cubical.Core.Everything public using () renaming (isEquiv to IsEquiv)
-open import Cubical.Foundations.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding)
 open import Cubical.Foundations.Equiv public using (fiber)
-open import Cubical.Foundations.Equiv using (idEquiv; isoToEquiv; invEquiv; compEquiv)
+open import Cubical.Foundations.Equiv using (idEquiv; invEquiv; compEquiv)
+open import Cubical.Foundations.Equiv.HalfAdjoint using (isHAEquiv; equiv→HAEquiv)
 -- TODO: rename (maybe export in Math.Type)?
 open import Cubical.Foundations.HLevels using (inhProp→isContr)
-open import Cubical.Foundations.HAEquiv using (isHAEquiv; equiv→HAEquiv)
-open import Cubical.Foundations.Isomorphism using (iso)
+open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv)
 open import Cubical.Foundations.Prelude public using (funExt)
 open import Cubical.Foundations.Univalence using () renaming (ua to uaPrim)
+open import Cubical.Functions.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding)
 
 open import Math.Type
 

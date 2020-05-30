@@ -2,15 +2,17 @@
 module Math.Type where
 
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; Type₁; _≡_; Σ; Σ-syntax; _,_; fst; snd)
-open import Cubical.Foundations.HLevels public using (ΣProp≡) renaming (propPi to Π-IsProp; isPropSigma to Σ-IsProp; isSetPi to Π-IsSet)
+open import Cubical.Foundations.HLevels public using () renaming (isPropΠ to Π-IsProp; isPropΣ to Σ-IsProp; isSetΠ to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
 open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst; transport) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
-open import Cubical.Data.Empty public using (⊥; ⊥-elim) renaming (isProp⊥ to ⊥-IsProp)
+-- TODO: rename ⊥-elim to ⊥-rec
+open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-elim; isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ)
+open import Cubical.Data.Sigma public using (ΣProp≡)
 open import Cubical.Data.Sigma using (sigmaPath→pathSigma)
-open import Cubical.HITs.PropositionalTruncation public using (∥_∥; ∣_∣) renaming (propTruncIsProp to ∥∥-IsProp; recPropTrunc to ∥∥-rec)
+open import Cubical.HITs.PropositionalTruncation public using (∥_∥; ∣_∣) renaming (propTruncIsProp to ∥∥-IsProp; rec to ∥∥-rec)
 open import Cubical.Relation.Nullary public using (¬_)
 
 private

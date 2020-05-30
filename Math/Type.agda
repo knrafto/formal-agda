@@ -43,7 +43,7 @@ the≡ : {A : Type ℓ} {a : A} → (A-IsContr : IsContr A) → the A-IsContr �
 the≡ {a = a} A-IsContr = snd A-IsContr a
 
 Lift-IsProp : {A : Type ℓ} → IsProp A → IsProp (Lift {j = ℓ'} A)
-Lift-IsProp A-IsProp (lift a) (lift b) = ap lift (A-IsProp a b) 
+Lift-IsProp A-IsProp (lift a) (lift b) = ap lift (A-IsProp a b)
 
 contradiction : {A : Type ℓ} {B : Type ℓ'} → A → ¬ A → B
 contradiction a ¬A = ⊥-elim (¬A a)

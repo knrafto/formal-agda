@@ -6,7 +6,7 @@ open import Math.Finite
 open import Math.Nat
 open import Math.Type
 open import Systems.Forest
-open import Systems.Log
+open import Systems.Sequence
 
 private
   variable
@@ -274,4 +274,4 @@ committedParent {n} ((p , p-IsCommitted) , dp≡sucn) =
   dp'≡n : depth p' ≡ n
   dp'≡n = snd (tree-parent (p , dp≡sucn))
 
-open Log CommittedProposal CommittedProposal-IsSet index index-IsInjective committedParent
+open Sequence CommittedProposal CommittedProposal-IsSet index index-IsInjective committedParent

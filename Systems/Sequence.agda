@@ -1,12 +1,12 @@
 {-# OPTIONS --cubical #-}
-module Systems.Log where
+module Systems.Sequence where
 
 open import Math.Fin
 open import Math.Function
 open import Math.Nat
 open import Math.Type
 
-module Log
+module Sequence
     (A : Type₀)
     (A-IsSet : IsSet A)
     (index : A → ℕ)

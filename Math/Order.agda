@@ -21,6 +21,12 @@ module StrictPartialOrder
   ≤-IsProp (inr a≡b) (inl a<b) = ⊥-rec (<-irrefl (subst (_< _) a≡b a<b))
   ≤-IsProp (inr p₁)  (inr p₂)  = ap inr (A-IsSet _ _ p₁ p₂)
 
+  <→≤ : ∀ {a b} → a < b → a ≤ b
+  <→≤ = inl
+
+  ≡→≤ : ∀ {a b} → a ≡ b → a ≤ b
+  ≡→≤ = inr
+
   ≤-refl : ∀ {a} → a ≤ a
   ≤-refl = inr refl
 

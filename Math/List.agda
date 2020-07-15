@@ -76,3 +76,17 @@ List-singleton-IsEmbedding =
   List-cons-IsEmbedding ∘-IsEmbedding
   ×-map-IsEmbedding (IsEquiv→IsEmbedding id-IsEquiv) []-IsEmbedding ∘-IsEmbedding
   IsEquiv→IsEmbedding (inv-IsEquiv ⊤-fst-IsEquiv)
+
+length : {A : Type ℓ} → List A → ℕ
+length [] = zero
+length (List-cons (x , xs)) = suc (length xs)
+
+Index : {A : Type ℓ} → List A → Type₀
+Index xs = Fin (length xs)
+
+_[_] : {A : Type ℓ} → (xs : List A) → Index xs → A
+[] [ i ] = ⊥-rec (¬Fin0 i)
+List-cons (x , xs) [ i ] = case fsplit i of λ
+  { (inl _) → x
+  ; (inr (i' , _)) → xs [ i' ]
+  }

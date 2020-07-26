@@ -45,6 +45,9 @@ IsInjective×IsSurjective→IsEquiv A-IsSet B-IsSet f-IsInjective f-IsSurjective
 HasInverse→IsEquiv : {f : A → B} (g : B → A) → ((a : A) → g (f a) ≡ a) → ((b : B) → f (g b) ≡ b) → IsEquiv f
 HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
 
+⟺→IsEquiv : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → {f : A → B} → (B → A) → IsEquiv f
+⟺→IsEquiv A-IsProp B-IsProp g = HasInverse→IsEquiv g (λ a → A-IsProp _ _) (λ b → B-IsProp _ _)
+
 IsEquiv→fiber-IsContr : {f : A → B} → IsEquiv f → ((b : B) → IsContr (fiber f b))
 IsEquiv→fiber-IsContr = IsEquiv.equiv-proof
 
@@ -65,11 +68,15 @@ id-IsEquiv {A = A} = snd (idEquiv A)
 inv : {f : A → B} → IsEquiv f → (B → A)
 inv {f = f} f-IsEquiv = isHAEquiv.g (snd (equiv→HAEquiv (f , f-IsEquiv)))
 
-leftInv : {f : A → B} (f-IsEquiv : IsEquiv f) → (a : A) → inv f-IsEquiv (f a) ≡ a
+leftInv : {f : A → B} (f-IsEquiv : IsEquiv f) (a : A) → inv f-IsEquiv (f a) ≡ a
 leftInv {f = f} f-IsEquiv = isHAEquiv.sec (snd (equiv→HAEquiv (f , f-IsEquiv)))
 
-rightInv : {f : A → B} (f-IsEquiv : IsEquiv f) → (b : B) → f (inv f-IsEquiv b) ≡ b
+rightInv : {f : A → B} (f-IsEquiv : IsEquiv f) (b : B) → f (inv f-IsEquiv b) ≡ b
 rightInv {f = f} f-IsEquiv = isHAEquiv.ret (snd (equiv→HAEquiv (f , f-IsEquiv)))
+
+-- TODO: name
+comInv : {f : A → B} (f-IsEquiv : IsEquiv f) (a : A) → ap f (leftInv f-IsEquiv a) ≡ rightInv f-IsEquiv (f a)
+comInv {f = f} f-IsEquiv = isHAEquiv.com (snd (equiv→HAEquiv (f , f-IsEquiv)))
 
 inv-IsEquiv : {f : A → B} (f-IsEquiv : IsEquiv f) → IsEquiv (inv f-IsEquiv)
 inv-IsEquiv {f = f} f-IsEquiv = snd (invEquiv (f , f-IsEquiv))
@@ -127,7 +134,7 @@ f∘-IsEquiv {A = A} {B = B} {C = C} {f = f} f-IsEquiv = HasInverse→IsEquiv f�
   f∘-inv-f∘ g = funExt λ x → leftInv f-IsEquiv (g x)
 
   f∘-f∘-inv : (g : A → C) → f ∘ inv f-IsEquiv ∘ g ≡ g
-  f∘-f∘-inv g = funExt λ x → rightInv f-IsEquiv (g x) 
+  f∘-f∘-inv g = funExt λ x → rightInv f-IsEquiv (g x)
 
 const : A → (B → A)
 const a = λ _ → a

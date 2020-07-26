@@ -24,6 +24,9 @@ refl-∙ {p = p} = sym (lUnit p)
 subst-refl : {A : Type ℓ} (P : A → Type ℓ') {a : A} {x : P a} → subst P refl x ≡ x
 subst-refl P {x = x} = substRefl {B = P} x
 
+subst-loop : {A : Type ℓ} (P : A → Type ℓ') {a : A} {x : P a} {p : a ≡ a} → IsSet A → subst P p x ≡ x
+subst-loop P {x = x} A-IsSet = ap (λ p → subst P p x) (A-IsSet _ _ _ _) ∙ substRefl {B = P} x
+
 subst-a≡ : {A : Type ℓ} {a x y : A} {p : x ≡ y} {q : a ≡ x} → subst (a ≡_) p q ≡ q ∙ p
 subst-a≡ {a = a} {p = p} {q = q} = pathInd (λ x p → subst (a ≡_) p q ≡ q ∙ p) (subst-refl (a ≡_) ∙ sym (∙-refl)) p
 

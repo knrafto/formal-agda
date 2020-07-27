@@ -1,6 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Nat where
 
+open import Agda.Builtin.FromNat
 open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero; _*_; *-comm; *-assoc) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero; *-identityˡ to 1-*; *-identityʳ to *-1)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
@@ -46,3 +47,11 @@ suc-reflects-< = pred-≤-pred
 
 <-ind-step : ∀ {ℓ} {P : ℕ → Type ℓ} (f : ∀ n → (∀ k → k < n → P k) → P n) (n : ℕ) → <-ind f n ≡ f n (λ i _ → <-ind f i)
 <-ind-step {P = P} = WFI.induction-compute <-wellfounded {P = P}
+
+-- Agda integer literals
+instance
+  Numberℕ : Number ℕ
+  Numberℕ = record
+    { Constraint = λ n → ⊤
+    ; fromNat = λ n → n
+    }

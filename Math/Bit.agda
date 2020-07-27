@@ -11,20 +11,11 @@ data Bit : Type₀ where
   0₂ : Bit
   1₂ : Bit
 
+Word : ℕ → Type₀
+Word n = Vec n Bit
+
 Byte : Type₀
-Byte = Vec 8 Bit
-
-Word8 : Type₀
-Word8 = Vec 8 Bit
-
-Word16 : Type₀
-Word16 = Vec 16 Bit
-
-Word32 : Type₀
-Word32 = Vec 32 Bit
-
-Word64 : Type₀
-Word64 = Vec 64 Bit
+Byte = Word 8
 
 toFin2 : Bit → Fin 2
 toFin2 0₂ = fzero
@@ -50,16 +41,13 @@ toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from
 Bit-IsSet : IsSet Bit
 Bit-IsSet = subst IsSet (sym (ua toFin2-IsEquiv)) Fin-IsSet
 
-Bits : ℕ → Type₀
-Bits n = Vec n Bit
-
-fromBits : {n : ℕ} → Bits n → Fin (2 ^ n)
+fromBits : {n : ℕ} → Word n → Fin (2 ^ n)
 fromBits = fromDigits ∘ (toFin2 ∘_)
 
 fromBits-IsEquiv : {n : ℕ} → IsEquiv (fromBits {n = n})
 fromBits-IsEquiv = fromDigits-IsEquiv ∘-IsEquiv f∘-IsEquiv toFin2-IsEquiv
 
-toBits : {n : ℕ} → Fin (2 ^ n) → Bits n
+toBits : {n : ℕ} → Fin (2 ^ n) → Word n
 toBits = inv fromBits-IsEquiv
 
 toBits-IsEquiv : {n : ℕ} → IsEquiv (toBits {n = n})

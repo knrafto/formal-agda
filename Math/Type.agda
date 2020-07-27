@@ -48,6 +48,9 @@ contradiction a ¬A = ⊥-rec (¬A a)
 ¬-IsProp : {A : Type ℓ} → IsProp (¬ A)
 ¬-IsProp = Π-IsProp (λ a → ⊥-IsProp)
 
+→-IsSet : {A : Type ℓ} {B : Type ℓ'} → IsSet B → IsSet (A → B)
+→-IsSet B-IsSet = Π-IsSet (λ a → B-IsSet)
+
 Σ≡ : {A : Type ℓ} {B : A → Type ℓ'} {x y : Σ A B} (p : fst x ≡ fst y) → subst B p (snd x) ≡ snd y → x ≡ y
 Σ≡ {x = x} {y = y} p q = sigmaPath→pathSigma x y (p , q)
 

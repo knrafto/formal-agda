@@ -61,8 +61,8 @@ Fin-* {suc m} {n} = Fin-+ ∘ ⊎-map snd Fin-* ∘ ⊎-distribute ∘ ×-map (i
 
 Fin-*-IsEquiv : {m n : ℕ} → IsEquiv (Fin-* {m = m} {n = n})
 -- TODO: rewrite: any function between empty types is an equivalence
-Fin-*-IsEquiv {zero} {n} = ⊥-rec-IsEquiv ¬Fin0 ∘-IsEquiv (¬-IsEquiv fst) ∘-IsEquiv ×-map-IsEquiv (¬-IsEquiv ¬Fin0) id-IsEquiv 
-Fin-*-IsEquiv {suc m} {n} = 
+Fin-*-IsEquiv {zero} {n} = ⊥-rec-IsEquiv ¬Fin0 ∘-IsEquiv (¬-IsEquiv fst) ∘-IsEquiv ×-map-IsEquiv (¬-IsEquiv ¬Fin0) id-IsEquiv
+Fin-*-IsEquiv {suc m} {n} =
   Fin-+-IsEquiv ∘-IsEquiv
   ⊎-map-IsEquiv ⊤-snd-IsEquiv Fin-*-IsEquiv ∘-IsEquiv
   ⊎-distribute-IsEquiv ∘-IsEquiv

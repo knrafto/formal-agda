@@ -48,6 +48,9 @@ suc-reflects-< = pred-≤-pred
 <-ind-step : ∀ {ℓ} {P : ℕ → Type ℓ} (f : ∀ n → (∀ k → k < n → P k) → P n) (n : ℕ) → <-ind f n ≡ f n (λ i _ → <-ind f i)
 <-ind-step {P = P} = WFI.induction-compute <-wellfounded {P = P}
 
+<-rec : ∀ {ℓ} {A : Type ℓ} → (∀ n → (∀ k → k < n → A) → A) → ℕ → A
+<-rec {A = A} = WFI.induction <-wellfounded {P = λ _ → A}
+
 -- Agda integer literals
 instance
   Numberℕ : Number ℕ

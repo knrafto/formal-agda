@@ -3,7 +3,7 @@ module Math.Type where
 
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; Type₁; _≡_; Σ; Σ-syntax; _,_; fst; snd)
 open import Cubical.Foundations.HLevels public using () renaming (isPropΠ to Π-IsProp; isPropΣ to Σ-IsProp; isSetΠ to Π-IsSet)
-open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ)
+open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ; isPropIsOfHLevel)
 open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst; transport) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
 open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-rec; isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
@@ -41,6 +41,12 @@ Lift-IsProp A-IsProp (lift a) (lift b) = ap lift (A-IsProp a b)
 
 contradiction : {A : Type ℓ} {B : Type ℓ'} → A → ¬ A → B
 contradiction a ¬A = ⊥-rec (¬A a)
+
+IsProp-IsProp : {A : Type ℓ} → IsProp (IsProp A)
+IsProp-IsProp = isPropIsOfHLevel 1
+
+IsSet-IsProp : {A : Type ℓ} → IsProp (IsSet A)
+IsSet-IsProp = isPropIsOfHLevel 2
 
 Π : (A : Type ℓ) (B : A → Type ℓ') → Type (ℓ-max ℓ ℓ')
 Π A B = (a : A) → B a

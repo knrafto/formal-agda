@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Function where
 
-open import Cubical.Core.Everything public using () renaming (isEquiv to IsEquiv)
+open import Cubical.Core.Everything public using (_≃_) renaming (isEquiv to IsEquiv)
 open import Cubical.Foundations.Equiv public using (fiber)
 open import Cubical.Foundations.Equiv using (idEquiv; invEquiv; compEquiv)
 open import Cubical.Foundations.Equiv.HalfAdjoint using (isHAEquiv; equiv→HAEquiv)
@@ -9,7 +9,7 @@ open import Cubical.Foundations.Equiv.HalfAdjoint using (isHAEquiv; equiv→HAEq
 open import Cubical.Foundations.HLevels using (inhProp→isContr)
 open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv)
 open import Cubical.Foundations.Prelude public using (funExt)
-open import Cubical.Foundations.Univalence using () renaming (ua to uaPrim)
+open import Cubical.Foundations.Univalence using (univalence)
 open import Cubical.Functions.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding)
 
 open import Math.Type
@@ -20,9 +20,6 @@ private
     A : Type ℓ
     B : Type ℓ'
     C : Type ℓ''
-
-ua : {A B : Type ℓ} {f : A → B} → IsEquiv f → A ≡ B
-ua {f = f} f-IsEquiv = uaPrim (f , f-IsEquiv)
 
 IsInjective : (f : A → B) → Type _
 IsInjective {A = A} f = {a₁ a₂ : A} → f a₁ ≡ f a₂ → a₁ ≡ a₂
@@ -147,3 +144,15 @@ IsContr→IsContr→IsEquiv {f = f} A-IsContr B-IsContr = HasInverse→IsEquiv
   (λ _ → the A-IsContr)
   (λ a → IsContr→IsProp A-IsContr _ _)
   (λ b → IsContr→IsProp B-IsContr _ _)
+
+Equiv : (A B : Type ℓ) → Type ℓ
+Equiv A B = Σ[ f ∈ (A → B) ] IsEquiv f
+
+≡→≃ : (A B : Type ℓ) → A ≡ B → A ≃ B
+≡→≃ A B = fst univalence
+
+≡→≃-IsEquiv : (A B : Type ℓ) → IsEquiv (≡→≃ A B)
+≡→≃-IsEquiv A B = snd univalence
+
+ua : {A B : Type ℓ} (f : A → B) → IsEquiv f → A ≡ B
+ua {A = A} {B = B} f f-IsEquiv = inv (≡→≃-IsEquiv A B) (f , f-IsEquiv)

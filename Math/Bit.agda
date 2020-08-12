@@ -39,7 +39,7 @@ toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from
   to-from (suc (suc _) , p) = contradiction (suc-reflects-< (suc-reflects-< p)) ¬-<-zero
 
 Bit-IsSet : IsSet Bit
-Bit-IsSet = subst IsSet (sym (ua toFin2-IsEquiv)) Fin-IsSet
+Bit-IsSet = subst IsSet (sym (ua toFin2 toFin2-IsEquiv)) Fin-IsSet
 
 fromBits : {n : ℕ} → Word n → Fin (2 ^ n)
 fromBits = fromDigits ∘ (toFin2 ∘_)

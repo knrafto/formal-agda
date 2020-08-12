@@ -20,6 +20,11 @@ Fin1-IsContr = fzero , λ { (zero , _) → toℕ-IsInjective refl ; (suc n , p) 
 ¬fzero≡fsuc : {n : ℕ} {i : Fin n} → ¬ fzero ≡ fsuc i
 ¬fzero≡fsuc p = ¬zero≡suc (ap toℕ p)
 
+Fin-≡-Dec : ∀ {n} → (i j : Fin n) → Dec (i ≡ j)
+Fin-≡-Dec i j with ℕ-≡-Dec (toℕ i) (toℕ j)
+Fin-≡-Dec i j | yes toℕi≡toℕj = yes (toℕ-IsInjective toℕi≡toℕj)
+Fin-≡-Dec i j | no ¬toℕi≡toℕj = no λ i≡j → ¬toℕi≡toℕj (ap toℕ i≡j)
+
 fsuc-IsInjective : {n : ℕ} → IsInjective (fsuc {k = n})
 fsuc-IsInjective p = toℕ-IsInjective (suc-IsInjective (ap toℕ p))
 

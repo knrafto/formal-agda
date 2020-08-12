@@ -4,6 +4,7 @@ module Math.Int where
 open import Agda.Builtin.FromNat
 open import Agda.Builtin.FromNeg
 open import Cubical.Foundations.Equiv.HalfAdjoint using (isHAEquiv)
+open import Cubical.Foundations.Prelude using (PathP; toPathP)
 open import Cubical.HITs.Ints.HAEquivInt using (suc-haequiv)
 open import Cubical.HITs.Ints.HAEquivInt public using (zero; suc) renaming (HAEquivInt to ℤ)
 open import Math.Function
@@ -59,12 +60,21 @@ fromℕ (ℕ.suc n) = suc (fromℕ n)
 ℤ-ind : ∀ {ℓ} (P : ℤ → Type ℓ) → P zero → (P-suc : ∀ n → P n → P (suc n)) → (∀ n → IsEquiv (P-suc n)) → (n : ℤ) → P n
 ℤ-ind P P-zero P-suc P-suc-IsEquiv = φ
   where
+    P-pred : ∀ n → P n → P (pred n)
+    P-pred n p = inv (P-suc-IsEquiv (pred n)) (subst P (sym (ℤ.suc-pred n)) p)
+
+    P-suc-pred : ∀ n → (p : P n) → subst P (ℤ.suc-pred n) (P-suc (pred n) (P-pred n p)) ≡ p
+    P-suc-pred = {!!}
+
+    P-pred-suc : ∀ n → (p : P n) → subst P (ℤ.pred-suc n) (P-pred (suc n) (P-suc n p)) ≡ p
+    P-pred-suc = {!!}
+
     φ : (n : ℤ) → P n
     φ zero = P-zero
     φ (suc n) = P-suc n (φ n)
-    φ (ℤ.pred n) = {!!}
-    φ (ℤ.suc-pred n i) = {!!}
-    φ (ℤ.pred-suc n i) = {!!}
+    φ (ℤ.pred n) = P-pred n (φ n)
+    φ (ℤ.suc-pred n i) = toPathP (P-suc-pred n (φ n)) i
+    φ (ℤ.pred-suc n i) = toPathP (P-pred-suc n (φ n)) i
     φ (ℤ.coh n i j) = {!!}
 
 ℤ-ind-IsProp : ∀ {ℓ} (P : ℤ → Type ℓ) → (∀ n → IsProp (P n)) → P zero → (∀ n → P n → P (suc n)) → (∀ n → P (suc n) → P n) → (n : ℤ) → P n

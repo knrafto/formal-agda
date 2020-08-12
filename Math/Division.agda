@@ -2,15 +2,20 @@
 -- Euclidean division of natural numbers.
 module Math.Division where
 
+open import Math.Dec
 open import Math.Fin
 open import Math.Function
+open import Math.Id
 open import Math.Nat
 open import Math.Type
 
-module _ {d} (d<0 : d < 0) where
-  -- The Euclidean map (q, r) ↦ qd + r
+module _ {d} (0<d : 0 < d) where
+  -- The map (q, r) ↦ qd + r
   euclid : ℕ × Fin d → ℕ
   euclid (q , r) = q * d + toℕ r
+
+  euclid-+d : ∀ q r → euclid (q , r) + d ≡ euclid (suc q , r)
+  euclid-+d = {!!}
 
   euclid-IsEquiv : IsEquiv euclid
   euclid-IsEquiv = {!!}

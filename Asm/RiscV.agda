@@ -207,10 +207,10 @@ data Inst : Type₀ where
   shift-imm : ShiftImmOp → Reg → Reg → Fin 32 → Inst
   load      : LoadOp     → Reg → Reg → Word 12 → Inst
   store     : StoreOp    → Reg → Reg → Word 12 → Inst
-  -- TODO: last bit must be 0
+  -- TODO: must be 4-byte aligned
   branch    : BranchOp   → Reg → Reg → Word 13 → Inst
   upper-imm : UpperImmOp → Reg → Word 20 → Inst
-  -- TODO: last bit must be 0
+  -- TODO: must be 4-byte aligned
   jump      : JumpOp     → Reg → Word 21 → Inst
 
 encodeReg : Reg → Word 5
@@ -231,3 +231,6 @@ encode (branch op rs1 rs2 imm) =
   slice imm 12 12 ++ slice imm 10 5 ++ encodeReg rs2 ++ encodeReg rs1 ++ BranchOp-funct3 op ++ slice imm 4 1 ++ slice imm 11 11 ++ toWord {n = 7} 0x63
 encode (upper-imm op rd imm) = imm ++ encodeReg rd ++ UpperImmOp-opcode op
 encode (jump op rd imm) = slice imm 20 20 ++ slice imm 10 1 ++ slice imm 11 11 ++ slice imm 19 12 ++ encodeReg rd ++ JumpOp-opcode op
+
+encode-IsInjective : IsInjective encode
+encode-IsInjective = {!!}  -- good luck

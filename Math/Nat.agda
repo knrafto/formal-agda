@@ -15,6 +15,9 @@ _^_ : ℕ → ℕ → ℕ
 b ^ zero = 1
 b ^ suc e = b * (b ^ e)
 
+difference : ∀ {m n} → m ≤ n → ℕ
+difference = fst
+
 -- The use of j + i rather than cubical's i + j makes this version a little easier to work with in proofs
 ≤-trans : ∀ {k m n} → k ≤ m → m ≤ n → k ≤ n
 ≤-trans {k} {m} {n} (i , p) (j , q) = j + i , sym (+-assoc j i k) ∙ ap (j +_) p ∙ q

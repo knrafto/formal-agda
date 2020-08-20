@@ -1,6 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Vec where
 
+open import Math.Dec
 open import Math.Fin
 open import Math.Function
 open import Math.Nat
@@ -18,6 +19,12 @@ Vec n A = Fin n → A
 
 Vec-IsSet : {n : ℕ} → IsSet A → IsSet (Vec n A)
 Vec-IsSet A-IsSet = Π-IsSet (λ _ → A-IsSet)
+
+Vec-HasDecEq : {n : ℕ} → HasDecEq A → HasDecEq (Vec n A)
+Vec-HasDecEq A-HasDecEq v₁ v₂ = case Fin-∀-Dec (λ i → A-HasDecEq (v₁ i) (v₂ i)) return Dec (v₁ ≡ v₂) of λ
+  { (yes p) → yes (funExt p)
+  ; (no ¬p) → no λ v₁≡v₂ → ¬p (happly v₁≡v₂)
+  }
 
 Vec0-IsContr : IsContr (Vec 0 A)
 Vec0-IsContr = (λ i → ⊥-rec (¬Fin0 i)) , λ y → funExt λ i → ⊥-rec (¬Fin0 i)
@@ -46,6 +53,9 @@ cons = concat ∘ ×-map singleton id
 cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
 cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-IsEquiv
 
+replicate : (n : ℕ) → A → Vec n A
+replicate n a = λ i → a
+
 0-vector : Vec 0 A
 0-vector = λ i → ⊥-rec (¬Fin0 i)
 
@@ -65,6 +75,7 @@ cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-Is
 5-vector a₀ a₁ a₂ a₃ a₄ = cons (a₀ , 4-vector a₁ a₂ a₃ a₄)
 
 -- Note digits are in big-endian order.
+{-
 fromDigits : {d n : ℕ} → Vec n (Fin d) → Fin (d ^ n)
 fromDigits {n = zero} = const fzero
 fromDigits {n = suc n} = Fin-* ∘ ×-map id fromDigits ∘ inv cons-IsEquiv
@@ -72,3 +83,4 @@ fromDigits {n = suc n} = Fin-* ∘ ×-map id fromDigits ∘ inv cons-IsEquiv
 fromDigits-IsEquiv : {d n : ℕ} → IsEquiv (fromDigits {d = d} {n = n})
 fromDigits-IsEquiv {n = zero} = IsContr→IsContr→IsEquiv Vec0-IsContr Fin1-IsContr
 fromDigits-IsEquiv {n = suc n} = Fin-*-IsEquiv ∘-IsEquiv (×-map-IsEquiv id-IsEquiv fromDigits-IsEquiv) ∘-IsEquiv (inv-IsEquiv cons-IsEquiv)
+-}

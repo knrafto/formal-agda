@@ -8,7 +8,7 @@ open import Cubical.Foundations.Equiv.HalfAdjoint using (isHAEquiv; equiv→HAEq
 -- TODO: rename (maybe export in Math.Type)?
 open import Cubical.Foundations.HLevels using (inhProp→isContr)
 open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv)
-open import Cubical.Foundations.Prelude public using (funExt)
+open import Cubical.Foundations.Prelude public using (funExt) renaming (funExt⁻ to happly)
 open import Cubical.Foundations.Univalence using (univalence)
 open import Cubical.Functions.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding)
 

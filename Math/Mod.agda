@@ -1,10 +1,11 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Mod where
 
 open import Agda.Builtin.FromNat
 open import Math.Division
 open import Math.Fin
 open import Math.Function
+open import Math.Int using (ℤ)
 open import Math.Nat using (ℕ-IsSet; _<_)
 import Math.Nat as ℕ
 open import Math.Quotient
@@ -20,6 +21,12 @@ module _ {d : ℕ} where
   -- "remainder"
   r : ℕ → Mod d
   r n = [ n ]
+
+  fromℕ : ℕ → Mod d
+  fromℕ = r
+
+  fromℤ : ℤ → Mod d
+  fromℤ = {!!}
 
   r-+d : ∀ {m n} → m ℕ.+ d ≡ n → r m ≡ r n
   r-+d {m} {n} = /-≡ m n
@@ -69,6 +76,9 @@ module _ {d : ℕ} where
 
     left : (m n : ℕ) → r ((m ℕ.+ d) ℕ.+ n) ≡ r (m ℕ.+ n)
     left m n = ap r (ℕ.+-comm (m ℕ.+ d) n) ∙ right n m ∙ ap r (ℕ.+-comm n m)
+
+  _-_ : Mod d → Mod d → Mod d
+  _-_ = {!!}
 
   zero : Mod d
   zero = r ℕ.zero

@@ -20,10 +20,10 @@ Fin1-IsContr = fzero , λ { (zero , _) → toℕ-IsInjective refl ; (suc n , p) 
 ¬fzero≡fsuc : {n : ℕ} {i : Fin n} → ¬ fzero ≡ fsuc i
 ¬fzero≡fsuc p = ¬zero≡suc (ap toℕ p)
 
-Fin-≡-Dec : ∀ {n} → (i j : Fin n) → Dec (i ≡ j)
-Fin-≡-Dec i j with ℕ-≡-Dec (toℕ i) (toℕ j)
-Fin-≡-Dec i j | yes toℕi≡toℕj = yes (toℕ-IsInjective toℕi≡toℕj)
-Fin-≡-Dec i j | no ¬toℕi≡toℕj = no λ i≡j → ¬toℕi≡toℕj (ap toℕ i≡j)
+Fin-HasDecEq : ∀ {n} → HasDecEq (Fin n)
+Fin-HasDecEq i j with ℕ-HasDecEq (toℕ i) (toℕ j)
+Fin-HasDecEq i j | yes toℕi≡toℕj = yes (toℕ-IsInjective toℕi≡toℕj)
+Fin-HasDecEq i j | no ¬toℕi≡toℕj = no λ i≡j → ¬toℕi≡toℕj (ap toℕ i≡j)
 
 fsuc-IsInjective : {n : ℕ} → IsInjective (fsuc {k = n})
 fsuc-IsInjective p = toℕ-IsInjective (suc-IsInjective (ap toℕ p))
@@ -60,6 +60,7 @@ Fin-+-IsEquiv {suc m} {n} =
   ⊎-map-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) id-IsEquiv
 
 -- TODO: better name?
+{-
 Fin-* : {m n : ℕ} → Fin m × Fin n → Fin (m * n)
 Fin-* {zero} {n} = ⊥-rec ∘ fst ∘ ×-map ¬Fin0 id
 Fin-* {suc m} {n} = Fin-+ ∘ ⊎-map snd Fin-* ∘ ⊎-distribute ∘ ×-map (inv Fin-suc-IsEquiv) id
@@ -72,6 +73,7 @@ Fin-*-IsEquiv {suc m} {n} =
   ⊎-map-IsEquiv ⊤-snd-IsEquiv Fin-*-IsEquiv ∘-IsEquiv
   ⊎-distribute-IsEquiv ∘-IsEquiv
   ×-map-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) id-IsEquiv
+-}
 
 Fin-∀-Dec : {n : ℕ} {P : Fin n → Type ℓ} → (∀ i → Dec (P i)) → Dec (∀ i → P i)
 Fin-∀-Dec {n = zero}  {P} P-Dec = yes λ i → ⊥-rec (¬Fin0 i)

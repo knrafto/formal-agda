@@ -47,10 +47,6 @@ sym-≡[]≡ {A = A} p {x = x} {y = y} =
     (λ x y p → transport-refl ∙ sym p ∙ transport-refl)
     p x y
 
-happly : {A : Type ℓ} {B : A → Type ℓ'} {f g : (x : A) → B x} → f ≡ g → (x : A) → f x ≡ g x
-happly {A = A} {B = B} {f = f} =
-  pathInd (λ (g : (x : A) → B x) (p : f ≡ g) → (x : A) → f x ≡ g x) λ _ → refl
-
 sym-∙ : ∀ {A : Type ℓ} {a b c : A} {p : a ≡ b} {q : b ≡ c} → sym (p ∙ q) ≡ sym q ∙ sym p
 sym-∙ {p = p} {q = q} = pathInd (λ c q → sym (p ∙ q) ≡ sym q ∙ sym p) (ap sym (∙-refl {p = p}) ∙ sym refl-∙) q
 

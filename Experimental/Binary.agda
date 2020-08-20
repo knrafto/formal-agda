@@ -1,10 +1,12 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Experimental.Binary where
 
 open import Math.Dec
-open import Math.Fin
+open import Math.Fin hiding (toℕ)
 open import Math.Function
-open import Math.Int renaming (_+_ to _+ℤ_; _<_ to _<ℤ_; _≤_ to _≤ℤ_)
+open import Math.Int renaming (_+_ to _+ℤ_; _-_ to _-ℤ_; _<_ to _<ℤ_; <-Dec to <ℤ-Dec; _≤_ to _≤ℤ_; ≤-Dec to ≤ℤ-Dec)
+open import Math.Mod using (Mod) renaming (_+_ to _+Mod_; _-_ to _-Mod_)
+import Math.Mod as Mod
 open import Math.Nat
 open import Math.Vec
 open import Math.Type
@@ -16,28 +18,42 @@ data Bit : Type₀ where
   0₂ : Bit
   1₂ : Bit
 
--- A sequence of bits.
-Word : ℕ → Type₀
-Word b = Vec b Bit
+Bit-HasDecEq : HasDecEq Bit
+Bit-HasDecEq = {!!}
 
--- Concatenation of two bit-vectors. Concatenation is big-endian, like Verilog.
-_++_ : ∀ {b₁ b₂} → Word b₁ → Word b₂ → Word (b₂ + b₁)
+-- A bit vector.
+Word : ℕ → Type₀
+Word n = Vec n Bit
+
+Word-HasDecEq : ∀ {n} → HasDecEq (Word n)
+Word-HasDecEq = Vec-HasDecEq Bit-HasDecEq
+
+_++_ : ∀ {m n} → Word m → Word n → Word (n + m)
 x ++ y = concat (y , x)
 
--- Bit-selection.
 slice : ∀ {n} → Word n → (j i : ℕ) → {True (<-Dec j n)} → {i≤j : True (≤-Dec i j)} → Word (suc (difference (witness i≤j)))
-slice {n} w j i {j<n} {i≤n} (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness j<n))
+slice {n} w j i {j<n} {i≤j} (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness j<n))
   where
   k+i<sj : k + i < suc j
-  k+i<sj = subst (λ x → k + i < suc x) (snd (witness i≤n)) (<-+k k<sl)
+  k+i<sj = subst (λ x → k + i < suc x) (snd (witness i≤j)) (<-+k k<sl)
+
+--------------------------------------------------------------------------------
+-- Bitwise operations
+--------------------------------------------------------------------------------
 
 and : Bit → Bit → Bit
 and 0₂ _ = 0₂
 and 1₂ y = y
 
+bitwiseAnd : ∀ {n} → Word n → Word n → Word n
+bitwiseAnd x y = λ i → and (x i) (y i)
+
 or : Bit → Bit → Bit
 or 0₂ y = y
 or 1₂ _ = 1₂
+
+bitwiseOr : ∀ {n} → Word n → Word n → Word n
+bitwiseOr x y = λ i → or (x i) (y i)
 
 xor : Bit → Bit → Bit
 xor 0₂ 0₂ = 0₂
@@ -45,56 +61,119 @@ xor 0₂ 1₂ = 1₂
 xor 1₂ 0₂ = 1₂
 xor 1₂ 1₂ = 0₂
 
-bitwiseAnd : ∀ {b} → Word b → Word b → Word b
-bitwiseAnd x y = λ i → and (x i) (y i)
-
-bitwiseOr : ∀ {b} → Word b → Word b → Word b
-bitwiseOr x y = λ i → or (x i) (y i)
-
-bitwiseXor : ∀ {b} → Word b → Word b → Word b
+bitwiseXor : ∀ {n} → Word n → Word n → Word n
 bitwiseXor x y = λ i → xor (x i) (y i)
 
-Unsigned : ℕ → Type₀
-Unsigned b = Fin (2 ^ b)
+--------------------------------------------------------------------------------
+-- Unsigned integer representation
+--------------------------------------------------------------------------------
 
-toUnsigned : ∀ {b} → Word b → Unsigned b
+Unsigned : ℕ → Type₀
+Unsigned n = Fin (2 ^ n)
+
+toUnsigned : ∀ {n} → Word n → Unsigned n
 toUnsigned = {!!}
 
-toUnsigned-IsEquiv : ∀ {b} → IsEquiv (toUnsigned {b = b})
+toUnsigned-IsEquiv : ∀ {n} → IsEquiv (toUnsigned {n = n})
 toUnsigned-IsEquiv = {!!}
 
-fromUnsigned : ∀ {b} → Unsigned b → Word b
+fromUnsigned : ∀ {n} → Unsigned n → Word n
 fromUnsigned = inv toUnsigned-IsEquiv
 
-Signed : ℕ → Type₀
-Signed b = Σ[ n ∈ ℤ ] (neg (2 ^ b) ≤ℤ n) × (n <ℤ pos (2 ^ b))
+toℕ : ∀ {n} → Word n → ℕ
+toℕ w = fst (toUnsigned w)
 
-toSigned : ∀ {b} → Word (suc b) → Signed b
+constant : ∀ {n} (k : ℕ) → {True (<-Dec k (2 ^ n))} → Word n
+constant k {k<2^n} = fromUnsigned (k , witness k<2^n)
+
+--------------------------------------------------------------------------------
+-- Signed integer representation (two's complement)
+--------------------------------------------------------------------------------
+
+Signed : ℕ → Type₀
+Signed n = Σ[ k ∈ ℤ ] (neg (2 ^ n) ≤ℤ k) × (k <ℤ pos (2 ^ n))
+
+toSigned : ∀ {n} → Word (suc n) → Signed n
 toSigned = {!!}
 
-toSigned-IsEquiv : ∀ {b} → IsEquiv (toSigned {b = b})
+toSigned-IsEquiv : ∀ {n} → IsEquiv (toSigned {n = n})
 toSigned-IsEquiv = {!!}
 
-fromSigned : ∀ {b} → Signed b → Word (suc b)
+fromSigned : ∀ {n} → Signed n → Word (suc n)
 fromSigned = inv toSigned-IsEquiv
 
-constant : ∀ {b} (n : ℕ) → {True (<-Dec n (2 ^ b))} → Word b
-constant n {n<2^b} = fromUnsigned (n , witness n<2^b)
+toℤ : ∀ {n} → Word (suc n) → ℤ
+toℤ w = {!!}
 
-zeroExtend : ∀ {b i} → Word b → Word (b + i)
-zeroExtend = {!!}
+--------------------------------------------------------------------------------
+-- Modular representation
+--------------------------------------------------------------------------------
 
-signExtend : ∀ {b i} → Word (suc b) → Word (suc b + i)
-signExtend {b} {i} = {!!}
+toMod : ∀ {n} → Word n → Mod (2 ^ n)
+toMod w = {!!}
 
-add : ∀ {b} → Word (suc b) → Word (suc b) → Word (suc (suc b))
-add {b} w₁ w₂ =
-  let (x , -2^b≤x , x<2^b) = toSigned w₁
-      (y , -2^b≤y , y<2^b) = toSigned w₂
-  in fromSigned (x +ℤ y , {!!} , {!!})
+toMod-IsEquiv : ∀ {n} → IsEquiv (toMod {n = n})
+toMod-IsEquiv = {!!}
 
-test : ∀ {b} → 2 ^ suc b ≡ 2 ^ b + 2 ^ b
-test = refl
+fromMod : ∀ {n} → Mod (2 ^ n) → Word n
+fromMod = inv toMod-IsEquiv
 
-sub : ∀ {b} → Word b → Word b → Word b
-sub = {!!}
+--------------------------------------------------------------------------------
+-- Extension
+--------------------------------------------------------------------------------
+
+zeroExtend : ∀ {m n} → Word n → Word (n + m)
+zeroExtend w = {!!}
+
+signExtend : ∀ {m n} → Word (suc n) → Word (suc n + m)
+signExtend w = {!!}
+
+--------------------------------------------------------------------------------
+-- Shifts
+--------------------------------------------------------------------------------
+
+shiftLeft : ∀ {m n} → Word n → Word m → Word n
+shiftLeft = {!!}
+
+shiftRight : ∀ {m n} → Word n → Word m → Word n
+shiftRight = {!!}
+
+shiftRightArithmetic : ∀ {m n} → Word (suc n) → Word m → Word (suc n)
+shiftRightArithmetic = {!!}
+
+--------------------------------------------------------------------------------
+-- Arithmetic
+--------------------------------------------------------------------------------
+
+add : ∀ {n} → Word n → Word n → Word n
+add x y = fromMod (toMod x +Mod toMod y)
+
+sub : ∀ {n} → Word n → Word n → Word n
+sub x y = fromMod (toMod x -Mod toMod y)
+
+--------------------------------------------------------------------------------
+-- Comparison
+--------------------------------------------------------------------------------
+
+decide : ∀ {ℓ} {P : Type ℓ} → Dec P → Word 1
+decide (yes p) = λ _ → 1₂
+decide (no ¬p) = λ _ → 0₂
+
+decideEq : ∀ {n} → Word n → Word n → Word 1
+decideEq x y = decide (Word-HasDecEq x y)
+
+decideNe : ∀ {n} → Word n → Word n → Word 1
+decideNe x y = decide (¬-Dec (Word-HasDecEq x y))
+
+decideLt : ∀ {n} → Word (suc n) → Word (suc n) → Word 1
+decideLt x y = decide (<ℤ-Dec (toℤ x) (toℤ y))
+
+decideLtUnsigned : ∀ {n} → Word n → Word n → Word 1
+decideLtUnsigned x y = decide (<-Dec (toℕ x) (toℕ y))
+
+decideGe : ∀ {n} → Word (suc n) → Word (suc n) → Word 1
+decideGe x y = decide (≤ℤ-Dec (toℤ y) (toℤ x))
+
+decideGeUnsigned : ∀ {n} → Word n → Word n → Word 1
+decideGeUnsigned x y = decide (≤-Dec (toℕ y) (toℕ x))
+

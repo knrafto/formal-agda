@@ -4,6 +4,13 @@ module Math.Dec where
 open import Cubical.Relation.Nullary public using (Dec; yes; no) renaming (isPropDec to Dec-IsProp)
 open import Math.Type
 
+HasDecEq : ∀ {ℓ} (A : Type ℓ) → Type ℓ
+HasDecEq A = (a b : A) → Dec (a ≡ b)
+
+¬-Dec : ∀ {ℓ} {A : Type ℓ} → Dec A → Dec (¬ A)
+¬-Dec (yes p) = no λ ¬p → ¬p p
+¬-Dec (no ¬p) = yes ¬p
+
 ×-Dec : ∀ {ℓ} {A B : Type ℓ} → Dec A → Dec B → Dec (A × B)
 ×-Dec (yes a) (yes b) = yes (a , b)
 ×-Dec (yes a) (no ¬b) = no λ { (a , b) → ¬b b }

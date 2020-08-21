@@ -69,11 +69,12 @@ module _ {d : ℕ} where
     right : (m n : ℤ) → fromℤ (m +ℤ (pos d +ℤ n)) ≡ fromℤ (m +ℤ n)
     right m n = ap fromℤ (ℤ.+-comm m (pos d +ℤ n)) ∙ left n m ∙ ap fromℤ (ℤ.+-comm n m)
 
-  -_ : Mod d → Mod d
-  -_ = Mod-rec Mod-IsSet (λ n → fromℤ (ℤ.negate n)) λ n → fromℤ-≡ {!!}
+  negate : Mod d → Mod d
+  negate = Mod-rec Mod-IsSet (λ n → fromℤ (ℤ.negate n))
+    λ n → fromℤ-≡ (ap (pos d +ℤ_) (ℤ.negate-distrib (pos d) n) ∙ ℤ.+-assoc (pos d) (ℤ.negate (pos d)) (ℤ.negate n) ∙ ap (_+ℤ ℤ.negate n) (ℤ.negate-rightInv (pos d)))
 
   _-_ : Mod d → Mod d → Mod d
-  m - n = m + (- n)
+  m - n = m + negate n
 
 {-
   -- TODO: name?

@@ -21,33 +21,6 @@ private
     B : Type ℓ'
     C : Type ℓ''
 
-IsInjective : (f : A → B) → Type _
-IsInjective {A = A} f = {a₁ a₂ : A} → f a₁ ≡ f a₂ → a₁ ≡ a₂
-
-IsInjective→fiber-IsProp : {A B : Type ℓ} {f : A → B} → IsSet A → IsSet B → IsInjective f → ∀ y → IsProp (fiber f y)
-IsInjective→fiber-IsProp A-IsSet B-IsSet f-IsInjective = IsEmbedding→fiber-IsProp (IsInjective→IsEmbedding A-IsSet B-IsSet f-IsInjective)
-
--- TODO: Truncate to make a proposition.
--- TODO: make b implicit?
-IsSurjective : (f : A → B) → Type _
-IsSurjective {B = B} f = (b : B) → fiber f b
-
-IsEmbedding×IsSurjective→IsEquiv : {f : A → B} → IsEmbedding f → IsSurjective f → IsEquiv f
-IsEmbedding×IsSurjective→IsEquiv f-IsEmbedding f-IsSurjective = record { equiv-proof = λ b → inhProp→isContr (f-IsSurjective b) (IsEmbedding→fiber-IsProp f-IsEmbedding b) }
-
-IsInjective×IsSurjective→IsEquiv : {f : A → B} → IsSet A → IsSet B → IsInjective f → IsSurjective f → IsEquiv f
-IsInjective×IsSurjective→IsEquiv A-IsSet B-IsSet f-IsInjective f-IsSurjective
-  = IsEmbedding×IsSurjective→IsEquiv (IsInjective→IsEmbedding A-IsSet B-IsSet f-IsInjective) f-IsSurjective
-
-HasInverse→IsEquiv : {f : A → B} (g : B → A) → ((a : A) → g (f a) ≡ a) → ((b : B) → f (g b) ≡ b) → IsEquiv f
-HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
-
-⟺→IsEquiv : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → {f : A → B} → (B → A) → IsEquiv f
-⟺→IsEquiv A-IsProp B-IsProp g = HasInverse→IsEquiv g (λ a → A-IsProp _ _) (λ b → B-IsProp _ _)
-
-IsEquiv→fiber-IsContr : {f : A → B} → IsEquiv f → ((b : B) → IsContr (fiber f b))
-IsEquiv→fiber-IsContr = IsEquiv.equiv-proof
-
 id : A → A
 id a = a
 
@@ -74,6 +47,39 @@ comInv {f = f} f-IsEquiv = isHAEquiv.com (snd (equiv→HAEquiv (f , f-IsEquiv)))
 
 inv-IsEquiv : {f : A → B} (f-IsEquiv : IsEquiv f) → IsEquiv (inv f-IsEquiv)
 inv-IsEquiv {f = f} f-IsEquiv = snd (invEquiv (f , f-IsEquiv))
+
+IsInjective : (f : A → B) → Type _
+IsInjective {A = A} f = {a₁ a₂ : A} → f a₁ ≡ f a₂ → a₁ ≡ a₂
+
+IsInjective→fiber-IsProp : {A B : Type ℓ} {f : A → B} → IsSet A → IsSet B → IsInjective f → ∀ y → IsProp (fiber f y)
+IsInjective→fiber-IsProp A-IsSet B-IsSet f-IsInjective = IsEmbedding→fiber-IsProp (IsInjective→IsEmbedding A-IsSet B-IsSet f-IsInjective)
+
+IsEmbedding→IsInjective : {f : A → B} → IsEmbedding f → IsInjective f
+IsEmbedding→IsInjective f-IsEmbedding = inv (f-IsEmbedding _ _)
+
+-- TODO: Truncate to make a proposition.
+-- TODO: make b implicit?
+IsSurjective : (f : A → B) → Type _
+IsSurjective {B = B} f = (b : B) → fiber f b
+
+IsEmbedding×IsSurjective→IsEquiv : {f : A → B} → IsEmbedding f → IsSurjective f → IsEquiv f
+IsEmbedding×IsSurjective→IsEquiv f-IsEmbedding f-IsSurjective = record { equiv-proof = λ b → inhProp→isContr (f-IsSurjective b) (IsEmbedding→fiber-IsProp f-IsEmbedding b) }
+
+IsInjective×IsSurjective→IsEquiv : {f : A → B} → IsSet A → IsSet B → IsInjective f → IsSurjective f → IsEquiv f
+IsInjective×IsSurjective→IsEquiv A-IsSet B-IsSet f-IsInjective f-IsSurjective
+  = IsEmbedding×IsSurjective→IsEquiv (IsInjective→IsEmbedding A-IsSet B-IsSet f-IsInjective) f-IsSurjective
+
+HasInverse→IsEquiv : {f : A → B} (g : B → A) → ((a : A) → g (f a) ≡ a) → ((b : B) → f (g b) ≡ b) → IsEquiv f
+HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
+
+⟺→IsEquiv : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → {f : A → B} → (B → A) → IsEquiv f
+⟺→IsEquiv A-IsProp B-IsProp g = HasInverse→IsEquiv g (λ a → A-IsProp _ _) (λ b → B-IsProp _ _)
+
+IsEquiv→fiber-IsContr : {f : A → B} → IsEquiv f → ((b : B) → IsContr (fiber f b))
+IsEquiv→fiber-IsContr = IsEquiv.equiv-proof
+
+IsEquiv→IsInjective : {f : A → B} → IsEquiv f → IsInjective f
+IsEquiv→IsInjective f-IsEquiv = IsEmbedding→IsInjective (IsEquiv→IsEmbedding f-IsEquiv)
 
 infixr 9 _∘-IsEquiv_
 

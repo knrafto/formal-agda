@@ -1,39 +1,162 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 module Math.Int where
 
-open import Cubical.Data.Int public using (pos; negsuc; neg; _+_; _-_) renaming (Int to ℤ; isSetInt to ℤ-IsSet; discreteInt to ℤ-HasDecEq)
-open import Cubical.Data.Int using (sucInt; predInt; _+pos_; _+negsuc_)
+open import Cubical.Data.Int using (Int)
+import Cubical.Data.Int as Int
+open import Cubical.HITs.Ints.BiInvInt public using (zero; suc) renaming (predl to pred; BiInvInt to ℤ; isSetBiInvInt to ℤ-IsSet; discreteBiInvInt to ℤ-HasDecEq)
+open import Cubical.HITs.Ints.BiInvInt using (predr; suc-predr; predl; predl-suc; suc-biinvequiv; predl≡predr) renaming (fwd to fromInt; bwd to toInt; fwd-bwd to fromInt-toInt; bwd-fwd to toInt-fromInt)
+open import Cubical.Foundations.Equiv.BiInvertible using (biInvEquiv→Equiv-left)
+open import Cubical.Foundations.Prelude using (PathP; toPathP)
 open import Math.Dec
-open import Math.Nat using (ℕ; zero; suc) renaming (_+_ to _+ℕ_; _<_ to _<ℕ_; _≤_ to _≤ℕ_; <-Dec to <ℕ-Dec; ≤-Dec to ≤ℕ-Dec)
+open import Math.Function
+open import Math.Nat using (ℕ; ℕ-IsSet)
 import Math.Nat as ℕ
 open import Math.Type
 
--- TODO: define + to induct on left argument instead of right?
--- TODO: define binary - in terms of unary -?
+infixl 6 _+_ _-_
 
--_ : ℤ → ℤ
-- n = pos zero - n
+suc-IsEquiv : IsEquiv suc
+suc-IsEquiv = snd (biInvEquiv→Equiv-left suc-biinvequiv)
 
-_<_ : ℤ → ℤ → Type₀
-pos m < pos n = m <ℕ n
-pos m < negsuc n = ⊥
-negsuc m < pos n = ⊤
-negsuc m < negsuc n = n <ℕ m
+ℤ-ind-Prop : ∀ {ℓ} {P : ℤ → Type ℓ} → (∀ n → IsProp (P n)) → P zero → (∀ n → P n → P (suc n)) → (∀ n → P n → P (pred n)) → (n : ℤ) → P n
+ℤ-ind-Prop {P = P} P-IsProp P-zero P-suc P-pred = φ
+  where
+  P-predr : ∀ n → P n → P (predr n)
+  P-predr n x = subst P (predl≡predr n) (P-pred n x)
 
-<-Dec : ∀ m n → Dec (m < n)
-<-Dec (pos m) (pos n) = <ℕ-Dec m n
-<-Dec (pos m) (negsuc n) = no λ x → x
-<-Dec (negsuc m) (pos n) = yes tt
-<-Dec (negsuc m) (negsuc n) = <ℕ-Dec n m
+  P-predl : ∀ n → P n → P (predl n)
+  P-predl = P-pred
+
+  P-IsProp' : {a b : ℤ} (p : a ≡ b) (x : P a) (y : P b) → PathP (λ i → P (p i)) x y
+  P-IsProp' _ _ _ = toPathP (P-IsProp _ _ _)
+
+  φ : (n : ℤ) → P n
+  φ zero = P-zero
+  φ (suc n) = P-suc n (φ n)
+  φ (predr n) = P-predr n (φ n)
+  φ (suc-predr n i) = P-IsProp' (suc-predr n) (P-suc (predr n) (P-predr n (φ n))) (φ n) i
+  φ (predl n) = P-predl n (φ n)
+  φ (predl-suc n i) = P-IsProp' (predl-suc n) (P-predl (suc n) (P-suc n (φ n))) (φ n) i
+
+-- Definitional equalities:
+-- ℤ-rec a f _ zero = a
+-- ℤ-rec a f _ (suc n) = f (ℤ-rec a f _ n)
+-- ℤ-rec a f _ (pred n) = f⁻¹ (ℤ-rec a f _ n)
+ℤ-rec : ∀ {ℓ} {A : Type ℓ} → A → (f : A → A) → IsEquiv f → ℤ → A
+ℤ-rec {A = A} a f f-IsEquiv = φ
+  where
+  φ : ℤ → A
+  φ zero = a
+  φ (suc n) = f (φ n)
+  φ (predr n) = inv f-IsEquiv (φ n)
+  φ (suc-predr n i) = rightInv f-IsEquiv (φ n) i
+  φ (predl n) = inv f-IsEquiv (φ n)
+  φ (predl-suc n i) = leftInv f-IsEquiv (φ n) i
+
+_+_ : ℤ → ℤ → ℤ
+_+_ = ℤ-rec id (suc ∘_) (f∘-IsEquiv suc-IsEquiv)
+
+negate : ℤ → ℤ
+negate = ℤ-rec zero pred (inv-IsEquiv suc-IsEquiv)
+
+_-_ : ℤ → ℤ → ℤ
+m - n = m + negate n
+
++-zero : ∀ n → n + zero ≡ n
++-zero = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _) refl (λ n p → ap suc p) (λ n p → ap pred p)
+
++-suc : ∀ m n → m + suc n ≡ suc (m + n)
++-suc = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ m → refl)
+  (λ m p n → ap suc (p n))
+  (λ m p n → ap pred (p n) ∙ leftInv suc-IsEquiv (m + n) ∙ sym (rightInv suc-IsEquiv (m + n)))
+
++-pred : ∀ m n → m + pred n ≡ pred (m + n)
++-pred = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ m → refl)
+  (λ m p n → ap suc (p n) ∙ rightInv suc-IsEquiv (m + n) ∙ sym (leftInv suc-IsEquiv (m + n)))
+  (λ m p n → ap pred (p n))
+
++-comm : ∀ m n → m + n ≡ n + m
++-comm m n = +-comm' n m
+  where
+  +-comm' : ∀ n m → m + n ≡ n + m
+  +-comm' = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+    +-zero
+    (λ n p m → +-suc m n ∙ ap suc (p m))
+    (λ n p m → +-pred m n ∙ ap pred (p m))
+
++-assoc : ∀ m n o → m + (n + o) ≡ (m + n) + o
++-assoc = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ n o → refl)
+  (λ m p n o → ap suc (p n o))
+  (λ m p n o → ap pred (p n o))
+
+-- TODO: name?
+negate-leftInv : ∀ n → negate n + n ≡ zero
+negate-leftInv = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _)
+  refl
+  (λ n p → ap pred (+-suc (negate n) n) ∙ leftInv suc-IsEquiv _ ∙ p)
+  (λ n p → ap suc (+-pred (negate n) n) ∙ rightInv suc-IsEquiv _ ∙ p)
+
+-- TODO: name?
+negate-rightInv : ∀ n → n + negate n ≡ zero
+negate-rightInv = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _)
+  refl
+  (λ n p → ap suc (+-pred n (negate n)) ∙ rightInv suc-IsEquiv _ ∙ p)
+  (λ n p → ap pred (+-suc n (negate n)) ∙ leftInv suc-IsEquiv _ ∙ p)
+
+-- TODO: name?
+negate-distrib : ∀ m n → negate (m + n) ≡ negate m + negate n
+negate-distrib = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ m → refl)
+  (λ m p n → ap pred (p n))
+  (λ m p n → ap suc (p n))
+
+pos : ℕ → ℤ
+pos ℕ.zero = zero
+pos (ℕ.suc n) = suc (pos n)
+
+neg : ℕ → ℤ
+neg n = negate (pos n)
+
+toInt-IsEquiv : IsEquiv toInt
+toInt-IsEquiv = HasInverse→IsEquiv fromInt fromInt-toInt toInt-fromInt
+
+toInt-pos : (n : ℕ) → toInt (pos n) ≡ Int.pos n
+toInt-pos ℕ.zero = refl
+toInt-pos (ℕ.suc n) = ap Int.sucInt (toInt-pos n)
+
+pos-IsInjective : IsInjective pos
+pos-IsInjective {m} {n} p = Int.injPos (sym (toInt-pos m) ∙ ap toInt p ∙ toInt-pos n)
+
+IsNonnegative : ℤ → Type₀
+IsNonnegative z = Σ[ n ∈ ℕ ] pos n ≡ z
+
+IsNonnegative-IsProp : ∀ z → IsProp (IsNonnegative z)
+IsNonnegative-IsProp = IsInjective→fiber-IsProp ℕ-IsSet ℤ-IsSet pos-IsInjective
+
+IsNonnegative-Dec : ∀ z → Dec (IsNonnegative z)
+IsNonnegative-Dec z = subst (λ z → Dec (IsNonnegative z)) (fromInt-toInt z) (fromInt-IsNonnegative-Dec (toInt z))
+  where
+  fromInt-IsNonnegative-Dec : ∀ i → Dec (IsNonnegative (fromInt i))
+  fromInt-IsNonnegative-Dec (Int.pos n) = yes (n , IsEquiv→IsInjective toInt-IsEquiv (toInt-pos n ∙ sym (toInt-fromInt _)))
+  fromInt-IsNonnegative-Dec (Int.negsuc n) = no λ { (m , p) → Int.posNotnegsuc m n (sym (toInt-pos _) ∙ ap toInt p ∙ toInt-fromInt (Int.negsuc n)) }
 
 _≤_ : ℤ → ℤ → Type₀
-pos m ≤ pos n = m ≤ℕ n
-pos m ≤ negsuc n = ⊥
-negsuc m ≤ pos n = ⊤
-negsuc m ≤ negsuc n = n ≤ℕ m
+m ≤ n = IsNonnegative (n - m)
+
+≤-IsProp : ∀ m n → IsProp (m ≤ n)
+≤-IsProp m n = IsNonnegative-IsProp (n - m)
 
 ≤-Dec : ∀ m n → Dec (m ≤ n)
-≤-Dec (pos m) (pos n) = ≤ℕ-Dec m n
-≤-Dec (pos m) (negsuc n) = no λ x → x
-≤-Dec (negsuc m) (pos n) = yes tt
-≤-Dec (negsuc m) (negsuc n) = ≤ℕ-Dec n m
+≤-Dec m n = IsNonnegative-Dec (n - m)
+
+_<_ : ℤ → ℤ → Type₀
+m < n = suc m ≤ n
+
+<-IsProp : ∀ m n → IsProp (m < n)
+<-IsProp m n = ≤-IsProp (suc m) n
+
+<-Dec : ∀ m n → Dec (m < n)
+<-Dec m n = ≤-Dec (suc m) n

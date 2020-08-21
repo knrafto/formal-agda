@@ -10,7 +10,7 @@ open import Cubical.Foundations.HLevels using (inhProp→isContr)
 open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv)
 open import Cubical.Foundations.Prelude public using (funExt) renaming (funExt⁻ to happly)
 open import Cubical.Foundations.Univalence using (univalence)
-open import Cubical.Functions.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding)
+open import Cubical.Functions.Embedding public using () renaming (isEmbedding to IsEmbedding; isEmbedding→hasPropFibers to IsEmbedding→fiber-IsProp; injEmbedding to IsInjective→IsEmbedding; hasPropFibers→isEmbedding to fiber-IsProp→IsEmbedding; isEquiv→isEmbedding to IsEquiv→IsEmbedding)
 
 open import Math.Type
 
@@ -47,9 +47,6 @@ HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
 
 IsEquiv→fiber-IsContr : {f : A → B} → IsEquiv f → ((b : B) → IsContr (fiber f b))
 IsEquiv→fiber-IsContr = IsEquiv.equiv-proof
-
-IsEquiv→IsEmbedding : {f : A → B} → IsEquiv f → IsEmbedding f
-IsEquiv→IsEmbedding f-IsEquiv = fiber-IsProp→IsEmbedding λ b → IsContr→IsProp (IsEquiv→fiber-IsContr f-IsEquiv b)
 
 id : A → A
 id a = a

@@ -12,13 +12,13 @@ open import Math.Type
 
 -- TODO: d should go on the left?
 Mod : ℕ → Type₀
-Mod d = ℤ / (λ m n → m +ℤ pos d ≡ n)
+Mod d = ℤ / (λ m n → pos d +ℤ m ≡ n)
 
 module _ {d : ℕ} where
   fromℤ : ℤ → Mod d
   fromℤ n = [ n ]
 
-  fromℤ-≡ : ∀ {m n} → m +ℤ pos d ≡ n → fromℤ m ≡ fromℤ n
+  fromℤ-≡ : ∀ {m n} → pos d +ℤ m ≡ n → fromℤ m ≡ fromℤ n
   fromℤ-≡ {m} {n} = /-≡ m n
 
   fromℕ : ℕ → Mod d
@@ -48,14 +48,14 @@ module _ {d : ℕ} where
     → (a b c : Mod d) → P a b c
   Mod-ind-IsProp-3 P-IsProp f = Mod-ind-IsProp-2 (λ a b → Π-IsProp (P-IsProp a b)) λ a b → Mod-ind-IsProp (P-IsProp _ _) λ c → f a b c
 
-  -- Mod-rec A-IsSet f p (fromℤ n) is definitionally equal to f n
-  Mod-rec : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℤ → A) → (∀ n → f (n +ℤ pos d) ≡ f n) → Mod d → A
+  -- Mod-rec _ f _ (fromℤ n) is definitionally equal to f n
+  Mod-rec : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℤ → A) → (∀ n → f (pos d +ℤ n) ≡ f n) → Mod d → A
   Mod-rec A-IsSet f p = /-rec A-IsSet f λ a b a~b → sym (p a) ∙ ap f a~b
 
   Mod-rec-2
     : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℤ → ℤ → A)
-    → (∀ m n → f (m +ℤ pos d) n ≡ f m n)
-    → (∀ m n → f m (n +ℤ pos d) ≡ f m n)
+    → (∀ m n → f (pos d +ℤ m) n ≡ f m n)
+    → (∀ m n → f m (pos d +ℤ n) ≡ f m n)
     → Mod d → Mod d → A
   Mod-rec-2 A-IsSet f pl pr = Mod-rec (→-IsSet A-IsSet) (λ m → Mod-rec A-IsSet (λ n → f m n) (pr m))
     λ m → funExt (Mod-ind-IsProp (λ n → A-IsSet _ _) (pl m))
@@ -63,17 +63,17 @@ module _ {d : ℕ} where
   _+_ : Mod d → Mod d → Mod d
   _+_ = Mod-rec-2 Mod-IsSet (λ m n → fromℤ (m +ℤ n)) left right
     where
-    right : (m n : ℤ) → fromℤ (m +ℤ (n +ℤ pos d)) ≡ fromℤ (m +ℤ n)
-    right m n = sym (fromℤ-≡ (sym (ℤ.+-assoc m n (pos d))))
+    left : (m n : ℤ) → fromℤ ((pos d +ℤ m) +ℤ n) ≡ fromℤ (m +ℤ n)
+    left m n = sym (fromℤ-≡ (ℤ.+-assoc (pos d) m n))
 
-    left : (m n : ℤ) → fromℤ ((m +ℤ pos d) +ℤ n) ≡ fromℤ (m +ℤ n)
-    left m n = ap fromℤ (ℤ.+-comm (m +ℤ pos d) n) ∙ right n m ∙ ap fromℤ (ℤ.+-comm n m)
+    right : (m n : ℤ) → fromℤ (m +ℤ (pos d +ℤ n)) ≡ fromℤ (m +ℤ n)
+    right m n = ap fromℤ (ℤ.+-comm m (pos d +ℤ n)) ∙ left n m ∙ ap fromℤ (ℤ.+-comm n m)
 
-  negate : Mod d → Mod d
-  negate = Mod-rec Mod-IsSet (λ n → fromℤ (ℤ.negate n)) λ n → fromℤ-≡ {!!}
+  -_ : Mod d → Mod d
+  -_ = Mod-rec Mod-IsSet (λ n → fromℤ (ℤ.negate n)) λ n → fromℤ-≡ {!!}
 
   _-_ : Mod d → Mod d → Mod d
-  m - n = m + negate n
+  m - n = m + (- n)
 
 {-
   -- TODO: name?

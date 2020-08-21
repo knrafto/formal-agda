@@ -1,18 +1,18 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Int where
 
-open import Cubical.Data.Int public using (pos; negsuc; neg; _+_; +-comm; +-assoc) renaming (Int to ℤ; isSetInt to ℤ-IsSet; discreteInt to ℤ-HasDecEq)
+open import Cubical.Data.Int public using (pos; negsuc; neg; _+_; _-_) renaming (Int to ℤ; isSetInt to ℤ-IsSet; discreteInt to ℤ-HasDecEq)
+open import Cubical.Data.Int using (sucInt; predInt; _+pos_; _+negsuc_)
 open import Math.Dec
-open import Math.Nat using (ℕ; zero; suc) renaming (_<_ to _<ℕ_; _≤_ to _≤ℕ_; <-Dec to <ℕ-Dec; ≤-Dec to ≤ℕ-Dec)
+open import Math.Nat using (ℕ; zero; suc) renaming (_+_ to _+ℕ_; _<_ to _<ℕ_; _≤_ to _≤ℕ_; <-Dec to <ℕ-Dec; ≤-Dec to ≤ℕ-Dec)
+import Math.Nat as ℕ
 open import Math.Type
 
-negate : ℤ → ℤ
-negate (pos zero) = pos zero
-negate (pos (suc n)) = negsuc n
-negate (negsuc n) = pos (suc n)
+-- TODO: define + to induct on left argument instead of right?
+-- TODO: define binary - in terms of unary -?
 
-_-_ : ℤ → ℤ → ℤ
-m - n = m + negate n
+-_ : ℤ → ℤ
+- n = pos zero - n
 
 _<_ : ℤ → ℤ → Type₀
 pos m < pos n = m <ℕ n

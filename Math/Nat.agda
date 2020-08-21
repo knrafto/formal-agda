@@ -2,7 +2,7 @@
 module Math.Nat where
 
 open import Agda.Builtin.FromNat
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; znots to ¬zero≡suc; snotz to ¬suc≡zero)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split; ≤-+k) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
 open import Cubical.Induction.WellFounded
@@ -49,14 +49,6 @@ suc-reflects-< = pred-≤-pred
 
 <-IsProp : ∀ {m n} → IsProp (m < n)
 <-IsProp = ≤-IsProp
-
-ℕ-HasDecEq : HasDecEq ℕ
-ℕ-HasDecEq zero zero = yes refl
-ℕ-HasDecEq zero (suc n) = no ¬zero≡suc
-ℕ-HasDecEq (suc m) zero = no λ sucm≡zero → ¬zero≡suc (sym sucm≡zero)
-ℕ-HasDecEq (suc m) (suc n) with ℕ-HasDecEq m n
-ℕ-HasDecEq (suc m) (suc n) | yes m≡n = yes (ap suc m≡n)
-ℕ-HasDecEq (suc m) (suc n) | no ¬m≡n = no (λ sm≡sn → ¬m≡n (suc-IsInjective sm≡sn))
 
 <-Dec : ∀ m n → Dec (m < n)
 <-Dec _ zero = no ¬-<-zero

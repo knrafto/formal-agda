@@ -1,35 +1,28 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Mod where
 
-open import Agda.Builtin.FromNat
 open import Math.Division
 open import Math.Fin
 open import Math.Function
-open import Math.Int using (ℤ)
+open import Math.Int using (ℤ; pos) renaming (_+_ to _+ℤ_)
+import Math.Int as ℤ
 open import Math.Nat using (ℕ-IsSet; _<_)
-import Math.Nat as ℕ
 open import Math.Quotient
 open import Math.Type
 
--- TODO: most of this belongs in a Math.Quotient file
-
 -- TODO: d should go on the left?
 Mod : ℕ → Type₀
-Mod d = ℕ / (λ m n → m ℕ.+ d ≡ n)
+Mod d = ℤ / (λ m n → m +ℤ pos d ≡ n)
 
 module _ {d : ℕ} where
-  -- "remainder"
-  r : ℕ → Mod d
-  r n = [ n ]
+  fromℤ : ℤ → Mod d
+  fromℤ n = [ n ]
+
+  fromℤ-≡ : ∀ {m n} → m +ℤ pos d ≡ n → fromℤ m ≡ fromℤ n
+  fromℤ-≡ {m} {n} = /-≡ m n
 
   fromℕ : ℕ → Mod d
-  fromℕ = r
-
-  fromℤ : ℤ → Mod d
-  fromℤ = {!!}
-
-  r-+d : ∀ {m n} → m ℕ.+ d ≡ n → r m ≡ r n
-  r-+d {m} {n} = /-≡ m n
+  fromℕ n = fromℤ (pos n)
 
   Mod-IsSet : IsSet (Mod d)
   Mod-IsSet = /-IsSet
@@ -37,67 +30,52 @@ module _ {d : ℕ} where
   Mod-ind-IsProp
     : ∀ {ℓ} {P : Mod d → Type ℓ}
     → (∀ a → IsProp (P a))
-    → (f : ∀ a → P (r a))
+    → (f : ∀ a → P (fromℤ a))
     → (a : Mod d) → P a
   Mod-ind-IsProp = /-ind-IsProp
 
   Mod-ind-IsProp-2
     : ∀ {ℓ} {P : Mod d → Mod d → Type ℓ}
     → (∀ a b → IsProp (P a b))
-    → (f : ∀ a b → P (r a) (r b))
+    → (f : ∀ a b → P (fromℤ a) (fromℤ b))
     → (a b : Mod d) → P a b
   Mod-ind-IsProp-2 P-IsProp f = Mod-ind-IsProp (λ a → Π-IsProp (P-IsProp a)) λ a → Mod-ind-IsProp (P-IsProp _) λ b → f a b
 
   Mod-ind-IsProp-3
     : ∀ {ℓ} {P : Mod d → Mod d → Mod d → Type ℓ}
     → (∀ a b c → IsProp (P a b c))
-    → (f : ∀ a b c → P (r a) (r b) (r c))
+    → (f : ∀ a b c → P (fromℤ a) (fromℤ b) (fromℤ c))
     → (a b c : Mod d) → P a b c
   Mod-ind-IsProp-3 P-IsProp f = Mod-ind-IsProp-2 (λ a b → Π-IsProp (P-IsProp a b)) λ a b → Mod-ind-IsProp (P-IsProp _ _) λ c → f a b c
 
-  -- Computes on r: Mod-rec A-IsSet f p (r n) is definitionally equal to f n
-  Mod-rec : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℕ → A) → (∀ n → f (n ℕ.+ d) ≡ f n) → Mod d → A
+  -- Mod-rec A-IsSet f p (fromℤ n) is definitionally equal to f n
+  Mod-rec : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℤ → A) → (∀ n → f (n +ℤ pos d) ≡ f n) → Mod d → A
   Mod-rec A-IsSet f p = /-rec A-IsSet f λ a b a~b → sym (p a) ∙ ap f a~b
 
-  -- Recursion on two Mod d arguments
   Mod-rec-2
-    : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℕ → ℕ → A)
-    → (∀ m n → f (m ℕ.+ d) n ≡ f m n)
-    → (∀ m n → f m (n ℕ.+ d) ≡ f m n)
+    : ∀ {ℓ} {A : Type ℓ} → IsSet A → (f : ℤ → ℤ → A)
+    → (∀ m n → f (m +ℤ pos d) n ≡ f m n)
+    → (∀ m n → f m (n +ℤ pos d) ≡ f m n)
     → Mod d → Mod d → A
   Mod-rec-2 A-IsSet f pl pr = Mod-rec (→-IsSet A-IsSet) (λ m → Mod-rec A-IsSet (λ n → f m n) (pr m))
     λ m → funExt (Mod-ind-IsProp (λ n → A-IsSet _ _) (pl m))
 
   _+_ : Mod d → Mod d → Mod d
-  _+_ = Mod-rec-2 Mod-IsSet (λ m n → r (m ℕ.+ n)) left right
+  _+_ = Mod-rec-2 Mod-IsSet (λ m n → fromℤ (m +ℤ n)) left right
     where
-    right : (m n : ℕ) → r (m ℕ.+ (n ℕ.+ d)) ≡ r (m ℕ.+ n)
-    right m n = sym (r-+d (sym (ℕ.+-assoc m n d)))
+    right : (m n : ℤ) → fromℤ (m +ℤ (n +ℤ pos d)) ≡ fromℤ (m +ℤ n)
+    right m n = sym (fromℤ-≡ (sym (ℤ.+-assoc m n (pos d))))
 
-    left : (m n : ℕ) → r ((m ℕ.+ d) ℕ.+ n) ≡ r (m ℕ.+ n)
-    left m n = ap r (ℕ.+-comm (m ℕ.+ d) n) ∙ right n m ∙ ap r (ℕ.+-comm n m)
+    left : (m n : ℤ) → fromℤ ((m +ℤ pos d) +ℤ n) ≡ fromℤ (m +ℤ n)
+    left m n = ap fromℤ (ℤ.+-comm (m +ℤ pos d) n) ∙ right n m ∙ ap fromℤ (ℤ.+-comm n m)
+
+  negate : Mod d → Mod d
+  negate = Mod-rec Mod-IsSet (λ n → fromℤ (ℤ.negate n)) λ n → fromℤ-≡ {!!}
 
   _-_ : Mod d → Mod d → Mod d
-  _-_ = {!!}
+  m - n = m + negate n
 
-  zero : Mod d
-  zero = r ℕ.zero
-
-  zero-+ : ∀ n → zero + n ≡ n
-  zero-+ = Mod-ind-IsProp (λ _ → Mod-IsSet _ _) λ n → refl
-
-  +-zero : ∀ n → n + zero ≡ n
-  +-zero = Mod-ind-IsProp (λ _ → Mod-IsSet _ _) λ n → ap r (ℕ.+-zero n)
-
-  +-comm : ∀ m n → m + n ≡ n + m
-  +-comm = Mod-ind-IsProp-2 (λ _ _ → Mod-IsSet _ _) λ m n → ap r (ℕ.+-comm m n)
-
-  +-assoc : ∀ m n o → m + (n + o) ≡ (m + n) + o
-  +-assoc = Mod-ind-IsProp-3 (λ _ _ _ → Mod-IsSet _ _) λ m n o → ap r (ℕ.+-assoc m n o)
-
-  r-+-hom : ∀ {m n} → r (m ℕ.+ n) ≡ r m + r n
-  r-+-hom = refl
-
+{-
   -- TODO: name?
   -- "canonical representative" in terms of finite sets
   rep : Fin d → Mod d
@@ -128,11 +106,4 @@ module _ {d : ℕ} where
 
     rep-g : (n : Mod d) → rep (g n) ≡ n
     rep-g = Mod-ind-IsProp (λ _ → Mod-IsSet _ _) rep-remainder
-
--- Agda integer literals
-instance
-  NumberMod : ∀ {d} → Number (Mod d)
-  NumberMod = record
-    { Constraint = λ n → ⊤  -- TODO: n < d for safety
-    ; fromNat = λ n → r n
-    }
+-}

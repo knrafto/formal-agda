@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Int where
 
-open import Cubical.Data.Int public using (pos; negsuc; neg; _+_) renaming (Int to ℤ; isSetInt to ℤ-IsSet; discreteInt to ℤ-HasDecEq)
+open import Cubical.Data.Int public using (pos; negsuc; neg; _+_; +-comm; +-assoc) renaming (Int to ℤ; isSetInt to ℤ-IsSet; discreteInt to ℤ-HasDecEq)
 open import Math.Dec
 open import Math.Nat using (ℕ; zero; suc) renaming (_<_ to _<ℕ_; _≤_ to _≤ℕ_; <-Dec to <ℕ-Dec; ≤-Dec to ≤ℕ-Dec)
 open import Math.Type

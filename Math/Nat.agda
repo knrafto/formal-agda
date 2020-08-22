@@ -2,26 +2,14 @@
 module Math.Nat where
 
 open import Agda.Builtin.FromNat
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; +-assoc; +-comm; +-zero) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero)
-open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split; ≤-+k) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; _*_; +-assoc; +-comm; +-zero; *-comm) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero; inj-+m to +m-IsInjective; *-distribʳ to *-distrib-r)
+open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split; ≤-k+; ≤-+k) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
 open import Cubical.Induction.WellFounded
 open import Math.Dec
 open import Math.Type
 
-infixl 7 _*_
 infixr 8 _^_
-
--- Defining _*_ like this gives us nice definitional equalities on the left:
--- 0 * n = 0
--- 1 * n = n
--- 2 * n = n + n
--- 3 * n = n + n + n
--- etc.
--- TODO: make BUILTIN
-_*_ : ℕ → ℕ → ℕ
-zero  * m = zero
-suc n * m = n * m + m
 
 _^_ : ℕ → ℕ → ℕ
 b ^ zero = 1
@@ -46,6 +34,12 @@ suc-preserves-< = suc-≤-suc
 
 suc-reflects-< : {m n : ℕ} → suc m < suc n → m < n
 suc-reflects-< = pred-≤-pred
+
+0<1 : 0 <  1
+0<1 = (0 , refl)
+
+0<2 : 0 < 2
+0<2 = (1 , refl)
 
 <-IsProp : ∀ {m n} → IsProp (m < n)
 <-IsProp = ≤-IsProp
@@ -75,6 +69,12 @@ suc-reflects-< = pred-≤-pred
 
 <-+k : ∀ {m n k} → m < n → m + k < n + k
 <-+k = ≤-+k
+
+<-k+ : ∀ {m n k} → m < n → k + m < k + n
+<-k+ {m} {n} {k} m<n = subst (_< k + n) (+-comm m k) (subst (m + k <_) (+-comm n k) (<-+k m<n))
+
+≤-*k : ∀ {m n k} → m ≤ n → m * k ≤ n * k
+≤-*k {m} {n} {k} (l , l+m≡n) = l * k , *-distrib-r l m k ∙ ap (_* k) l+m≡n
 
 -- Agda integer literals
 instance

@@ -59,22 +59,6 @@ Fin-+-IsEquiv {suc m} {n} =
   ⊎-assoc-IsEquiv ∘-IsEquiv
   ⊎-map-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) id-IsEquiv
 
--- TODO: better name?
-{-
-Fin-* : {m n : ℕ} → Fin m × Fin n → Fin (m * n)
-Fin-* {zero} {n} = ⊥-rec ∘ fst ∘ ×-map ¬Fin0 id
-Fin-* {suc m} {n} = Fin-+ ∘ ⊎-map snd Fin-* ∘ ⊎-distribute ∘ ×-map (inv Fin-suc-IsEquiv) id
-
-Fin-*-IsEquiv : {m n : ℕ} → IsEquiv (Fin-* {m = m} {n = n})
--- TODO: rewrite: any function between empty types is an equivalence
-Fin-*-IsEquiv {zero} {n} = ⊥-rec-IsEquiv ¬Fin0 ∘-IsEquiv (¬-IsEquiv fst) ∘-IsEquiv ×-map-IsEquiv (¬-IsEquiv ¬Fin0) id-IsEquiv
-Fin-*-IsEquiv {suc m} {n} =
-  Fin-+-IsEquiv ∘-IsEquiv
-  ⊎-map-IsEquiv ⊤-snd-IsEquiv Fin-*-IsEquiv ∘-IsEquiv
-  ⊎-distribute-IsEquiv ∘-IsEquiv
-  ×-map-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) id-IsEquiv
--}
-
 Fin-∀-Dec : {n : ℕ} {P : Fin n → Type ℓ} → (∀ i → Dec (P i)) → Dec (∀ i → P i)
 Fin-∀-Dec {n = zero}  {P} P-Dec = yes λ i → ⊥-rec (¬Fin0 i)
 Fin-∀-Dec {n = suc k} {P} P-Dec with P-Dec fzero | Fin-∀-Dec (λ i → P-Dec (fsuc i))

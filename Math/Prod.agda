@@ -12,6 +12,9 @@ private
     C : Type ℓ''
     D : Type ℓ'''
 
+×-IsSet : IsSet A → IsSet B → IsSet (A × B)
+×-IsSet A-IsSet B-IsSet = Σ-IsSet A-IsSet λ _ → B-IsSet
+
 ×≡ : {x y : A × B} → (fst x ≡ fst y) × (snd x ≡ snd y) → x ≡ y
 ×≡ (p₁ , p₂) = λ i → (p₁ i , p₂ i)
 

@@ -1,25 +1,22 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Experimental.Binary where
 
+open import Math.Bit hiding (toℕ; toℤ)
+import Math.Bit as Bit
 open import Math.Dec
+open import Math.Division
 open import Math.Fin hiding (toℕ)
 open import Math.Function
-open import Math.Int renaming (_+_ to _+ℤ_; _-_ to _-ℤ_; _<_ to _<ℤ_; <-Dec to <ℤ-Dec; _≤_ to _≤ℤ_; ≤-Dec to ≤ℤ-Dec)
+open import Math.Int using (ℤ; pos; neg) renaming (_+_ to _+ℤ_; _-_ to _-ℤ_; _<_ to _<ℤ_; _*_ to _*ℤ_; <-Dec to <ℤ-Dec; _≤_ to _≤ℤ_; ≤-Dec to ≤ℤ-Dec)
+import Math.Int as ℤ
 open import Math.Mod using (Mod) renaming (_+_ to _+Mod_; _-_ to _-Mod_)
 import Math.Mod as Mod
 open import Math.Nat
+open import Math.Prod
 open import Math.Vec
 open import Math.Type
 
 infixr 5 _++_
-
--- A bit.
-data Bit : Type₀ where
-  0₂ : Bit
-  1₂ : Bit
-
-Bit-HasDecEq : HasDecEq Bit
-Bit-HasDecEq = {!!}
 
 -- A bit vector.
 Word : ℕ → Type₀
@@ -43,13 +40,13 @@ slice {n} w j i {j<n} {i≤j} (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness
 
 and : Bit → Bit → Bit
 and 0₂ _ = 0₂
-and 1₂ y = y
+and 1₂ b = b
 
 bitwiseAnd : ∀ {n} → Word n → Word n → Word n
 bitwiseAnd x y = λ i → and (x i) (y i)
 
 or : Bit → Bit → Bit
-or 0₂ y = y
+or 0₂ b = b
 or 1₂ _ = 1₂
 
 bitwiseOr : ∀ {n} → Word n → Word n → Word n
@@ -68,20 +65,41 @@ bitwiseXor x y = λ i → xor (x i) (y i)
 -- Unsigned integer representation
 --------------------------------------------------------------------------------
 
+toℕ : ∀ {n} → Word n → ℕ
+toℕ {zero}  w = 0
+toℕ {suc n} w = toℕ (tail w) * 2 + Bit.toℕ (head w)
+
+toℕ-<2^n : ∀ {n} (w : Word n) → toℕ w < 2 ^ n
+toℕ-<2^n {zero} w = 0<1
+toℕ-<2^n {suc n} w = subst (toℕ w <_) (*-comm (2 ^ n) 2) (euclid-< 0<2 (toℕ (tail w)) (toFin2 (head w)) (toℕ-<2^n (tail w)))
+
 Unsigned : ℕ → Type₀
 Unsigned n = Fin (2 ^ n)
 
 toUnsigned : ∀ {n} → Word n → Unsigned n
-toUnsigned = {!!}
+toUnsigned w = toℕ w , toℕ-<2^n w
 
 toUnsigned-IsEquiv : ∀ {n} → IsEquiv (toUnsigned {n = n})
-toUnsigned-IsEquiv = {!!}
+toUnsigned-IsEquiv {zero} = IsContr→IsContr→IsEquiv Vec0-IsContr Fin1-IsContr
+toUnsigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toUnsigned-IsEquiv ∘-IsEquiv inv-IsEquiv cons-IsEquiv
+  where
+  addBit : Fin 2 × Unsigned n → Unsigned (suc n)
+  addBit (r , (q , q<2^n)) = euclid 0<2 (q , r) , subst (euclid 0<2 (q , r) <_) (*-comm (2 ^ n) 2) (euclid-< 0<2 q r q<2^n)
+
+  removeBit : Unsigned (suc n) → Fin 2 × Unsigned n
+  removeBit (m , m<2^sn) = remainder 0<2 m , quotient 0<2 m , quotient-< 0<2 (subst (m <_) (*-comm 2 (2 ^ n)) m<2^sn)
+
+  removeBit-addBit : ∀ x → removeBit (addBit x) ≡ x
+  removeBit-addBit (r , (q , q<2^n)) = ×≡ (ap snd (leftInv (euclid-IsEquiv 0<2) (q , r)) , ΣProp≡ (λ _ → <-IsProp) (ap fst (leftInv (euclid-IsEquiv 0<2) (q , r))))
+
+  addBit-removeBit : ∀ x → addBit (removeBit x) ≡ x
+  addBit-removeBit (m , m<2^n) = toℕ-IsInjective (rightInv (euclid-IsEquiv 0<2) m)
+
+  addBit-IsEquiv : IsEquiv addBit
+  addBit-IsEquiv = HasInverse→IsEquiv removeBit removeBit-addBit addBit-removeBit
 
 fromUnsigned : ∀ {n} → Unsigned n → Word n
 fromUnsigned = inv toUnsigned-IsEquiv
-
-toℕ : ∀ {n} → Word n → ℕ
-toℕ w = fst (toUnsigned w)
 
 constant : ∀ {n} (k : ℕ) → {True (<-Dec k (2 ^ n))} → Word n
 constant k {k<2^n} = fromUnsigned (k , witness k<2^n)
@@ -89,6 +107,10 @@ constant k {k<2^n} = fromUnsigned (k , witness k<2^n)
 --------------------------------------------------------------------------------
 -- Signed integer representation (two's complement)
 --------------------------------------------------------------------------------
+
+toℤ : ∀ {n} → Word (suc n) → ℤ
+toℤ {zero} w = ℤ.negate (Bit.toℤ (head w))
+toℤ {suc n} w = toℤ (tail w) *ℤ 2 +ℤ Bit.toℤ (head w)
 
 Signed : ℕ → Type₀
 Signed n = Σ[ k ∈ ℤ ] (neg (2 ^ n) ≤ℤ k) × (k <ℤ pos (2 ^ n))
@@ -101,9 +123,6 @@ toSigned-IsEquiv = {!!}
 
 fromSigned : ∀ {n} → Signed n → Word (suc n)
 fromSigned = inv toSigned-IsEquiv
-
-toℤ : ∀ {n} → Word (suc n) → ℤ
-toℤ w = {!!}
 
 --------------------------------------------------------------------------------
 -- Modular representation
@@ -146,10 +165,10 @@ shiftRightArithmetic = {!!}
 --------------------------------------------------------------------------------
 
 add : ∀ {n} → Word n → Word n → Word n
-add x y = fromMod (toMod x +Mod toMod y)
+add {n} x y = fromMod (_+Mod_ {d = 2 ^ n} (toMod x) (toMod y))
 
 sub : ∀ {n} → Word n → Word n → Word n
-sub x y = fromMod (toMod x -Mod toMod y)
+sub {n} x y = fromMod (_-Mod_ {d = 2 ^ n} (toMod x) (toMod y))
 
 --------------------------------------------------------------------------------
 -- Comparison

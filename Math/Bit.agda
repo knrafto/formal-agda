@@ -1,8 +1,11 @@
 {-# OPTIONS --cubical #-}
 module Math.Bit where
 
-open import Math.Fin
+open import Math.Dec
+open import Math.Fin hiding (toℕ)
+import Math.Fin as Fin
 open import Math.Function
+open import Math.Int
 open import Math.Nat
 open import Math.Type
 open import Math.Vec
@@ -11,15 +14,15 @@ data Bit : Type₀ where
   0₂ : Bit
   1₂ : Bit
 
-Word : ℕ → Type₀
-Word n = Vec n Bit
-
-Byte : Type₀
-Byte = Word 8
-
 toFin2 : Bit → Fin 2
 toFin2 0₂ = fzero
 toFin2 1₂ = fsuc fzero
+
+toℕ : Bit → ℕ
+toℕ b = Fin.toℕ (toFin2 b)
+
+toℤ : Bit → ℤ
+toℤ b = pos (Fin.toℕ (toFin2 b))
 
 toFin2-IsEquiv : IsEquiv toFin2
 toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from
@@ -41,14 +44,5 @@ toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from
 Bit-IsSet : IsSet Bit
 Bit-IsSet = subst IsSet (sym (ua toFin2 toFin2-IsEquiv)) Fin-IsSet
 
-fromBits : {n : ℕ} → Word n → Fin (2 ^ n)
-fromBits = fromDigits ∘ (toFin2 ∘_)
-
-fromBits-IsEquiv : {n : ℕ} → IsEquiv (fromBits {n = n})
-fromBits-IsEquiv = fromDigits-IsEquiv ∘-IsEquiv f∘-IsEquiv toFin2-IsEquiv
-
-toBits : {n : ℕ} → Fin (2 ^ n) → Word n
-toBits = inv fromBits-IsEquiv
-
-toBits-IsEquiv : {n : ℕ} → IsEquiv (toBits {n = n})
-toBits-IsEquiv = inv-IsEquiv fromBits-IsEquiv
+Bit-HasDecEq : HasDecEq Bit
+Bit-HasDecEq = subst HasDecEq (sym (ua toFin2 toFin2-IsEquiv)) Fin-HasDecEq

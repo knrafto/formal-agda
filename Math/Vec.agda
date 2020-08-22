@@ -53,34 +53,14 @@ cons = concat ∘ ×-map singleton id
 cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
 cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-IsEquiv
 
+uncons : {n : ℕ} → Vec (suc n) A → A × Vec n A
+uncons = inv cons-IsEquiv
+
+head : {n : ℕ} → Vec (suc n) A → A
+head v = fst (uncons v)
+
+tail : {n : ℕ} → Vec (suc n) A → Vec n A
+tail v = snd (uncons v)
+
 replicate : (n : ℕ) → A → Vec n A
 replicate n a = λ i → a
-
-0-vector : Vec 0 A
-0-vector = λ i → ⊥-rec (¬Fin0 i)
-
-1-vector : A → Vec 1 A
-1-vector a₀ = cons (a₀ , 0-vector)
-
-2-vector : A → A → Vec 2 A
-2-vector a₀ a₁ = cons (a₀ , 1-vector a₁)
-
-3-vector : A → A → A → Vec 3 A
-3-vector a₀ a₁ a₂ = cons (a₀ , 2-vector a₁ a₂)
-
-4-vector : A → A → A → A → Vec 4 A
-4-vector a₀ a₁ a₂ a₃ = cons (a₀ , 3-vector a₁ a₂ a₃)
-
-5-vector : A → A → A → A → A → Vec 5 A
-5-vector a₀ a₁ a₂ a₃ a₄ = cons (a₀ , 4-vector a₁ a₂ a₃ a₄)
-
--- Note digits are in big-endian order.
-{-
-fromDigits : {d n : ℕ} → Vec n (Fin d) → Fin (d ^ n)
-fromDigits {n = zero} = const fzero
-fromDigits {n = suc n} = Fin-* ∘ ×-map id fromDigits ∘ inv cons-IsEquiv
-
-fromDigits-IsEquiv : {d n : ℕ} → IsEquiv (fromDigits {d = d} {n = n})
-fromDigits-IsEquiv {n = zero} = IsContr→IsContr→IsEquiv Vec0-IsContr Fin1-IsContr
-fromDigits-IsEquiv {n = suc n} = Fin-*-IsEquiv ∘-IsEquiv (×-map-IsEquiv id-IsEquiv fromDigits-IsEquiv) ∘-IsEquiv (inv-IsEquiv cons-IsEquiv)
--}

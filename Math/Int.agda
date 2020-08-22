@@ -113,6 +113,22 @@ negate-distrib = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ m p n → ap pred (p n))
   (λ m p n → ap suc (p n))
 
+n+-IsEquiv : ∀ n → IsEquiv (n +_)
+n+-IsEquiv n = HasInverse→IsEquiv (λ m → negate n + m)
+  (λ m → +-assoc (negate n) n m ∙ ap (_+ m) (negate-leftInv n))
+  (λ m → +-assoc n (negate n) m ∙ ap (_+ m) (negate-rightInv n))
+
++n-IsEquiv : ∀ n → IsEquiv (_+ n)
++n-IsEquiv n = HasInverse→IsEquiv (_- n)
+  (λ m → sym (+-assoc m n (negate n)) ∙ ap (m +_) (negate-rightInv n) ∙ +-zero m)
+  (λ m → sym (+-assoc m (negate n) n) ∙ ap (m +_) (negate-leftInv n) ∙ +-zero m)
+
+_*_ : ℤ → ℤ → ℤ
+m * n = ℤ-rec zero (n +_) (n+-IsEquiv n) m
+
+*-zero : ∀ n → n * zero ≡ zero
+*-zero = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _) refl (λ n p → p) (λ n p → p)
+
 pos : ℕ → ℤ
 pos ℕ.zero = zero
 pos (ℕ.suc n) = suc (pos n)
@@ -160,3 +176,13 @@ m < n = suc m ≤ n
 
 <-Dec : ∀ m n → Dec (m < n)
 <-Dec m n = ≤-Dec (suc m) n
+
+open import Cubical.Data.Nat.Literals public
+
+instance
+  fromNatInt : HasFromNat ℤ
+  fromNatInt = record { Constraint = λ _ → ⊤ ; fromNat = λ n → pos n }
+
+instance
+  fromNegInt : HasFromNeg ℤ
+  fromNegInt = record { Constraint = λ _ → ⊤ ; fromNeg = λ n → neg n }

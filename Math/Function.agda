@@ -75,6 +75,9 @@ HasInverse→IsEquiv {f = f} g g-f f-g = snd (isoToEquiv (iso f g f-g g-f))
 ⟺→IsEquiv : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → {f : A → B} → (B → A) → IsEquiv f
 ⟺→IsEquiv A-IsProp B-IsProp g = HasInverse→IsEquiv g (λ a → A-IsProp _ _) (λ b → B-IsProp _ _)
 
+fiber-IsContr→IsEquiv : {f : A → B} → ((b : B) → IsContr (fiber f b)) → IsEquiv f
+fiber-IsContr→IsEquiv p = record { equiv-proof = p }
+
 IsEquiv→fiber-IsContr : {f : A → B} → IsEquiv f → ((b : B) → IsContr (fiber f b))
 IsEquiv→fiber-IsContr = IsEquiv.equiv-proof
 

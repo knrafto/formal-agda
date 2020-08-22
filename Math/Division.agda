@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 -- Euclidean division of natural numbers.
 module Math.Division where
 
@@ -32,16 +32,10 @@ module _ {d} (0<d : 0 < d) where
   euclid-IsInjective {suc q₁ , r₁} {suc q₂ , r₂} p = ap (λ { (q , r) → (suc q , r) }) (euclid-IsInjective (+m-IsInjective {m = d} (euclid-suc q₁ r₁ ∙ p ∙ sym (euclid-suc q₂ r₂))))
 
   euclid-IsSurjective : IsSurjective euclid
-  euclid-IsSurjective = <-ind λ n rec → case <-Dec n d return fiber euclid n of λ
-    { (yes n<d) → (zero , (n , n<d)) , refl
-    ; (no ¬n<d) →
-      let d≤n : d ≤ n
-          d≤n = case d ≟ n return d ≤ n of λ
-            { (lt d<n) → <-weaken d<n
-            ; (eq d≡n) → subst (d ≤_) d≡n ≤-refl
-            ; (gt n<d) → ⊥-rec (¬n<d n<d)
-            }
-          k = fst d≤n
+  euclid-IsSurjective = <-ind λ n rec → case dichotomy n d return fiber euclid n of λ
+    { (inl n<d) → (zero , (n , n<d)) , refl
+    ; (inr d≤n) →
+      let k = fst d≤n
           ((q , r) , p) = rec k (subst (k <_) (+-comm d k ∙ snd d≤n) (<-+k 0<d))
       in (suc q , r) , sym (euclid-suc q r) ∙ ap (_+ d) p ∙ snd d≤n
     }
@@ -58,5 +52,10 @@ module _ {d} (0<d : 0 < d) where
   remainder : ℕ → Fin d
   remainder n = snd (divmod n)
 
-  quotient-< : ∀ {n m} → n < m * d → quotient n < m
-  quotient-< = {!!}
+  quotient-< : ∀ {m n} → m < n * d → quotient m < n
+  quotient-< {m} {n} m<n*d = case dichotomy (quotient m) n return quotient m < n of λ
+    { (inl q<n) → q<n
+    ; (inr n≤q) →
+      let (q , r) = divmod m
+      in ⊥-rec (<-asym m<n*d (subst (n * d ≤_) (rightInv euclid-IsEquiv m) (≤-euclid {n = n} q r n≤q)))
+    }

@@ -109,17 +109,39 @@ constant k {k<2^n} = fromUnsigned (k , witness k<2^n)
 --------------------------------------------------------------------------------
 
 toℤ : ∀ {n} → Word (suc n) → ℤ
-toℤ {zero} w = ℤ.negate (Bit.toℤ (head w))
-toℤ {suc n} w = toℤ (tail w) *ℤ 2 +ℤ Bit.toℤ (head w)
+toℤ {zero} w = neg (Bit.toℕ (head w))
+toℤ {suc n} w = toℤ (tail w) *ℤ 2 +ℤ pos (Bit.toℕ (head w))
+
+-2^n≤-toℤ : ∀ {n} (w : Word (suc n)) → neg (2 ^ n) ≤ℤ toℤ w
+-2^n≤-toℤ = {!!}
+
+toℤ-<2^n : ∀ {n} (w : Word (suc n)) → toℤ w <ℤ pos (2 ^ n)
+toℤ-<2^n = {!!}
 
 Signed : ℕ → Type₀
 Signed n = Σ[ k ∈ ℤ ] (neg (2 ^ n) ≤ℤ k) × (k <ℤ pos (2 ^ n))
 
 toSigned : ∀ {n} → Word (suc n) → Signed n
-toSigned = {!!}
+toSigned w = toℤ w , -2^n≤-toℤ w , toℤ-<2^n w
 
 toSigned-IsEquiv : ∀ {n} → IsEquiv (toSigned {n = n})
-toSigned-IsEquiv = {!!}
+toSigned-IsEquiv {zero} = {!!}
+toSigned-IsEquiv {suc n} = {!addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toSigned-IsEquiv ∘-IsEquiv inv-IsEquiv cons-IsEquiv!}
+  where
+  addBit : Fin 2 × Signed n → Signed (suc n)
+  addBit = {!!}
+
+  removeBit : Signed (suc n) → Fin 2 × Signed n
+  removeBit = {!!}
+
+  removeBit-addBit : ∀ x → removeBit (addBit x) ≡ x
+  removeBit-addBit = {!!}
+
+  addBit-removeBit : ∀ x → addBit (removeBit x) ≡ x
+  addBit-removeBit = {!!}
+
+  addBit-IsEquiv : IsEquiv addBit
+  addBit-IsEquiv = HasInverse→IsEquiv removeBit removeBit-addBit addBit-removeBit
 
 fromSigned : ∀ {n} → Signed n → Word (suc n)
 fromSigned = inv toSigned-IsEquiv

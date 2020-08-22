@@ -67,6 +67,14 @@ suc-reflects-< = pred-≤-pred
 <-rec : ∀ {ℓ} {A : Type ℓ} → (∀ n → (∀ k → k < n → A) → A) → ℕ → A
 <-rec {A = A} = WFI.induction <-wellfounded {P = λ _ → A}
 
+-- TODO: name
+dichotomy : ∀ m n → (m < n) ⊎ (n ≤ m)
+dichotomy m n = case m ≟ n return (m < n) ⊎ (n ≤ m) of λ
+  { (lt m<n) → inl m<n
+  ; (eq m≡n) → inr (subst (_≤ m) m≡n ≤-refl)
+  ; (gt n<m) → inr (<-weaken n<m)
+  }
+
 <-+k : ∀ {m n k} → m < n → m + k < n + k
 <-+k = ≤-+k
 

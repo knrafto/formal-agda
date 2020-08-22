@@ -5,7 +5,6 @@ open import Math.Dec
 open import Math.Fin hiding (toℕ)
 import Math.Fin as Fin
 open import Math.Function
-open import Math.Int
 open import Math.Nat
 open import Math.Type
 open import Math.Vec
@@ -20,9 +19,6 @@ toFin2 1₂ = fsuc fzero
 
 toℕ : Bit → ℕ
 toℕ b = Fin.toℕ (toFin2 b)
-
-toℤ : Bit → ℤ
-toℤ b = pos (Fin.toℕ (toFin2 b))
 
 toFin2-IsEquiv : IsEquiv toFin2
 toFin2-IsEquiv = HasInverse→IsEquiv fromFin2 from-to to-from

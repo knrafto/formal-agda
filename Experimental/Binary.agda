@@ -71,7 +71,7 @@ toℕ {suc n} w = toℕ (tail w) * 2 + Bit.toℕ (head w)
 
 toℕ-<2^n : ∀ {n} (w : Word n) → toℕ w < 2 ^ n
 toℕ-<2^n {zero} w = 0<1
-toℕ-<2^n {suc n} w = subst (toℕ w <_) (*-comm (2 ^ n) 2) (euclid-< 0<2 (toℕ (tail w)) (toFin2 (head w)) (toℕ-<2^n (tail w)))
+toℕ-<2^n {suc n} w = euclid-< 0<2 (toℕ (tail w)) (toFin2 (head w)) (toℕ-<2^n (tail w))
 
 Unsigned : ℕ → Type₀
 Unsigned n = Fin (2 ^ n)
@@ -84,10 +84,10 @@ toUnsigned-IsEquiv {zero} = IsContr→IsContr→IsEquiv Vec0-IsContr Fin1-IsCont
 toUnsigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toUnsigned-IsEquiv ∘-IsEquiv inv-IsEquiv cons-IsEquiv
   where
   addBit : Fin 2 × Unsigned n → Unsigned (suc n)
-  addBit (r , (q , q<2^n)) = euclid 0<2 (q , r) , subst (euclid 0<2 (q , r) <_) (*-comm (2 ^ n) 2) (euclid-< 0<2 q r q<2^n)
+  addBit (r , (q , q<2^n)) = euclid 0<2 (q , r) , euclid-< 0<2 q r q<2^n
 
   removeBit : Unsigned (suc n) → Fin 2 × Unsigned n
-  removeBit (m , m<2^sn) = remainder 0<2 m , quotient 0<2 m , quotient-< 0<2 (subst (m <_) (*-comm 2 (2 ^ n)) m<2^sn)
+  removeBit (m , m<2^sn) = remainder 0<2 m , quotient 0<2 m , quotient-< 0<2 m<2^sn
 
   removeBit-addBit : ∀ x → removeBit (addBit x) ≡ x
   removeBit-addBit (r , (q , q<2^n)) = ×≡ (ap snd (leftInv (euclid-IsEquiv 0<2) (q , r)) , ΣProp≡ (λ _ → <-IsProp) (ap fst (leftInv (euclid-IsEquiv 0<2) (q , r))))

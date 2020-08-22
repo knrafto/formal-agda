@@ -13,7 +13,7 @@ infixr 8 _^_
 
 _^_ : ℕ → ℕ → ℕ
 b ^ zero = 1
-b ^ suc e = b * (b ^ e)
+b ^ suc e = (b ^ e) * b
 
 difference : ∀ {m n} → m ≤ n → ℕ
 difference = fst

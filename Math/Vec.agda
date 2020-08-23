@@ -62,5 +62,11 @@ head v = fst (uncons v)
 tail : {n : ℕ} → Vec (suc n) A → Vec n A
 tail v = snd (uncons v)
 
+reverse : ∀ {n} → Vec n A → Vec n A
+reverse = _∘ reflect
+
+reverse-IsEquiv : ∀ {n} → IsEquiv (reverse {A = A} {n = n})
+reverse-IsEquiv = ∘f-IsEquiv reflect-IsEquiv
+
 replicate : (n : ℕ) → A → Vec n A
 replicate n a = λ i → a

@@ -28,6 +28,19 @@ Fin-HasDecEq i j | no ¬toℕi≡toℕj = no λ i≡j → ¬toℕi≡toℕj (ap 
 fsuc-IsInjective : {n : ℕ} → IsInjective (fsuc {k = n})
 fsuc-IsInjective p = toℕ-IsInjective (suc-IsInjective (ap toℕ p))
 
+-- i ↦ n - i - 1
+reflect : ∀ {n} → Fin n → Fin n
+reflect (i , (k , k+suci≡n)) = k , (i , +-suc i k ∙ +-comm (suc i) k ∙ k+suci≡n)
+
+reflect-toℕ : ∀ {n} (i : Fin n) → suc (toℕ (reflect i) + toℕ i) ≡ n
+reflect-toℕ (i , (k , k+suci≡n)) = sym (+-suc k i) ∙ k+suci≡n
+
+reflect-reflect : ∀ {n} (i : Fin n) → reflect (reflect i) ≡ i
+reflect-reflect (i , _) = toℕ-IsInjective refl
+
+reflect-IsEquiv : ∀ {n} → IsEquiv (reflect {n = n})
+reflect-IsEquiv {n} = HasInverse→IsEquiv reflect reflect-reflect reflect-reflect
+
 -- TODO: better name?
 Fin-suc : {n : ℕ} → ⊤ ⊎ Fin n → Fin (suc n)
 Fin-suc (inl _) = fzero

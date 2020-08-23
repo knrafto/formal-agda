@@ -26,7 +26,7 @@ module _ {d} (0<d : 0 < d) where
   euclid-IsInjective {zero , r₁} {zero , r₂} p = ×≡ (refl , toℕ-IsInjective p)
   euclid-IsInjective {zero , r₁} {suc q₂ , r₂} p = ⊥-rec (<-asym (snd r₁) (subst (d ≤_) (sym p) (euclid (q₂ , r₂) , euclid-suc q₂ r₂)))
   euclid-IsInjective {suc q₁ , r₁} {zero , r₂} p = ⊥-rec (<-asym (snd r₂) (subst (d ≤_) p (euclid (q₁ , r₁) , euclid-suc q₁ r₁)))
-  euclid-IsInjective {suc q₁ , r₁} {suc q₂ , r₂} p = ap (λ { (q , r) → (suc q , r) }) (euclid-IsInjective (+m-IsInjective {m = d} (euclid-suc q₁ r₁ ∙ p ∙ sym (euclid-suc q₂ r₂))))
+  euclid-IsInjective {suc q₁ , r₁} {suc q₂ , r₂} p = ap (λ (q , r) → (suc q , r)) (euclid-IsInjective (+m-IsInjective {m = d} (euclid-suc q₁ r₁ ∙ p ∙ sym (euclid-suc q₂ r₂))))
 
   euclid-IsSurjective : IsSurjective euclid
   euclid-IsSurjective = <-ind λ n rec → case dichotomy n d return fiber euclid n of λ

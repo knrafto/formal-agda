@@ -9,7 +9,7 @@ open import Cubical.Foundations.Equiv.BiInvertible using (biInvEquiv→Equiv-lef
 open import Cubical.Foundations.Prelude using (PathP; toPathP)
 open import Math.Dec
 open import Math.Function
-open import Math.Nat using (ℕ; ℕ-IsSet) renaming (_+_ to _+ℕ_)
+open import Math.Nat using (ℕ; ℕ-IsSet) renaming (_+_ to _+ℕ_; _*_ to _*ℕ_; _≤_ to _≤ℕ_; _<_ to _<ℕ_)
 import Math.Nat as ℕ
 open import Math.Type
 
@@ -121,9 +121,8 @@ negate-rightInv = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _)
   (λ n p → ap suc (+-pred n (negate n)) ∙ rightInv suc-IsEquiv _ ∙ p)
   (λ n p → ap pred (+-suc n (negate n)) ∙ leftInv suc-IsEquiv _ ∙ p)
 
--- TODO: name?
-negate-distrib : ∀ m n → negate (m + n) ≡ negate m + negate n
-negate-distrib = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+negate-+ : ∀ m n → negate (m + n) ≡ negate m + negate n
+negate-+ = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ m → refl)
   (λ m p n → ap pred (p n))
   (λ m p n → ap suc (p n))
@@ -138,9 +137,14 @@ n+-IsEquiv n = HasInverse→IsEquiv (negate n +_)
   (λ m → sym (+-assoc m n (negate n)) ∙ ap (m +_) (negate-rightInv n) ∙ +-zero m)
   (λ m → sym (+-assoc m (negate n) n) ∙ ap (m +_) (negate-leftInv n) ∙ +-zero m)
 
+-- TODO: define cancellation lemmas instead of using IsEquiv→IsInjective (+n-IsEquiv n)
+
 pos-+ : ∀ m n → pos (m +ℕ n) ≡ pos m + pos n
 pos-+ ℕ.zero n = refl
 pos-+ (ℕ.suc m) n = ap suc (pos-+ m n)
+
+neg-+ : ∀ m n → neg (m +ℕ n) ≡ neg m + neg n
+neg-+ m n = ap negate (pos-+ m n) ∙ negate-+ (pos m) (pos n)
 
 _*_ : ℤ → ℤ → ℤ
 m * n = ℤ-rec zero (n +_) (n+-IsEquiv n) m
@@ -166,6 +170,25 @@ m * n = ℤ-rec zero (n +_) (n+-IsEquiv n) m
   (λ m p n → ap (n +_) (p n) ∙ sym (*-suc n m))
   (λ m p n → ap (negate n +_) (p n) ∙ sym (*-pred n m))
 
+pos-* : ∀ m n → pos (m *ℕ n) ≡ pos m * pos n
+pos-* ℕ.zero n = refl
+pos-* (ℕ.suc m) n = pos-+ n (m *ℕ n) ∙ ap (pos n +_) (pos-* m n)
+
+*-distrib-r : ∀ m n o → (m * o) + (n * o) ≡ (m + n) * o
+*-distrib-r = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ n o → refl)
+  (λ m p n o → sym (+-assoc o (m * o) (n * o)) ∙ ap (o +_) (p n o))
+  (λ m p n o → sym (+-assoc (negate o) (m * o) (n * o)) ∙ ap (negate o +_) (p n o))
+
+negate-* : ∀ m n → negate m * n ≡ negate (m * n)
+negate-* = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ n → refl)
+  (λ m p n → ap (negate n +_) (p n) ∙ sym (negate-+ n (m * n)))
+  (λ m p n → ap (n +_) (p n) ∙ ap (_+ negate (m * n)) (sym (negate-negate n)) ∙ sym (negate-+ (negate n) (m * n)))
+
+neg-*-pos : ∀ m n → neg m * pos n ≡ neg (m *ℕ n)
+neg-*-pos m n = negate-* (pos m) (pos n) ∙ ap negate (sym (pos-* m n))
+
 private
   toInt-IsEquiv : IsEquiv toInt
   toInt-IsEquiv = HasInverse→IsEquiv fromInt fromInt-toInt toInt-fromInt
@@ -180,6 +203,9 @@ private
 
 pos-IsInjective : IsInjective pos
 pos-IsInjective {m} {n} p = Int.injPos (IsEquiv→IsInjective (inv-IsEquiv toInt-IsEquiv) (fromInt-pos m ∙ p ∙ sym (fromInt-pos n)))
+
+neg-IsInjective : IsInjective neg
+neg-IsInjective {m} {n} p = pos-IsInjective (IsEquiv→IsInjective negate-IsEquiv p)
 
 ¬pos≡negsuc : ∀ m n → ¬ pos m ≡ neg (ℕ.suc n)
 ¬pos≡negsuc m n p = Int.posNotnegsuc m n (IsEquiv→IsInjective (inv-IsEquiv toInt-IsEquiv) (fromInt-pos m ∙ p ∙ sym (fromInt-negsuc n)))
@@ -265,6 +291,32 @@ m ≟ n = case sign (n - m) return Trichotomy m n of λ
   ; (eq m≡n) → no λ m<n → <-irrefl (subst (_< n) m≡n m<n)
   ; (gt n<m) → no λ m<n → <-irrefl (<-trans n<m m<n)
   }
+
+-- TODO: name
+dichotomy : ∀ m n → (m < n) ⊎ (n ≤ m)
+dichotomy m n = case m ≟ n return (m < n) ⊎ (n ≤ m) of λ
+  { (lt m<n) → inl m<n
+  ; (eq m≡n) → inr (subst (_≤ m) m≡n ≤-refl)
+  ; (gt n<m) → inr (<-weaken n<m)
+  }
+
+pos-≤ : ∀ {m n} → m ≤ℕ n → pos m ≤ pos n
+pos-≤ {m} {n} (i , p) = i , sym (pos-+ i m) ∙ ap pos p
+
+pos-< : ∀ {m n} → m <ℕ n → pos m < pos n
+pos-< {m} {n} = pos-≤
+
+≤-+k : ∀ {m n k} → m ≤ n → m + k ≤ n + k
+≤-+k {m} {n} {k} (i , p) = i , +-assoc (pos i) m k ∙ ap (_+ k) p
+
+<-+k : ∀ {m n k} → m < n → m + k < n + k
+<-+k = ≤-+k
+
+<-k+ : ∀ {m n k} → m < n → k + m < k + n
+<-k+ {m} {n} {k} m<n = subst (_< k + n) (+-comm m k) (subst (m + k <_) (+-comm n k) (<-+k m<n))
+
+≤-*-pos : ∀ {m n} k → m ≤ n → m * pos k ≤ n * pos k
+≤-*-pos {m} {n} k (l , l+m≡n) = l *ℕ k , ap (_+ m * pos k) (pos-* l k) ∙ *-distrib-r (pos l) m (pos k) ∙ ap (_* pos k) l+m≡n
 
 open import Cubical.Data.Nat.Literals public
 

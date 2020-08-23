@@ -2,7 +2,7 @@
 module Math.Nat where
 
 open import Agda.Builtin.FromNat
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; _*_; +-assoc; +-comm; +-zero; *-comm) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero; inj-+m to +m-IsInjective; *-distribʳ to *-distrib-r)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; _*_; +-assoc; +-comm; +-zero; *-comm; m+n≡0→m≡0×n≡0) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero; inj-+m to +m-IsInjective; *-distribʳ to *-distrib-r)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split; ≤-k+; ≤-+k) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
 open import Cubical.Induction.WellFounded

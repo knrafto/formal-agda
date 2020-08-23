@@ -20,8 +20,8 @@ infixl 7 _*_
 suc-IsEquiv : IsEquiv suc
 suc-IsEquiv = snd (biInvEquiv→Equiv-left suc-biinvequiv)
 
-ℤ-ind-Prop : ∀ {ℓ} {P : ℤ → Type ℓ} → (∀ n → IsProp (P n)) → P zero → (∀ n → P n → P (suc n)) → (∀ n → P n → P (pred n)) → (n : ℤ) → P n
-ℤ-ind-Prop {P = P} P-IsProp P-zero P-suc P-pred = φ
+ℤ-ind-IsProp : ∀ {ℓ} {P : ℤ → Type ℓ} → (∀ n → IsProp (P n)) → P zero → (∀ n → P n → P (suc n)) → (∀ n → P n → P (pred n)) → (n : ℤ) → P n
+ℤ-ind-IsProp {P = P} P-IsProp P-zero P-suc P-pred = φ
   where
   P-predr : ∀ n → P n → P (predr n)
   P-predr n x = subst P (predl≡predr n) (P-pred n x)
@@ -66,7 +66,7 @@ negate : ℤ → ℤ
 negate = ℤ-rec zero pred (inv-IsEquiv suc-IsEquiv)
 
 negate-negate : ∀ n → negate (negate n) ≡ n
-negate-negate = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _) refl (λ n p → ap suc p) (λ n p → ap pred p)
+negate-negate = ℤ-ind-IsProp (λ _ → ℤ-IsSet _ _) refl (λ n p → ap suc p) (λ n p → ap pred p)
 
 negate-IsEquiv : IsEquiv negate
 negate-IsEquiv = HasInverse→IsEquiv negate negate-negate negate-negate
@@ -78,16 +78,16 @@ _-_ : ℤ → ℤ → ℤ
 m - n = m + negate n
 
 +-zero : ∀ n → n + zero ≡ n
-+-zero = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _) refl (λ n p → ap suc p) (λ n p → ap pred p)
++-zero = ℤ-ind-IsProp (λ _ → ℤ-IsSet _ _) refl (λ n p → ap suc p) (λ n p → ap pred p)
 
 +-suc : ∀ m n → m + suc n ≡ suc (m + n)
-+-suc = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
++-suc = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ m → refl)
   (λ m p n → ap suc (p n))
   (λ m p n → ap pred (p n) ∙ leftInv suc-IsEquiv (m + n) ∙ sym (rightInv suc-IsEquiv (m + n)))
 
 +-pred : ∀ m n → m + pred n ≡ pred (m + n)
-+-pred = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
++-pred = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ m → refl)
   (λ m p n → ap suc (p n) ∙ rightInv suc-IsEquiv (m + n) ∙ sym (leftInv suc-IsEquiv (m + n)))
   (λ m p n → ap pred (p n))
@@ -96,33 +96,33 @@ m - n = m + negate n
 +-comm m n = +-comm' n m
   where
   +-comm' : ∀ n m → m + n ≡ n + m
-  +-comm' = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  +-comm' = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
     +-zero
     (λ n p m → +-suc m n ∙ ap suc (p m))
     (λ n p m → +-pred m n ∙ ap pred (p m))
 
 +-assoc : ∀ m n o → m + (n + o) ≡ (m + n) + o
-+-assoc = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
++-assoc = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ n o → refl)
   (λ m p n o → ap suc (p n o))
   (λ m p n o → ap pred (p n o))
 
 -- TODO: name?
 negate-leftInv : ∀ n → negate n + n ≡ zero
-negate-leftInv = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _)
+negate-leftInv = ℤ-ind-IsProp (λ _ → ℤ-IsSet _ _)
   refl
   (λ n p → ap pred (+-suc (negate n) n) ∙ leftInv suc-IsEquiv _ ∙ p)
   (λ n p → ap suc (+-pred (negate n) n) ∙ rightInv suc-IsEquiv _ ∙ p)
 
 -- TODO: name?
 negate-rightInv : ∀ n → n + negate n ≡ zero
-negate-rightInv = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _)
+negate-rightInv = ℤ-ind-IsProp (λ _ → ℤ-IsSet _ _)
   refl
   (λ n p → ap suc (+-pred n (negate n)) ∙ rightInv suc-IsEquiv _ ∙ p)
   (λ n p → ap pred (+-suc n (negate n)) ∙ leftInv suc-IsEquiv _ ∙ p)
 
 negate-+ : ∀ m n → negate (m + n) ≡ negate m + negate n
-negate-+ = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+negate-+ = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ m → refl)
   (λ m p n → ap pred (p n))
   (λ m p n → ap suc (p n))
@@ -150,22 +150,22 @@ _*_ : ℤ → ℤ → ℤ
 m * n = ℤ-rec zero (n +_) (n+-IsEquiv n) m
 
 *-zero : ∀ n → n * zero ≡ zero
-*-zero = ℤ-ind-Prop (λ _ → ℤ-IsSet _ _) refl (λ n p → p) (λ n p → p)
+*-zero = ℤ-ind-IsProp (λ _ → ℤ-IsSet _ _) refl (λ n p → p) (λ n p → p)
 
 *-suc : ∀ m n → m * suc n ≡ m + m * n
-*-suc = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+*-suc = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ n → refl)
   (λ m p n → ap suc (ap (n +_) (p n) ∙ +-assoc n m (m * n) ∙ ap (_+ m * n) (+-comm n m) ∙ sym (+-assoc m n (m * n))))
   (λ m p n → ap pred (ap (negate n +_) (p n) ∙ +-assoc (negate n) m (m * n) ∙  ap (_+ m * n) (+-comm (negate n) m) ∙ sym (+-assoc m (negate n) (m * n))))
 
 *-pred : ∀ m n → m * pred n ≡ negate m + m * n
-*-pred = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+*-pred = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ n → refl)
   (λ m p n → ap pred (ap (n +_) (p n) ∙ +-assoc n (negate m) (m * n) ∙ ap (_+ m * n) (+-comm n (negate m)) ∙ sym (+-assoc (negate m) n (m * n))))
   (λ m p n → ap suc (ap (negate n +_) (p n) ∙ +-assoc (negate n) (negate m) (m * n) ∙ ap (_+ m * n) (+-comm (negate n) (negate m)) ∙ sym (+-assoc (negate m) (negate n) (m * n))))
 
 *-comm : ∀ m n → m * n ≡ n * m
-*-comm = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+*-comm = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ n → sym (*-zero n))
   (λ m p n → ap (n +_) (p n) ∙ sym (*-suc n m))
   (λ m p n → ap (negate n +_) (p n) ∙ sym (*-pred n m))
@@ -175,13 +175,13 @@ pos-* ℕ.zero n = refl
 pos-* (ℕ.suc m) n = pos-+ n (m *ℕ n) ∙ ap (pos n +_) (pos-* m n)
 
 *-distrib-r : ∀ m n o → (m * o) + (n * o) ≡ (m + n) * o
-*-distrib-r = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+*-distrib-r = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ n o → refl)
   (λ m p n o → sym (+-assoc o (m * o) (n * o)) ∙ ap (o +_) (p n o))
   (λ m p n o → sym (+-assoc (negate o) (m * o) (n * o)) ∙ ap (negate o +_) (p n o))
 
 negate-* : ∀ m n → negate m * n ≡ negate (m * n)
-negate-* = ℤ-ind-Prop (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+negate-* = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ n → refl)
   (λ m p n → ap (negate n +_) (p n) ∙ sym (negate-+ n (m * n)))
   (λ m p n → ap (n +_) (p n) ∙ ap (_+ negate (m * n)) (sym (negate-negate n)) ∙ sym (negate-+ (negate n) (m * n)))

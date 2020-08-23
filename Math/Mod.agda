@@ -1,15 +1,15 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 module Math.Mod where
 
 open import Math.Fin
 open import Math.Function
-open import Math.Int using (ℤ; pos) renaming (_+_ to _+ℤ_)
+open import Math.Int using (ℤ; ℤ-ind-IsProp; pos) renaming (_+_ to _+ℤ_)
 import Math.Int as ℤ
+open import Math.IntDivision
 open import Math.Nat using (ℕ-IsSet; _<_)
 open import Math.Quotient
 open import Math.Type
 
--- TODO: d should go on the left?
 Mod : ℕ → Type₀
 Mod d = ℤ / (λ m n → pos d +ℤ m ≡ n)
 
@@ -70,40 +70,38 @@ module _ {d : ℕ} where
 
   negate : Mod d → Mod d
   negate = Mod-rec Mod-IsSet (λ n → fromℤ (ℤ.negate n))
-    λ n → fromℤ-≡ (ap (pos d +ℤ_) (ℤ.negate-distrib (pos d) n) ∙ ℤ.+-assoc (pos d) (ℤ.negate (pos d)) (ℤ.negate n) ∙ ap (_+ℤ ℤ.negate n) (ℤ.negate-rightInv (pos d)))
+    λ n → fromℤ-≡ (ap (pos d +ℤ_) (ℤ.negate-+ (pos d) n) ∙ ℤ.+-assoc (pos d) (ℤ.negate (pos d)) (ℤ.negate n) ∙ ap (_+ℤ ℤ.negate n) (ℤ.negate-rightInv (pos d)))
 
   _-_ : Mod d → Mod d → Mod d
   m - n = m + negate n
 
-{-
-  -- TODO: name?
-  -- "canonical representative" in terms of finite sets
-  rep : Fin d → Mod d
-  rep i = r (toℕ i)
+  fromFin : Fin d → Mod d
+  fromFin i = fromℕ (toℕ i)
 
-  rep-IsEquiv : 0 < d → IsEquiv rep
-  rep-IsEquiv 0<d = HasInverse→IsEquiv g g-rep rep-g
+  fromFin-IsEquiv : 0 < d → IsEquiv fromFin
+  fromFin-IsEquiv 0<d = HasInverse→IsEquiv g g-fromFin fromFin-g
     where
-    -- TODO: open division with 0<d
-    remainder-+d : ∀ n → remainder 0<d (n ℕ.+ d) ≡ remainder 0<d n
+    remainder-+d : ∀ n → remainder 0<d (pos d +ℤ n) ≡ remainder 0<d n
     remainder-+d n =
-      ap (λ n → remainder 0<d (n ℕ.+ d)) (sym (rightInv (euclid-IsEquiv 0<d) n)) ∙
-      ap (remainder 0<d) (euclid-+d 0<d (quotient 0<d n) (remainder 0<d n)) ∙
-      ap snd (leftInv (euclid-IsEquiv 0<d) (ℕ.suc (quotient 0<d n) , remainder 0<d n))
+      ap (remainder 0<d) (ℤ.+-comm (pos d) n) ∙
+      ap (λ n → remainder 0<d (n +ℤ pos d)) (sym (rightInv (euclid-IsEquiv 0<d) n)) ∙
+      ap (remainder 0<d) (euclid-suc 0<d (quotient 0<d n) (remainder 0<d n)) ∙
+      ap snd (leftInv (euclid-IsEquiv 0<d) (ℤ.suc (quotient 0<d n) , remainder 0<d n))
 
     g : Mod d → Fin d
     g = Mod-rec Fin-IsSet (remainder 0<d) remainder-+d
 
-    g-rep : (i : Fin d) → g (rep i) ≡ i
-    g-rep i = ap snd (leftInv (euclid-IsEquiv 0<d) (0 , i))
+    g-fromFin : (i : Fin d) → g (fromFin i) ≡ i
+    g-fromFin i = ap snd (leftInv (euclid-IsEquiv 0<d) (0 , i))
 
-    r-euclid : ∀ q i → r (toℕ i) ≡ r (euclid 0<d (q , i))
-    r-euclid ℕ.zero i = refl
-    r-euclid (ℕ.suc q) i = r-euclid q i ∙ r-+d (euclid-+d 0<d q i)
+    fromℤ-euclid : ∀ q i → fromℕ (toℕ i) ≡ fromℤ (euclid 0<d (q , i))
+    fromℤ-euclid = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Mod-IsSet _ _)
+      (λ i → refl)
+      (λ q p i → p i ∙ fromℤ-≡ (ℤ.+-comm (pos d) (euclid 0<d (q , i)) ∙ euclid-suc 0<d q i))
+      (λ q p i → p i ∙ sym (fromℤ-≡ (ℤ.+-comm (pos d) (euclid 0<d (ℤ.pred q , i)) ∙ ap (_+ℤ pos d) (sym (euclid-pred 0<d q i)) ∙ rightInv (ℤ.+n-IsEquiv (pos d)) (euclid 0<d (q , i)))))
 
-    rep-remainder : ∀ n → rep (remainder 0<d n) ≡ r n
-    rep-remainder n = r-euclid (quotient 0<d n) (remainder 0<d n) ∙ ap r (rightInv (euclid-IsEquiv 0<d) n)
+    fromFin-remainder : ∀ n → fromFin (remainder 0<d n) ≡ fromℤ n
+    fromFin-remainder n = fromℤ-euclid (quotient 0<d n) (remainder 0<d n) ∙ ap fromℤ (rightInv (euclid-IsEquiv 0<d) n)
 
-    rep-g : (n : Mod d) → rep (g n) ≡ n
-    rep-g = Mod-ind-IsProp (λ _ → Mod-IsSet _ _) rep-remainder
--}
+    fromFin-g : (n : Mod d) → fromFin (g n) ≡ n
+    fromFin-g = Mod-ind-IsProp (λ _ → Mod-IsSet _ _) fromFin-remainder

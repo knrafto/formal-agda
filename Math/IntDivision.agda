@@ -18,6 +18,9 @@ module _ {d} (0<d : 0 <ℕ d) where
   euclid-suc : ∀ q r → euclid (q , r) + pos d ≡ euclid (suc q , r)
   euclid-suc q r = +-comm (euclid (q , r)) (pos d) ∙ +-assoc (pos d) (q * pos d) (pos (toℕ r))
 
+  euclid-pred : ∀ q r → euclid (q , r) + neg d ≡ euclid (pred q , r)
+  euclid-pred q r = +-comm (euclid (q , r)) (neg d) ∙ +-assoc (neg d) (q * pos d) (pos (toℕ r))
+
   euclid-< : ∀ {n} q r → q < n → euclid (q , r) < n * pos d
   euclid-< {n} q r q<n = <≤-trans (<-k+ {k = q * pos d} (pos-< (snd r))) (subst (_≤ n * pos d) (+-comm (pos d) (q * pos d)) (≤-*-pos d q<n))
 

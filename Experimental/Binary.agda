@@ -1,10 +1,9 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Experimental.Binary where
 
-open import Math.Bit hiding (toℕ; toℤ)
+open import Math.Bit hiding (toℕ)
 import Math.Bit as Bit
 open import Math.Dec
-open import Math.Division
 open import Math.Fin hiding (toℕ)
 open import Math.Function
 open import Math.Int using (ℤ; pos; neg) renaming (_+_ to _+ℤ_; _-_ to _-ℤ_; _<_ to _<ℤ_; _*_ to _*ℤ_; <-Dec to <ℤ-Dec; _≤_ to _≤ℤ_; ≤-Dec to ≤ℤ-Dec)
@@ -12,6 +11,7 @@ import Math.Int as ℤ
 open import Math.Mod using (Mod) renaming (_+_ to _+Mod_; _-_ to _-Mod_)
 import Math.Mod as Mod
 open import Math.Nat
+open import Math.NatDivision
 open import Math.Prod
 open import Math.Vec
 open import Math.Type

@@ -1,7 +1,6 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Mod where
 
-open import Math.Division
 open import Math.Fin
 open import Math.Function
 open import Math.Int using (ℤ; pos) renaming (_+_ to _+ℤ_)

@@ -1,12 +1,9 @@
 {-# OPTIONS --cubical #-}
 -- Euclidean division of natural numbers.
-module Math.Division where
+module Math.NatDivision where
 
-open import Cubical.Data.Fin.Properties using (Residue; isContrResidue)
-open import Math.Dec
 open import Math.Fin
 open import Math.Function
-open import Math.Id
 open import Math.Nat
 open import Math.Prod
 open import Math.Type

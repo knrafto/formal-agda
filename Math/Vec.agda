@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Vec where
 
 open import Math.Dec
@@ -62,7 +62,7 @@ unsnoc-IsEquiv = ×-map-IsEquiv id-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsCon
 snoc : ∀ {n} → Vec n A × A → Vec (suc n) A
 snoc = inv unsnoc-IsEquiv
 
-last-tail : ∀ {n : ℕ} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
+last-tail : ∀ {n} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
 last-tail w = ap w fsuc-fmax
 
 -- TODO: Rewrite split to operate on indices, and make concat the inv of split
@@ -78,6 +78,9 @@ split = inv concat-IsEquiv
 
 split-IsEquiv : {m n : ℕ} → IsEquiv (split {A = A} {m = m} {n = n})
 split-IsEquiv = inv-IsEquiv concat-IsEquiv
+
+tail-concat : ∀ {m n} (x : Vec (suc m) A) (y : Vec n A) → tail (concat (x , y)) ≡ concat (tail x , y)
+tail-concat = {!!}
 
 singleton : A → Vec 1 A
 singleton a = const a

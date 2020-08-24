@@ -94,6 +94,11 @@ infixr 9 _∘-IsEmbedding_
 _∘-IsEmbedding_ : {g : B → C} {f : A → B} → IsEmbedding g → IsEmbedding f → IsEmbedding (g ∘ f)
 _∘-IsEmbedding_ {g = g} {f = f} g-IsEmbedding f-IsEmbedding _ _ = (g-IsEmbedding _ _) ∘-IsEquiv (f-IsEmbedding _ _)
 
+infixr 9 _∘-IsInjective_
+
+_∘-IsInjective_ : {g : B → C} {f : A → B} → IsInjective g → IsInjective f → IsInjective (g ∘ f)
+_∘-IsInjective_ {g = g} {f = f} g-IsInjective f-IsInjective = f-IsInjective ∘ g-IsInjective
+
 ⊥-rec-IsEquiv : {A : Type ℓ} → ¬ A → IsEquiv (⊥-rec {A = A})
 ⊥-rec-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ¬A ⊥-rec-leftInv ⊥-rec-rightInv
   where

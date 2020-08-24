@@ -44,6 +44,9 @@ private
 ×-map-IsEmbedding {A = A} {B = B} {C = C} {D = D} {f = f} {g = g} f-IsEmbedding g-IsEmbedding _ _ =
   ×≡-IsEquiv ∘-IsEquiv (×-map-IsEquiv (f-IsEmbedding _ _) (g-IsEmbedding _ _)) ∘-IsEquiv (inv-IsEquiv ×≡-IsEquiv)
 
+×-map-IsInjective : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {D : Type ℓ'''} {f : A → C} {g : B → D} → IsInjective f → IsInjective g → IsInjective (×-map f g)
+×-map-IsInjective {A = A} {B = B} {C = C} {D = D} {f = f} {g = g} f-IsInjective g-IsInjective p = ×≡ (f-IsInjective (ap fst p) , g-IsInjective (ap snd p))
+
 ×-swap : {A : Type ℓ} {B : Type ℓ'} → A × B → B × A
 ×-swap (a , b) = (b , a)
 

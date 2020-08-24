@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Asm.RiscV where
 
-open import Experimental.Binary hiding (and; or; xor; add; sub)
+open import Experimental.Binary hiding (add; sub)
 open import Math.Dec
 open import Math.Fin
 open import Math.Function

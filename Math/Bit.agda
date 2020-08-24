@@ -44,3 +44,17 @@ Bit-IsSet = subst IsSet (sym (ua toFin2 toFin2-IsEquiv)) Fin-IsSet
 
 Bit-HasDecEq : HasDecEq Bit
 Bit-HasDecEq = subst HasDecEq (sym (ua toFin2 toFin2-IsEquiv)) Fin-HasDecEq
+
+and : Bit → Bit → Bit
+and 0₂ _ = 0₂
+and 1₂ b = b
+
+or : Bit → Bit → Bit
+or 0₂ b = b
+or 1₂ _ = 1₂
+
+xor : Bit → Bit → Bit
+xor 0₂ 0₂ = 0₂
+xor 0₂ 1₂ = 1₂
+xor 1₂ 0₂ = 1₂
+xor 1₂ 1₂ = 0₂

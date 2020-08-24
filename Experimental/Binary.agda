@@ -57,25 +57,11 @@ slice {n} w j i {j<n} {i≤j} (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness
 -- Bitwise operations
 --------------------------------------------------------------------------------
 
-and : Bit → Bit → Bit
-and 0₂ _ = 0₂
-and 1₂ b = b
-
 bitwiseAnd : ∀ {n} → Word n → Word n → Word n
 bitwiseAnd x y = λ i → and (x i) (y i)
 
-or : Bit → Bit → Bit
-or 0₂ b = b
-or 1₂ _ = 1₂
-
 bitwiseOr : ∀ {n} → Word n → Word n → Word n
 bitwiseOr x y = λ i → or (x i) (y i)
-
-xor : Bit → Bit → Bit
-xor 0₂ 0₂ = 0₂
-xor 0₂ 1₂ = 1₂
-xor 1₂ 0₂ = 1₂
-xor 1₂ 1₂ = 0₂
 
 bitwiseXor : ∀ {n} → Word n → Word n → Word n
 bitwiseXor x y = λ i → xor (x i) (y i)

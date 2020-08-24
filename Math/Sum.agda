@@ -95,7 +95,7 @@ pair-IsEquiv = HasInverse→IsEquiv unpair unpair-pair pair-unpair
   where
   unpair : (A ⊎ B → C) → (A → C) × (B → C)
   unpair h = (λ a → h (inl a)), (λ b → h (inr b))
-  
+
   unpair-pair : (fg : (A → C) × (B → C)) → unpair (pair fg) ≡ fg
   unpair-pair (f , g) = refl
 

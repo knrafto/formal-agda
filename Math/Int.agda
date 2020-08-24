@@ -300,11 +300,48 @@ dichotomy m n = case m ≟ n return (m < n) ⊎ (n ≤ m) of λ
   ; (gt n<m) → inr (<-weaken n<m)
   }
 
+-- TODO: not sold on these names
+suc-preserves-≤ : ∀ {m n} → m ≤ n → suc m ≤ suc n
+suc-preserves-≤ {m} {n} (i , posi+m≡n) = i , +-suc (pos i) m ∙ ap suc posi+m≡n
+
+suc-reflects-≤ : ∀ {m n} → suc m ≤ suc n → m ≤ n
+suc-reflects-≤ {m} {n} (i , posi+sucm≡sucn) = i , IsEquiv→IsInjective suc-IsEquiv (sym (+-suc (pos i) m) ∙ posi+sucm≡sucn)
+
 pos-≤ : ∀ {m n} → m ≤ℕ n → pos m ≤ pos n
 pos-≤ {m} {n} (i , p) = i , sym (pos-+ i m) ∙ ap pos p
 
+pos-≤-inv : ∀ {m n} → pos m ≤ pos n → m ≤ℕ n
+pos-≤-inv {m} {n} (i , p) = i , pos-IsInjective (pos-+ i m ∙ p)
+
 pos-< : ∀ {m n} → m <ℕ n → pos m < pos n
 pos-< {m} {n} = pos-≤
+
+zero-≤-pos : ∀ n → zero ≤ pos n
+zero-≤-pos n = n , +-zero (pos n)
+
+negate-≤ : ∀ {m n} → m ≤ n → negate n ≤ negate m
+negate-≤ {m} {n} (i , posi+m≡n) =
+  i , ap (_+ negate n) (sym (leftInv (+n-IsEquiv m) (pos i))) ∙
+      ap (λ x → x + negate m + negate n) posi+m≡n ∙
+      ap (_+ negate n) (+-comm n (negate m)) ∙
+      leftInv (+n-IsEquiv n) (negate m)
+
+negate-< : ∀ {m n} → m < n → negate n < negate m
+negate-< {m} {n} (i , posi+sucm≡n) =
+  i , +-suc (pos i) (negate n) ∙
+      ap (λ x → suc (x + negate n)) (sym (leftInv (+n-IsEquiv m) (pos i))) ∙
+      ap (λ  x → x + negate m + negate n) (sym (+-suc (pos i) m) ∙ posi+sucm≡n) ∙
+      ap (_+ negate n) (+-comm n (negate m)) ∙
+      leftInv (+n-IsEquiv n) (negate m)
+
+neg-≤ : ∀ {m n} → m ≤ℕ n → neg n ≤ neg m
+neg-≤ {m} {n} = negate-≤ ∘ pos-≤
+
+neg-< : ∀ {m n} → m <ℕ n → neg n < neg m
+neg-< {m} {n} = negate-< ∘ pos-<
+
+neg-≤-zero : ∀ n → neg n ≤ zero
+neg-≤-zero n = negate-≤ (zero-≤-pos n)
 
 ≤-+k : ∀ {m n k} → m ≤ n → m + k ≤ n + k
 ≤-+k {m} {n} {k} (i , p) = i , +-assoc (pos i) m k ∙ ap (_+ k) p

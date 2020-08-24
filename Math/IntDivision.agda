@@ -103,3 +103,11 @@ module _ {d} (0<d : 0 <ℕ d) where
       let (q , r) = divmod m
       in ⊥-rec (<-asym m<n*posd (subst (n * pos d ≤_) (rightInv euclid-IsEquiv m) (≤-euclid {n = n} q r n≤q)))
     }
+
+  ≤-quotient : ∀ {m n} → n * pos d ≤ m → n ≤ quotient m
+  ≤-quotient {m} {n} n*posd≤m = case dichotomy (quotient m) n return n ≤ quotient m of λ
+    { (inl q<n) →
+      let (q , r) = divmod m
+      in ⊥-rec (<-asym (subst (_< n * pos d) (rightInv euclid-IsEquiv m) (euclid-< {n = n} q r q<n)) n*posd≤m)
+    ; (inr n≤q) → n≤q
+    }

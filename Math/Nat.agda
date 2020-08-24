@@ -2,7 +2,7 @@
 module Math.Nat where
 
 open import Agda.Builtin.FromNat
-open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; _*_; +-assoc; +-suc; +-comm; +-zero; *-comm; m+n≡0→m≡0×n≡0) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero; inj-+m to +m-IsInjective; *-distribʳ to *-distrib-r)
+open import Cubical.Data.Nat public using (ℕ; zero; suc; _+_; _*_; +-assoc; +-suc; +-comm; +-zero; *-comm; m+n≡0→m≡0×n≡0) renaming (isSetℕ to ℕ-IsSet; injSuc to suc-IsInjective; discreteℕ to ℕ-HasDecEq; znots to ¬zero≡suc; snotz to ¬suc≡zero; inj-+m to +m-IsInjective; *-distribʳ to *-distrib-r; *-identityˡ to 1-*; *-identityʳ to *-1)
 open import Cubical.Data.Nat.Order public using (_<_; _≤_; <-trans; <≤-trans; ≤<-trans; ≤-refl; ≤-antisym; ¬-<-zero; zero-≤; ≤-suc; Trichotomy; lt; eq; gt; _≟_; <-asym; <-weaken; <-split; ≤-k+; ≤-+k) renaming (m≤n-isProp to ≤-IsProp; ¬m<m to <-irrefl)
 open import Cubical.Data.Nat.Order using (suc-≤-suc; pred-≤-pred; <-wellfounded)
 open import Cubical.Induction.WellFounded
@@ -34,12 +34,6 @@ suc-preserves-< = suc-≤-suc
 
 suc-reflects-< : {m n : ℕ} → suc m < suc n → m < n
 suc-reflects-< = pred-≤-pred
-
-0<1 : 0 <  1
-0<1 = (0 , refl)
-
-0<2 : 0 < 2
-0<2 = (1 , refl)
 
 <-IsProp : ∀ {m n} → IsProp (m < n)
 <-IsProp = ≤-IsProp
@@ -83,6 +77,9 @@ dichotomy m n = case m ≟ n return (m < n) ⊎ (n ≤ m) of λ
 
 ≤-*k : ∀ {m n k} → m ≤ n → m * k ≤ n * k
 ≤-*k {m} {n} {k} (l , l+m≡n) = l * k , *-distrib-r l m k ∙ ap (_* k) l+m≡n
+
+≤-k* : ∀ {m n k} → m ≤ n → k * m ≤ k * n
+≤-k* {m} {n} {k} m≤n = subst (_≤ k * n) (*-comm m k) (subst (m * k ≤_) (*-comm n k) (≤-*k m≤n))
 
 -- Agda integer literals
 instance

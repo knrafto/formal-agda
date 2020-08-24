@@ -36,7 +36,7 @@ RegState = Reg → Word 32
 
 -- All registers start with value 0.
 initialRegState : RegState
-initialRegState = λ _ _ → 0₂
+initialRegState = λ _ → constant 0
 
 -- Updates the register state by writing a new value for a
 -- register. Writes to the zero register are ignored.

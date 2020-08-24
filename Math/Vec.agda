@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Vec where
 
 open import Math.Dec
@@ -48,10 +48,10 @@ singleton-IsEquiv : IsEquiv (singleton {A = A})
 singleton-IsEquiv = const-IsEquiv Fin1-IsContr
 
 cons : {n : ℕ} → A × Vec n A → Vec (suc n) A
-cons = concat ∘ ×-map singleton id
+cons = (_∘ inv Fin-suc-IsEquiv) ∘ pair ∘ ×-map const id
 
 cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
-cons-IsEquiv = concat-IsEquiv ∘-IsEquiv ×-map-IsEquiv singleton-IsEquiv id-IsEquiv
+cons-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) ∘-IsEquiv pair-IsEquiv ∘-IsEquiv ×-map-IsEquiv (const-IsEquiv ⊤-IsContr) id-IsEquiv
 
 uncons : {n : ℕ} → Vec (suc n) A → A × Vec n A
 uncons = inv cons-IsEquiv
@@ -61,6 +61,28 @@ head v = fst (uncons v)
 
 tail : {n : ℕ} → Vec (suc n) A → Vec n A
 tail v = snd (uncons v)
+
+snoc : {n : ℕ} → Vec n A × A → Vec (suc n) A
+snoc = {!!}
+
+snoc-IsEquiv : {n : ℕ} → IsEquiv (snoc {A = A} {n = n})
+snoc-IsEquiv = {!!}
+
+unsnoc : {n : ℕ} → Vec (suc n) A → Vec n A × A
+unsnoc = inv snoc-IsEquiv
+
+init : {n : ℕ} → Vec (suc n) A → Vec n A
+init v = fst (unsnoc v)
+
+last : {n : ℕ} → Vec (suc n) A → A
+last v = snd (unsnoc v)
+
+last-tail : ∀ {n : ℕ} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
+last-tail = {!!}
+
+-- TODO: delete me when refl
+test : ∀ (w : Vec 1 A) → last w ≡ head w
+test = {!!} -- refl
 
 reverse : ∀ {n} → Vec n A → Vec n A
 reverse = _∘ reflect

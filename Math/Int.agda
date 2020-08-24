@@ -174,11 +174,14 @@ pos-* : ∀ m n → pos (m *ℕ n) ≡ pos m * pos n
 pos-* ℕ.zero n = refl
 pos-* (ℕ.suc m) n = pos-+ n (m *ℕ n) ∙ ap (pos n +_) (pos-* m n)
 
-*-distrib-r : ∀ m n o → (m * o) + (n * o) ≡ (m + n) * o
+*-distrib-r : ∀ m n k → m * k + n * k ≡ (m + n) * k
 *-distrib-r = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
-  (λ n o → refl)
-  (λ m p n o → sym (+-assoc o (m * o) (n * o)) ∙ ap (o +_) (p n o))
-  (λ m p n o → sym (+-assoc (negate o) (m * o) (n * o)) ∙ ap (negate o +_) (p n o))
+  (λ n k → refl)
+  (λ m p n k → sym (+-assoc k (m * k) (n * k)) ∙ ap (k +_) (p n k))
+  (λ m p n k → sym (+-assoc (negate k) (m * k) (n * k)) ∙ ap (negate k +_) (p n k))
+
+*-distrib-l : ∀ k m n → k * m + k * n ≡ k * (m + n)
+*-distrib-l k m n = ap (_+ k * n) (*-comm k m) ∙ ap (m * k +_) (*-comm k n) ∙ *-distrib-r m n k ∙ *-comm (m + n) k
 
 negate-* : ∀ m n → negate m * n ≡ negate (m * n)
 negate-* = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)

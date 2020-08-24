@@ -3,7 +3,7 @@ module Math.Mod where
 
 open import Math.Fin
 open import Math.Function
-open import Math.Int using (ℤ; ℤ-ind-IsProp; pos) renaming (_+_ to _+ℤ_)
+open import Math.Int using (ℤ; ℤ-ind-IsProp; pos; neg) renaming (_+_ to _+ℤ_; _*_ to _*ℤ_)
 import Math.Int as ℤ
 open import Math.IntDivision
 open import Math.Nat using (ℕ-IsSet; _<_)
@@ -14,17 +14,17 @@ Mod : ℕ → Type₀
 Mod d = ℤ / (λ m n → pos d +ℤ m ≡ n)
 
 module _ {d : ℕ} where
+  Mod-IsSet : IsSet (Mod d)
+  Mod-IsSet = /-IsSet
+
   fromℤ : ℤ → Mod d
   fromℤ n = [ n ]
-
-  fromℤ-≡ : ∀ {m n} → pos d +ℤ m ≡ n → fromℤ m ≡ fromℤ n
-  fromℤ-≡ {m} {n} = /-≡ m n
 
   fromℕ : ℕ → Mod d
   fromℕ n = fromℤ (pos n)
 
-  Mod-IsSet : IsSet (Mod d)
-  Mod-IsSet = /-IsSet
+  fromℤ-≡ : ∀ {m n} → pos d +ℤ m ≡ n → fromℤ m ≡ fromℤ n
+  fromℤ-≡ {m} {n} = /-≡ m n
 
   Mod-ind-IsProp
     : ∀ {ℓ} {P : Mod d → Type ℓ}
@@ -74,6 +74,21 @@ module _ {d : ℕ} where
 
   _-_ : Mod d → Mod d → Mod d
   m - n = m + negate n
+
+  _*_ : Mod d → Mod d → Mod d
+  _*_ = Mod-rec-2 Mod-IsSet (λ m n → fromℤ (m *ℤ n)) left right
+    where
+    fromℤ-*d : ∀ m n → fromℤ (m *ℤ pos d +ℤ n) ≡ fromℤ n
+    fromℤ-*d = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Mod-IsSet _ _)
+      (λ n → refl)
+      (λ m p n → sym (fromℤ-≡ (ℤ.+-assoc (pos d) (m *ℤ pos d) n)) ∙ p n)
+      (λ m p n → fromℤ-≡ (ap (pos d +ℤ_) (sym (ℤ.+-assoc (neg d) (m *ℤ pos d) n)) ∙ rightInv (ℤ.n+-IsEquiv (pos d)) (m *ℤ pos d +ℤ n)) ∙ p n)
+
+    right : (m n : ℤ) → fromℤ (m *ℤ (pos d +ℤ n)) ≡ fromℤ (m *ℤ n)
+    right m n = ap fromℤ (sym (ℤ.*-distrib-l m (pos d) n)) ∙ fromℤ-*d m (m *ℤ n)
+
+    left : (m n : ℤ) → fromℤ ((pos d +ℤ m) *ℤ n) ≡ fromℤ (m *ℤ n)
+    left m n = ap fromℤ (ℤ.*-comm (pos d +ℤ m) n) ∙ right n m ∙ ap fromℤ (ℤ.*-comm n m)
 
   fromFin : Fin d → Mod d
   fromFin i = fromℕ (toℕ i)

@@ -10,7 +10,7 @@ open import Math.Function
 open import Math.Int using (ℤ; ℤ-IsSet; pos; neg) renaming (_+_ to _+ℤ_; _-_ to _-ℤ_; _<_ to _<ℤ_; _*_ to _*ℤ_; <-Dec to <ℤ-Dec; _≤_ to _≤ℤ_; ≤-Dec to ≤ℤ-Dec)
 import Math.Int as ℤ
 import Math.IntDivision as ℤ
-open import Math.Mod using (Mod) renaming (_+_ to _+Mod_; _-_ to _-Mod_)
+open import Math.Mod using (Mod) renaming (_+_ to _+Mod_; _-_ to _-Mod_; _*_ to _*Mod_)
 import Math.Mod as Mod
 open import Math.Nat
 import Math.Nat as ℕ
@@ -193,12 +193,23 @@ toSigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEq
 fromSigned : ∀ {n} → Signed n → Word (suc n)
 fromSigned = inv toSigned-IsEquiv
 
+signBit : ∀ {n} → Word (suc n) → Bit
+signBit = last
+
+signBit≡0₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 0₂ → 0 ≤ℤ toℤ w
+signBit≡0₂ {zero} w s≡0₂ = {!!} -- subst (0 ≤ℤ_) (ap (neg ∘ Bit.toℕ) (sym s≡0₂)) ℤ.≤-refl
+signBit≡0₂ {suc n} w s≡0₂ = ℤ.≤-euclid 0<2 (toℤ (tail w)) (Bit.toFin2 (head w)) (signBit≡0₂ (tail w) (last-tail w ∙ s≡0₂))
+
+signBit≡1₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 1₂ → toℤ w <ℤ 0
+signBit≡1₂ {zero} w s≡1₂ = {!!} -- subst (_<ℤ 0) (ap (neg ∘ Bit.toℕ) (sym s≡1₂)) (0 , rightInv ℤ.suc-IsEquiv 0)
+signBit≡1₂ {suc n} w s≡1₂ = ℤ.euclid-< 0<2 (toℤ (tail w)) (Bit.toFin2 (head w)) (signBit≡1₂ (tail w) (last-tail w ∙ s≡1₂))
+
 --------------------------------------------------------------------------------
 -- Modular representation
 --------------------------------------------------------------------------------
 
 toMod : ∀ {n} → Word n → Mod (2 ^ n)
-toMod w = Mod.fromFin (toUnsigned w)
+toMod {n} w = Mod.fromℕ {d = 2 ^ n} (toℕ w)
 
 toMod-IsEquiv : ∀ {n} → IsEquiv (toMod {n = n})
 toMod-IsEquiv {n} = Mod.fromFin-IsEquiv (0<2^n n) ∘-IsEquiv toUnsigned-IsEquiv
@@ -210,24 +221,50 @@ fromMod = inv toMod-IsEquiv
 -- Extension
 --------------------------------------------------------------------------------
 
-zeroExtend : ∀ {m n} → Word n → Word (n + m)
-zeroExtend w = {!!}
+zeroExtend : ∀ {m} n → Word m → Word (m + n)
+zeroExtend {m} n w = replicate n 0₂ ++ w
 
-signExtend : ∀ {m n} → Word (suc n) → Word (suc n + m)
-signExtend w = {!!}
+zeroExtend-toℕ : ∀ {m} n (w : Word m) → toℕ (zeroExtend n w) ≡ toℕ w
+zeroExtend-toℕ {zero} n w = {!!}
+zeroExtend-toℕ {suc m} n w = {!!}
+
+signExtend : ∀ {m} n → Word (suc m) → Word (suc m + n)
+signExtend {m} n w = replicate n (signBit w) ++ w
+
+signExtend-toℤ : ∀ {m} n (w : Word (suc m)) → toℤ (signExtend n w) ≡ toℤ w
+signExtend-toℤ {zero} n w = {!!}
+signExtend-toℤ {suc m} n w = {!!}
 
 --------------------------------------------------------------------------------
 -- Shifts
 --------------------------------------------------------------------------------
 
-shiftLeft : ∀ {m n} → Word n → Word m → Word n
-shiftLeft = {!!}
+shiftLeftOnce : ∀ {m} → Word m → Word m
+shiftLeftOnce w = tail (cons (0₂ , w))
 
-shiftRight : ∀ {m n} → Word n → Word m → Word n
-shiftRight = {!!}
+shiftLeft : ∀ {m n} → Word m → Word n → Word m
+shiftLeft w shamt = iterate (toℕ shamt) shiftLeftOnce w
 
-shiftRightArithmetic : ∀ {m n} → Word (suc n) → Word m → Word (suc n)
-shiftRightArithmetic = {!!}
+shiftLeft-*2^n : ∀ {m n} (w : Word m) (shamt : Word n) → toMod (shiftLeft w shamt) ≡ Mod.fromℕ {d = 2 ^ m} (toℕ w * 2 ^ toℕ shamt)
+shiftLeft-*2^n = {!!}
+
+shiftRightOnce : ∀ {m} → Word m → Word m
+shiftRightOnce w = init (snoc (w , 0₂))
+
+shiftRight : ∀ {m n} → Word m → Word n → Word m
+shiftRight w shamt = iterate (toℕ shamt) shiftRightOnce w
+
+shiftRight-/2^n : ∀ {m n} (w : Word m) (shamt : Word n) → toℕ (shiftRight w shamt) ≡ ℕ.quotient (0<2^n (toℕ shamt)) (toℕ w)
+shiftRight-/2^n = {!!}
+
+shiftRightArithmeticOnce : ∀ {m} → Word (suc m) → Word (suc m)
+shiftRightArithmeticOnce w = init (snoc (w , signBit w))
+
+shiftRightArithmetic : ∀ {m n} → Word (suc m) → Word n → Word (suc m)
+shiftRightArithmetic w shamt = iterate (toℕ shamt) shiftRightArithmeticOnce w
+
+shiftRightArithmetic-/2^n : ∀ {m n} (w : Word (suc m)) (shamt : Word n) → toℤ (shiftRightArithmetic w shamt) ≡ ℤ.quotient (0<2^n (toℕ shamt)) (toℤ w)
+shiftRightArithmetic-/2^n = {!!}
 
 --------------------------------------------------------------------------------
 -- Arithmetic

@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Math.Type where
 
-open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; Type₀; Type₁; _≡_; Σ; Σ-syntax; _,_; fst; snd)
+open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; _≡_; Σ; Σ-syntax; _,_; fst; snd)
 open import Cubical.Foundations.HLevels public using () renaming (isPropΠ to Π-IsProp; isPropΣ to Σ-IsProp; isSetΠ to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ; isPropIsOfHLevel)
 open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst; transport) renaming (cong to ap; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
@@ -9,8 +9,9 @@ open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-rec; isPr
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ)
-open import Cubical.Data.Sigma public using (_×_; ΣProp≡)
-open import Cubical.Data.Sigma using (sigmaPath→pathSigma)
+-- TODO: rename ΣProp≡
+open import Cubical.Data.Sigma public using (_×_) renaming (Σ≡Prop to ΣProp≡)
+open import Cubical.Data.Sigma using (ΣPathTransport→PathΣ)
 open import Cubical.HITs.PropositionalTruncation public using (∥_∥; ∣_∣) renaming (propTruncIsProp to ∥∥-IsProp; rec to ∥∥-rec)
 open import Cubical.Relation.Nullary public using (¬_)
 
@@ -58,7 +59,7 @@ IsSet-IsProp = isPropIsOfHLevel 2
 →-IsSet B-IsSet = Π-IsSet (λ a → B-IsSet)
 
 Σ≡ : {A : Type ℓ} {B : A → Type ℓ'} {x y : Σ A B} (p : fst x ≡ fst y) → subst B p (snd x) ≡ snd y → x ≡ y
-Σ≡ {x = x} {y = y} p q = sigmaPath→pathSigma x y (p , q)
+Σ≡ {x = x} {y = y} p q = ΣPathTransport→PathΣ x y (p , q)
 
 Σ-IsSet : {A : Type ℓ} {B : A → Type ℓ'} → IsSet A → ((a : A) → IsSet (B a)) → IsSet (Σ A B)
 Σ-IsSet A-IsSet B-IsSet = isOfHLevelΣ 2 A-IsSet B-IsSet

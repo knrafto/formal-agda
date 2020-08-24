@@ -3,97 +3,106 @@ module Math.Monoid where
 
 open import Math.Function
 open import Math.Id
+open import Math.Nat
 open import Math.Prod
-open import Math.Type renaming (_∙_ to trans)
+open import Math.Type
 
-IsAssociative : ∀ {ℓ} {A : Type ℓ} → (A → A → A) → Type ℓ
-IsAssociative _∙_ = ∀ a b c → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
+private
+  variable
+    ℓ ℓ' ℓ'' : Level
 
-IsAssociative-IsProp : ∀ {ℓ} {A : Type ℓ} (_∙_ : A → A → A) → IsSet A → IsProp (IsAssociative _∙_)
-IsAssociative-IsProp _∙_ A-IsSet = Π-IsProp λ _ → Π-IsProp λ _ → Π-IsProp λ _ → A-IsSet _ _
+record Monoid (ℓ : Level) : Type (ℓ-suc ℓ) where
+  -- TODO: use ⋅ (LaTeX \cdot) or · (Agda's version)?
+  infixl 7 _⋅_
 
-HasIdentity : ∀ {ℓ} {A : Type ℓ} → (A → A → A) → Type ℓ
-HasIdentity {A = A} _∙_ = Σ[ e ∈ A ] (∀ a → e ∙ a ≡ a) × (∀ a → a ∙ e ≡ a)
+  field
+    Carrier : Type ℓ
+    Carrier-IsSet : IsSet Carrier
 
-HasIdentity-IsProp : ∀ {ℓ} {A : Type ℓ} (_∙_ : A → A → A) → IsSet A → IsProp (HasIdentity _∙_)
-HasIdentity-IsProp _∙_ A-IsSet (e₁ , e₁-l , e₁-r) (e₂ , e₂-l , e₂-r) =
-  ΣProp≡
-    (λ _ → ×-IsProp (Π-IsProp λ _ → A-IsSet _ _) (Π-IsProp λ _ → A-IsSet _ _))
-    (trans (sym (e₂-r e₁)) (e₁-l e₂))
+    ε : Carrier
+    _⋅_ : Carrier → Carrier → Carrier
 
-IsMonoid : ∀ {ℓ} (A : Type ℓ) → (A → A → A) → Type ℓ
-IsMonoid A _∙_ = IsAssociative _∙_ × HasIdentity _∙_
+    assoc : ∀ a b c → a ⋅ (b ⋅ c) ≡ (a ⋅ b) ⋅ c
+    identity-l : ∀ a → ε ⋅ a ≡ a
+    identity-r : ∀ a → a ⋅ ε ≡ a
 
-IsMonoid-IsProp : ∀ {ℓ} (A : Type ℓ) (_∙_ : A → A → A) → IsSet A → IsProp (IsMonoid A _∙_)
-IsMonoid-IsProp A _∙_ A-IsSet = ×-IsProp (IsAssociative-IsProp _∙_ A-IsSet) (HasIdentity-IsProp _∙_ A-IsSet)
+⟨_⟩ : Monoid ℓ → Type ℓ
+⟨_⟩ = Monoid.Carrier
 
-MonoidStructure : ∀ {ℓ} (A : Type ℓ) → Type ℓ
-MonoidStructure A = Σ[ _∙_ ∈ (A → A → A) ] (IsMonoid A _∙_)
+IsHom : (A : Monoid ℓ) (B : Monoid ℓ') → (⟨ A ⟩ → ⟨ B ⟩) → Type _
+IsHom A B f = (f A.ε ≡ B.ε) × (∀ a b → f (a A.⋅ b) ≡ f a B.⋅ f b)
+  where
+  module A = Monoid A
+  module B = Monoid B
 
-MonoidStructure-IsSet : ∀ {ℓ} (A : Type ℓ) → IsSet A → IsSet (MonoidStructure A)
-MonoidStructure-IsSet A A-IsSet = Σ-IsSet (→-IsSet (→-IsSet A-IsSet)) λ _∙_ → IsProp→IsSet (IsMonoid-IsProp A _∙_ A-IsSet)
+IsHom-IsProp : (A : Monoid ℓ) (B : Monoid ℓ') (f : ⟨ A ⟩ → ⟨ B ⟩) → IsProp (IsHom A B f)
+IsHom-IsProp A B f = ×-IsProp (B.Carrier-IsSet _ _) (Π-IsProp λ _ → Π-IsProp λ _ → B.Carrier-IsSet _ _)
+  where
+  module B = Monoid B
 
-Monoid : ∀ ℓ → Type (ℓ-suc ℓ)
-Monoid ℓ = Σ[ A ∈ Type ℓ ] IsSet A × MonoidStructure A
-
-⟨_⟩ : ∀ {ℓ} → Monoid ℓ → Type ℓ
-⟨ A ⟩ = fst A
-
-⟨⟩-IsSet : ∀ {ℓ} (A : Monoid ℓ) → IsSet ⟨ A ⟩
-⟨⟩-IsSet (_ , ⟨A⟩-IsSet , _) = ⟨A⟩-IsSet
-
-structure : ∀ {ℓ} (A : Monoid ℓ) → MonoidStructure ⟨ A ⟩
-structure (_ , _ , str) = str
-
-op : ∀ {ℓ} → (A : Monoid ℓ) → ⟨ A ⟩ → ⟨ A ⟩ → ⟨ A ⟩
-op (_ , _ , op , _) = op
-
-e : ∀ {ℓ} → (A : Monoid ℓ) → ⟨ A ⟩
-e (_ , _ , _ , _ , e , _) = e
-
-IsHom : ∀ {ℓ} (A B : Monoid ℓ) → (⟨ A ⟩ → ⟨ B ⟩) → Type ℓ
-IsHom A B f = (∀ a b → f (op A a b) ≡ op B (f a) (f b)) × (f (e A) ≡ e B)
-
-IsHom-IsProp : ∀ {ℓ} (A B : Monoid ℓ) (f : ⟨ A ⟩ → ⟨ B ⟩) → IsProp (IsHom A B f)
-IsHom-IsProp A B f = ×-IsProp (Π-IsProp λ _ → Π-IsProp λ _ → ⟨⟩-IsSet B _ _) (⟨⟩-IsSet B _ _)
-
-Hom : ∀ {ℓ} → Monoid ℓ → Monoid ℓ → Type ℓ
+Hom : Monoid ℓ → Monoid ℓ' → Type _
 Hom A B = Σ[ f ∈ (⟨ A ⟩ → ⟨ B ⟩) ] IsHom A B f
 
-id-IsHom : ∀ {ℓ} (A : Monoid ℓ) → IsHom A A id
-id-IsHom A = (λ a b → refl) , refl
+id-IsHom : (A : Monoid ℓ) → IsHom A A id
+id-IsHom A = refl , λ a b → refl
 
-id-Hom : ∀ {ℓ} (A : Monoid ℓ) → Hom A A
+id-Hom : (A : Monoid ℓ) → Hom A A
 id-Hom A = id , id-IsHom A
 
-∘-IsHom : ∀ {ℓ} (A B C : Monoid ℓ) (g : ⟨ B ⟩ → ⟨ C ⟩) (f : ⟨ A ⟩ → ⟨ B ⟩) → IsHom B C g → IsHom A B f → IsHom A C (g ∘ f)
-∘-IsHom A B C g f (g-op , g-e) (f-op , f-e) = (λ a b → trans (ap g (f-op _ _)) (g-op _ _)) , trans (ap g f-e) g-e
+∘-IsHom : (A : Monoid ℓ) (B : Monoid ℓ') (C : Monoid ℓ'') (g : ⟨ B ⟩ → ⟨ C ⟩) (f : ⟨ A ⟩ → ⟨ B ⟩) → IsHom B C g → IsHom A B f → IsHom A C (g ∘ f)
+∘-IsHom A B C g f (g-ε , g-⋅) (f-ε , f-⋅) = ap g f-ε ∙ g-ε , λ a b → ap g (f-⋅ _ _) ∙ (g-⋅ _ _)
 
-∘-Hom : ∀ {ℓ} {A B C : Monoid ℓ} → Hom B C → Hom A B → Hom A C
+∘-Hom : {A : Monoid ℓ} {B : Monoid ℓ'} {C : Monoid ℓ''} → Hom B C → Hom A B → Hom A C
 ∘-Hom {A = A} {B = B} {C = C} (g , g-IsHom) (f , f-IsHom) = g ∘ f , ∘-IsHom A B C g f g-IsHom f-IsHom
 
-IsIso : ∀ {ℓ} (A B : Monoid ℓ) → (⟨ A ⟩ → ⟨ B ⟩) → Type ℓ
+IsIso : (A : Monoid ℓ) (B : Monoid ℓ') → (⟨ A ⟩ → ⟨ B ⟩) → Type _
 IsIso A B f = IsEquiv f × IsHom A B f
 
--- note: if f is a homomorphism, then f⁻¹ is automatically a homomorphism too
+-- TODO: if f is a homomorphism, then f⁻¹ is automatically a homomorphism
 
-Iso : ∀ {ℓ} → Monoid ℓ → Monoid ℓ → Type ℓ
+Iso : Monoid ℓ → Monoid ℓ' → Type _
 Iso A B = Σ[ f ∈ (⟨ A ⟩ → ⟨ B ⟩) ] IsIso A B f
 
-id-Iso : ∀ {ℓ} (A : Monoid ℓ) → Iso A A
+id-Iso : (A : Monoid ℓ) → Iso A A
 id-Iso A = id , id-IsEquiv , id-IsHom A
 
--- First, characterize A ≡ B
-Monoid≡ : ∀ {ℓ} (A B : Monoid ℓ) → Σ[ p ∈ ⟨ A ⟩ ≡ ⟨ B ⟩ ] subst MonoidStructure p (structure A) ≡ structure B → A ≡ B
-Monoid≡ A B (p , q) = Σ≡ p (×≡ (IsSet-IsProp _ _ , q))
+-- TODO: structure-identity principle for Monoid
 
-Monoid≡-IsEquiv : ∀ {ℓ} (A B : Monoid ℓ) → IsEquiv (Monoid≡ A B)
-Monoid≡-IsEquiv A B = {!!}
+ℕ-Monoid : Monoid ℓ-zero
+ℕ-Monoid = record
+  { Carrier = ℕ
+  ; Carrier-IsSet = ℕ-IsSet
+  ; ε = 0
+  ; _⋅_ = _+_
+  ; assoc = +-assoc
+  ; identity-l = λ _ → refl
+  ; identity-r = +-zero
+  }
 
-≡→Iso : ∀ {ℓ} (A B : Monoid ℓ) → A ≡ B → Iso A B
-≡→Iso A B = {!!}
+pow : (M : Monoid ℓ) → ⟨ M ⟩ → ℕ → ⟨ M ⟩
+pow M a = f
+  where
+  open Monoid M
 
-≡→Iso-IsEquiv : ∀ {ℓ} (A B : Monoid ℓ) → IsEquiv (≡→Iso A B)
-≡→Iso-IsEquiv = {!!}
+  f : ℕ → ⟨ M ⟩
+  f zero = ε
+  f (suc n) = a ⋅ f n
 
--- ℕ is free monoid on one element. ⟨ A ⟩ ≃ Hom ℕ A
+pow-Hom : (M : Monoid ℓ) → ⟨ M ⟩ → Hom ℕ-Monoid M
+pow-Hom M a = pow M a , refl , pow-+
+  where
+  open Monoid M
+
+  pow-+ : ∀ m n → pow M a (m + n) ≡ pow M a m ⋅ pow M a n
+  pow-+ zero n = sym (identity-l (pow M a n))
+  pow-+ (suc m) n = ap (a ⋅_) (pow-+ m n) ∙ assoc a (pow M a m) (pow M a n)
+
+-- ℕ is the free monoid on one element
+pow-IsEquiv : (M : Monoid ℓ) → IsEquiv (pow-Hom M)
+pow-IsEquiv M = HasInverse→IsEquiv (λ (f , _) → f 1) identity-r (λ (h , h-IsHom) → ΣProp≡ (IsHom-IsProp ℕ-Monoid M) (funExt (unique h h-IsHom)))
+  where
+  open Monoid M
+
+  unique : (h : ℕ → ⟨ M ⟩) → IsHom ℕ-Monoid M h → (n : ℕ) → pow M (h 1) n ≡ h n
+  unique h (h-0 , h-+) zero = sym h-0
+  unique h (h-0 , h-+) (suc n) = ap (h 1 ⋅_) (unique h (h-0 , h-+) n) ∙ sym (h-+ 1 n)

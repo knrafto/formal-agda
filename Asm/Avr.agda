@@ -1,6 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Asm.Avr where
 
+open import Experimental.Binary hiding (add; sub)
 open import Math.Bit
 open import Math.Fin
 open import Math.Nat
@@ -22,9 +23,9 @@ Offset = ℕ
 -- An operation consists of an opcode and operands.
 -- This is actually a bit more permissive than the instruction encoding allows.
 data Operation : Type₀ where
-  adiw  : Register → Word16 → Operation
+  adiw  : Register → Word 16 → Operation
   adc   : Register → Register → Operation
-  andi  : Register → Word8 → Operation
+  andi  : Register → Word 8 → Operation
   brcs  : Offset → Operation
   breq  : Offset → Operation
   brne  : Offset → Operation
@@ -32,25 +33,25 @@ data Operation : Type₀ where
   cbi   : Address → Fin 8 → Operation
   cli   : Operation
   cpc   : Register → Register → Operation
-  cpi   : Register → Word8 → Operation
+  cpi   : Register → Word 8 → Operation
   eor   : Register → Register → Operation
   in'   : Register → Address → Operation
   jmp   : Address → Operation
-  ldi   : Register → Word8 → Operation
+  ldi   : Register → Word 8 → Operation
   lds   : Register → Address → Operation
   movw  : Register → Register → Operation
-  ori   : Register → Word8 → Operation
+  ori   : Register → Word 8 → Operation
   out   : Address → Register → Operation
   pop   : Register → Operation
   push  : Register → Operation
   reti  : Operation
   rjmp  : Offset → Operation
   sbc   : Register → Register → Operation
-  sbci  : Register → Word8 → Operation
+  sbci  : Register → Word 8 → Operation
   sbi   : Address → Fin 8 → Operation
   sei   : Operation
   sub   : Register → Register → Operation
-  subi  : Register → Word8 → Operation
+  subi  : Register → Word 8 → Operation
   st-X+ : Register → Operation
   sts   : Address → Register → Operation
 

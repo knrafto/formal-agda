@@ -25,6 +25,9 @@ infixr 5 _++_
 Word : ℕ → Type₀
 Word n = Vec n Bit
 
+Byte : Type₀
+Byte = Word 8
+
 Word-IsSet : ∀ {n} → IsSet (Word n)
 Word-IsSet = Vec-IsSet Bit-IsSet
 

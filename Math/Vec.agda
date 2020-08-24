@@ -14,16 +14,6 @@ private
     ℓ ℓ′ : Level
     A : Type ℓ
 
--- TODO: the definitions of concat, split, cons, head, tail, etc. are too obscure, and makes definitional equality hard to reason about.
--- Need to rewrite using operations on indices. For example:
--- head v = v fzero
--- tail v = v ∘ fsuc
--- uncons v = (head v , tail v)
--- uncons-IsEquiv
--- cons = inv uncons
---
--- This will require rewriting/renaming the definitions in Fin (for the better)
-
 Vec : ℕ → Type ℓ → Type ℓ
 Vec n A = Fin n → A
 
@@ -38,6 +28,44 @@ Vec-HasDecEq A-HasDecEq v₁ v₂ = case Fin-∀-Dec (λ i → A-HasDecEq (v₁ 
 
 Vec0-IsContr : IsContr (Vec 0 A)
 Vec0-IsContr = (λ i → ⊥-rec (¬Fin0 i)) , λ y → funExt λ i → ⊥-rec (¬Fin0 i)
+
+replicate : (n : ℕ) → A → Vec n A
+replicate n a = λ i → a
+
+head : ∀ {n} → Vec (suc n) A → A
+head v = v fzero
+
+tail : ∀ {n} → Vec (suc n) A → Vec n A
+tail v = λ i → v (fsuc i)
+
+uncons : ∀ {n} → Vec (suc n) A → A × Vec n A
+uncons v = (head v , tail v)
+
+uncons-IsEquiv : ∀ {n} → IsEquiv (uncons {A = A} {n = n})
+uncons-IsEquiv = ×-map-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsContr)) id-IsEquiv ∘-IsEquiv inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv Fin-suc-IsEquiv
+
+cons : ∀ {n} → A × Vec n A → Vec (suc n) A
+cons = inv uncons-IsEquiv
+
+init : {n : ℕ} → Vec (suc n) A → Vec n A
+init v = λ i → v (finj i)
+
+last : {n : ℕ} → Vec (suc n) A → A
+last v = v fmax
+
+unsnoc : ∀ {n} → Vec (suc n) A → Vec n A × A
+unsnoc v = (init v , last v)
+
+unsnoc-IsEquiv : ∀ {n} → IsEquiv (unsnoc {A = A} {n = n})
+unsnoc-IsEquiv = ×-map-IsEquiv id-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsContr)) ∘-IsEquiv inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv Fin-pred-IsEquiv
+
+snoc : ∀ {n} → Vec n A × A → Vec (suc n) A
+snoc = inv unsnoc-IsEquiv
+
+last-tail : ∀ {n : ℕ} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
+last-tail w = ap w fsuc-fmax
+
+-- TODO: Rewrite split to operate on indices, and make concat the inv of split
 
 concat : {m n : ℕ} → Vec m A × Vec n A → Vec (m + n) A
 concat = (_∘ inv Fin-+-IsEquiv) ∘ pair
@@ -57,44 +85,8 @@ singleton a = const a
 singleton-IsEquiv : IsEquiv (singleton {A = A})
 singleton-IsEquiv = const-IsEquiv Fin1-IsContr
 
-cons : {n : ℕ} → A × Vec n A → Vec (suc n) A
-cons = (_∘ inv Fin-suc-IsEquiv) ∘ pair ∘ ×-map const id
-
-cons-IsEquiv : {n : ℕ} → IsEquiv (cons {A = A} {n = n})
-cons-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) ∘-IsEquiv pair-IsEquiv ∘-IsEquiv ×-map-IsEquiv (const-IsEquiv ⊤-IsContr) id-IsEquiv
-
-uncons : {n : ℕ} → Vec (suc n) A → A × Vec n A
-uncons = inv cons-IsEquiv
-
-head : {n : ℕ} → Vec (suc n) A → A
-head v = fst (uncons v)
-
-tail : {n : ℕ} → Vec (suc n) A → Vec n A
-tail v = snd (uncons v)
-
-snoc : {n : ℕ} → Vec n A × A → Vec (suc n) A
-snoc = (_∘ inv Fin-pred-IsEquiv) ∘ pair ∘ ×-map id const
-
-snoc-IsEquiv : {n : ℕ} → IsEquiv (snoc {A = A} {n = n})
-snoc-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-pred-IsEquiv) ∘-IsEquiv pair-IsEquiv ∘-IsEquiv ×-map-IsEquiv id-IsEquiv (const-IsEquiv ⊤-IsContr)
-
-unsnoc : {n : ℕ} → Vec (suc n) A → Vec n A × A
-unsnoc = inv snoc-IsEquiv
-
-init : {n : ℕ} → Vec (suc n) A → Vec n A
-init v = fst (unsnoc v)
-
-last : {n : ℕ} → Vec (suc n) A → A
-last v = snd (unsnoc v)
-
-last-tail : ∀ {n : ℕ} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
-last-tail w = ap w fsuc-fmax
-
 reverse : ∀ {n} → Vec n A → Vec n A
-reverse = _∘ reflect
+reverse v = λ i → v (reflect i)
 
 reverse-IsEquiv : ∀ {n} → IsEquiv (reverse {A = A} {n = n})
 reverse-IsEquiv = ∘f-IsEquiv reflect-IsEquiv
-
-replicate : (n : ℕ) → A → Vec n A
-replicate n a = λ i → a

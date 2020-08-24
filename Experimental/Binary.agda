@@ -100,7 +100,7 @@ toUnsigned w = toℕ w , toℕ-<2^n w
 
 toUnsigned-IsEquiv : ∀ {n} → IsEquiv (toUnsigned {n = n})
 toUnsigned-IsEquiv {zero} = IsContr→IsContr→IsEquiv Vec0-IsContr Fin1-IsContr
-toUnsigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toUnsigned-IsEquiv ∘-IsEquiv inv-IsEquiv cons-IsEquiv
+toUnsigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toUnsigned-IsEquiv ∘-IsEquiv uncons-IsEquiv
   where
   addBit : Fin 2 × Unsigned n → Unsigned (suc n)
   addBit (r , (q , q<2^n)) = ℕ.euclid 0<2 (q , r) , ℕ.euclid-< 0<2 q r q<2^n
@@ -169,7 +169,7 @@ toSigned-IsEquiv {zero} = toSigned0-IsEquiv ∘-IsEquiv toFin2-IsEquiv ∘-IsEqu
   toSigned0-IsEquiv : IsEquiv toSigned0
   toSigned0-IsEquiv = IsInjective×IsSurjective→IsEquiv Fin-IsSet (Σ-IsSet ℤ-IsSet (λ _ → IsProp→IsSet (×-IsProp ℤ.≤-IsProp ℤ.<-IsProp))) toSigned0-IsInjective toSigned0-IsSurjective
 
-toSigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toSigned-IsEquiv ∘-IsEquiv inv-IsEquiv cons-IsEquiv
+toSigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-IsEquiv toSigned-IsEquiv ∘-IsEquiv uncons-IsEquiv
   where
   addBit : Fin 2 × Signed n → Signed (suc n)
   addBit (r , (q , -2^n≤q , q<2^n)) =

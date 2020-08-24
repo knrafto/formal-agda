@@ -200,11 +200,11 @@ signBit : ∀ {n} → Word (suc n) → Bit
 signBit = last
 
 signBit≡0₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 0₂ → 0 ≤ℤ toℤ w
-signBit≡0₂ {zero} w s≡0₂ = {!!} -- subst (0 ≤ℤ_) (ap (neg ∘ Bit.toℕ) (sym s≡0₂)) ℤ.≤-refl
+signBit≡0₂ {zero} w s≡0₂ = subst (0 ≤ℤ_) (ap (neg ∘ Bit.toℕ) (sym s≡0₂)) ℤ.≤-refl
 signBit≡0₂ {suc n} w s≡0₂ = ℤ.≤-euclid 0<2 (toℤ (tail w)) (Bit.toFin2 (head w)) (signBit≡0₂ (tail w) (last-tail w ∙ s≡0₂))
 
 signBit≡1₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 1₂ → toℤ w <ℤ 0
-signBit≡1₂ {zero} w s≡1₂ = {!!} -- subst (_<ℤ 0) (ap (neg ∘ Bit.toℕ) (sym s≡1₂)) (0 , rightInv ℤ.suc-IsEquiv 0)
+signBit≡1₂ {zero} w s≡1₂ = subst (_<ℤ 0) (ap (neg ∘ Bit.toℕ) (sym s≡1₂)) (0 , rightInv ℤ.suc-IsEquiv 0)
 signBit≡1₂ {suc n} w s≡1₂ = ℤ.euclid-< 0<2 (toℤ (tail w)) (Bit.toFin2 (head w)) (signBit≡1₂ (tail w) (last-tail w ∙ s≡1₂))
 
 --------------------------------------------------------------------------------

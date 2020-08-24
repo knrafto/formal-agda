@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 module Math.Vec where
 
 open import Math.Dec
@@ -13,6 +13,16 @@ private
   variable
     ℓ ℓ′ : Level
     A : Type ℓ
+
+-- TODO: the definitions of concat, split, cons, head, tail, etc. are too obscure, and makes definitional equality hard to reason about.
+-- Need to rewrite using operations on indices. For example:
+-- head v = v fzero
+-- tail v = v ∘ fsuc
+-- uncons v = (head v , tail v)
+-- uncons-IsEquiv
+-- cons = inv uncons
+--
+-- This will require rewriting/renaming the definitions in Fin (for the better)
 
 Vec : ℕ → Type ℓ → Type ℓ
 Vec n A = Fin n → A
@@ -63,10 +73,10 @@ tail : {n : ℕ} → Vec (suc n) A → Vec n A
 tail v = snd (uncons v)
 
 snoc : {n : ℕ} → Vec n A × A → Vec (suc n) A
-snoc = {!!}
+snoc = (_∘ inv Fin-pred-IsEquiv) ∘ pair ∘ ×-map id const
 
 snoc-IsEquiv : {n : ℕ} → IsEquiv (snoc {A = A} {n = n})
-snoc-IsEquiv = {!!}
+snoc-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-pred-IsEquiv) ∘-IsEquiv pair-IsEquiv ∘-IsEquiv ×-map-IsEquiv id-IsEquiv (const-IsEquiv ⊤-IsContr)
 
 unsnoc : {n : ℕ} → Vec (suc n) A → Vec n A × A
 unsnoc = inv snoc-IsEquiv
@@ -78,11 +88,7 @@ last : {n : ℕ} → Vec (suc n) A → A
 last v = snd (unsnoc v)
 
 last-tail : ∀ {n : ℕ} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
-last-tail = {!!}
-
--- TODO: delete me when refl
-test : ∀ (w : Vec 1 A) → last w ≡ head w
-test = {!!} -- refl
+last-tail w = ap w fsuc-fmax
 
 reverse : ∀ {n} → Vec n A → Vec n A
 reverse = _∘ reflect

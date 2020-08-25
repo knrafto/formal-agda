@@ -35,14 +35,26 @@ finj (i , i<n) = i , ≤-suc i<n
 fmax : ∀ {n : ℕ} → Fin (suc n)
 fmax {n} = (n , ≤-refl)
 
-fsuc-fmax : ∀ {n : ℕ} → fsuc (fmax {n = n}) ≡ fmax {n = suc n}
-fsuc-fmax = toℕ-IsInjective refl
-
 finj-IsInjective : {n : ℕ} → IsInjective (finj {n = n})
 finj-IsInjective p = toℕ-IsInjective (ap toℕ p)
 
-¬fmax≡finj : {n : ℕ} {i : Fin n} → ¬ fmax ≡ finj i
-¬fmax≡finj {i = (i , i<n)} p = <-irrefl (subst (i <_) (ap fst p) i<n)
+¬finj≡fmax : {n : ℕ} {i : Fin n} → ¬ finj i ≡ fmax
+¬finj≡fmax {n} {(i , i<n)} p = <-irrefl (subst (_< n) (ap fst p) i<n)
+
+inject : ∀ {m n} → Fin m → Fin (m + n)
+inject {m} {n} (i , i<m) = i , <≤-trans i<m (n , +-comm n m)
+
+inject-IsInjective : ∀ {m n} → IsInjective (inject {m = m} {n = n})
+inject-IsInjective p = toℕ-IsInjective (ap toℕ p)
+
+raise : ∀ {m n} → Fin n → Fin (m + n)
+raise {m} {n} (j , j<n) = m + j , <-k+ j<n
+
+raise-IsInjective : ∀ {m n} → IsInjective (raise {m = m} {n = n})
+raise-IsInjective p = toℕ-IsInjective (m+-IsInjective (ap toℕ p))
+
+¬inject≡raise : ∀ {m n} (i : Fin m) (j : Fin n) → ¬ inject i ≡ raise j
+¬inject≡raise {m} {n} (i , i<m) (j , _) p = <-asym (subst (_< m) (ap toℕ p) i<m) (j , +-comm j m)
 
 -- i ↦ n - i - 1
 reflect : ∀ {n} → Fin n → Fin n
@@ -57,55 +69,46 @@ reflect-reflect (i , _) = toℕ-IsInjective refl
 reflect-IsEquiv : ∀ {n} → IsEquiv (reflect {n = n})
 reflect-IsEquiv {n} = HasInverse→IsEquiv reflect reflect-reflect reflect-reflect
 
--- TODO: better name?
-Fin-suc : {n : ℕ} → ⊤ ⊎ Fin n → Fin (suc n)
-Fin-suc (inl _) = fzero
-Fin-suc (inr n) = fsuc n
+[fzero,fsuc] : {n : ℕ} → ⊤ ⊎ Fin n → Fin (suc n)
+[fzero,fsuc] = pair (const fzero , fsuc)
 
-Fin-suc-IsInjective : {n : ℕ} → IsInjective (Fin-suc {n = n})
-Fin-suc-IsInjective {a₁ = inl tt} {a₂ = inl tt} p = refl
-Fin-suc-IsInjective {a₁ = inl tt} {a₂ = inr n₂} p = contradiction p ¬fzero≡fsuc
-Fin-suc-IsInjective {a₁ = inr n₁} {a₂ = inl tt} p = contradiction (sym p) ¬fzero≡fsuc
-Fin-suc-IsInjective {a₁ = inr n₁} {a₂ = inr n₂} p = ap inr (fsuc-IsInjective p)
+[fzero,fsuc]-IsInjective : {n : ℕ} → IsInjective ([fzero,fsuc] {n = n})
+[fzero,fsuc]-IsInjective = pair-IsInjective ⊤-rec-IsInjective fsuc-IsInjective λ _ _ → ¬fzero≡fsuc
 
-Fin-suc-IsSurjective : {n : ℕ} → IsSurjective (Fin-suc {n = n})
-Fin-suc-IsSurjective (zero , _) = inl tt , toℕ-IsInjective refl
-Fin-suc-IsSurjective (suc i , si<sn) = inr (i , suc-reflects-< si<sn) , toℕ-IsInjective refl
+[fzero,fsuc]-IsSurjective : {n : ℕ} → IsSurjective ([fzero,fsuc] {n = n})
+[fzero,fsuc]-IsSurjective (zero , _) = inl tt , toℕ-IsInjective refl
+[fzero,fsuc]-IsSurjective (suc i , si<sn) = inr (i , suc-reflects-< si<sn) , toℕ-IsInjective refl
 
-Fin-suc-IsEquiv : {n : ℕ} → IsEquiv (Fin-suc {n = n})
-Fin-suc-IsEquiv = IsInjective×IsSurjective→IsEquiv (⊎-IsSet ⊤-IsSet Fin-IsSet) Fin-IsSet Fin-suc-IsInjective Fin-suc-IsSurjective
+[fzero,fsuc]-IsEquiv : {n : ℕ} → IsEquiv ([fzero,fsuc] {n = n})
+[fzero,fsuc]-IsEquiv = IsInjective×IsSurjective→IsEquiv (⊎-IsSet ⊤-IsSet Fin-IsSet) Fin-IsSet [fzero,fsuc]-IsInjective [fzero,fsuc]-IsSurjective
 
--- TODO: better name?
-Fin-pred : {n : ℕ} → Fin n ⊎ ⊤ → Fin (suc n)
-Fin-pred (inl n) = finj n
-Fin-pred (inr _) = fmax
+[finj,fmax] : {n : ℕ} → Fin n ⊎ ⊤ → Fin (suc n)
+[finj,fmax] = pair (finj , const fmax)
 
-Fin-pred-IsInjective : {n : ℕ} → IsInjective (Fin-pred {n = n})
-Fin-pred-IsInjective {a₁ = inl m} {a₂ = inl n} p = ap inl (finj-IsInjective p)
-Fin-pred-IsInjective {a₁ = inl m} {a₂ = inr tt} p = contradiction (sym p) ¬fmax≡finj
-Fin-pred-IsInjective {a₁ = inr tt} {a₂ = inl n} p = contradiction p ¬fmax≡finj
-Fin-pred-IsInjective {a₁ = inr tt} {a₂ = inr tt} p = refl
+[finj,fmax]-IsInjective : {n : ℕ} → IsInjective ([finj,fmax] {n = n})
+[finj,fmax]-IsInjective = pair-IsInjective finj-IsInjective ⊤-rec-IsInjective λ _ _ → ¬finj≡fmax
 
-Fin-pred-IsSurjective : {n : ℕ} → IsSurjective (Fin-pred {n = n})
-Fin-pred-IsSurjective (i , zero , si≡sn) = inr tt , toℕ-IsInjective (suc-IsInjective (sym si≡sn))
-Fin-pred-IsSurjective (i , suc k , sk+si≡sn) = inl (i , (k , suc-IsInjective sk+si≡sn)) , toℕ-IsInjective refl
+[finj,fmax]-IsSurjective : {n : ℕ} → IsSurjective ([finj,fmax] {n = n})
+[finj,fmax]-IsSurjective (i , zero , si≡sn) = inr tt , toℕ-IsInjective (suc-IsInjective (sym si≡sn))
+[finj,fmax]-IsSurjective (i , suc k , sk+si≡sn) = inl (i , (k , suc-IsInjective sk+si≡sn)) , toℕ-IsInjective refl
 
-Fin-pred-IsEquiv : {n : ℕ} → IsEquiv (Fin-pred {n = n})
-Fin-pred-IsEquiv = IsInjective×IsSurjective→IsEquiv (⊎-IsSet Fin-IsSet ⊤-IsSet) Fin-IsSet Fin-pred-IsInjective Fin-pred-IsSurjective
+[finj,fmax]-IsEquiv : {n : ℕ} → IsEquiv ([finj,fmax]{n = n})
+[finj,fmax]-IsEquiv = IsInjective×IsSurjective→IsEquiv (⊎-IsSet Fin-IsSet ⊤-IsSet) Fin-IsSet [finj,fmax]-IsInjective [finj,fmax]-IsSurjective
 
--- TODO: better name?
--- TODO: rewrite in terms of functions Fin m → Fin (m + n) and Fin n → Fin (m + n)?
-Fin-+ : {m n : ℕ} → Fin m ⊎ Fin n → Fin (m + n)
-Fin-+ {zero} {n} = inv ⊥-inr-IsEquiv ∘ ⊎-map ¬Fin0 id
-Fin-+ {suc m} {n} = Fin-suc ∘ ⊎-map id Fin-+ ∘ ⊎-assoc ∘ ⊎-map (inv Fin-suc-IsEquiv) id
+[inject,raise] : ∀ {m n} → Fin m ⊎ Fin n → Fin (m + n)
+[inject,raise] = pair (inject , raise)
 
-Fin-+-IsEquiv : {m n : ℕ} → IsEquiv (Fin-+ {m = m} {n = n})
-Fin-+-IsEquiv {zero} {n} = inv-IsEquiv ⊥-inr-IsEquiv ∘-IsEquiv (⊎-map-IsEquiv (¬-IsEquiv ¬Fin0) id-IsEquiv)
-Fin-+-IsEquiv {suc m} {n} =
-  Fin-suc-IsEquiv ∘-IsEquiv
-  ⊎-map-IsEquiv id-IsEquiv Fin-+-IsEquiv ∘-IsEquiv
-  ⊎-assoc-IsEquiv ∘-IsEquiv
-  ⊎-map-IsEquiv (inv-IsEquiv Fin-suc-IsEquiv) id-IsEquiv
+[inject,raise]-IsInjective : ∀ {m n} → IsInjective ([inject,raise] {m = m} {n = n})
+[inject,raise]-IsInjective = pair-IsInjective inject-IsInjective raise-IsInjective ¬inject≡raise
+
+[inject,raise]-IsSurjective : ∀ {m n} → IsSurjective ([inject,raise] {m = m} {n = n})
+[inject,raise]-IsSurjective {m} {n} (i , i<m+n) = case dichotomy i m return fiber [inject,raise] (i , i<m+n) of λ
+  { (inl i<m) → inl (i , i<m) , toℕ-IsInjective refl
+  ; (inr (k , k+m≡i)) → inr (k , <-k+-inv {k = m} (subst (_< m + n) (sym k+m≡i ∙ +-comm k m) i<m+n)) , toℕ-IsInjective (+-comm m k ∙ k+m≡i)
+  }
+
+[inject,raise]-IsEquiv : ∀ {m n} → IsEquiv ([inject,raise] {m = m} {n = n})
+[inject,raise]-IsEquiv = IsInjective×IsSurjective→IsEquiv (⊎-IsSet Fin-IsSet Fin-IsSet) Fin-IsSet [inject,raise]-IsInjective [inject,raise]-IsSurjective
 
 Fin-∀-Dec : {n : ℕ} {P : Fin n → Type ℓ} → (∀ i → Dec (P i)) → Dec (∀ i → P i)
 Fin-∀-Dec {n = zero}  {P} P-Dec = yes λ i → ⊥-rec (¬Fin0 i)

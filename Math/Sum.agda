@@ -101,3 +101,9 @@ pair-IsEquiv = HasInverse→IsEquiv unpair unpair-pair pair-unpair
 
   pair-unpair : (h : A ⊎ B → C) → pair (unpair h) ≡ h
   pair-unpair h = funExt λ { (inl a) → refl ; (inr b) → refl }
+
+pair-IsInjective : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {f : A → C} {g : B → C} → IsInjective f → IsInjective g → (∀ a b → ¬ f a ≡ g b) → IsInjective (pair (f , g))
+pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inl _} {inl _} p = ap inl (f-IsInjective p)
+pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inl a} {inr b} p = ⊥-rec (¬f≡g a b p)
+pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inr b} {inl a} p = ⊥-rec (¬f≡g a b (sym p))
+pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inr _} {inr _} p = ap inr (g-IsInjective p)

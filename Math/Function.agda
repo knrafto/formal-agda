@@ -167,3 +167,6 @@ Equiv A B = Σ[ f ∈ (A → B) ] IsEquiv f
 
 ua : {A B : Type ℓ} (f : A → B) → IsEquiv f → A ≡ B
 ua {A = A} {B = B} f f-IsEquiv = inv (≡→≃-IsEquiv A B) (f , f-IsEquiv)
+
+⊤-rec-IsInjective : ∀ {a : A} → IsInjective (⊤-rec a)
+⊤-rec-IsInjective = λ _ → ⊤-IsProp _ _

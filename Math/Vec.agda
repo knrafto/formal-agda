@@ -42,7 +42,7 @@ uncons : ∀ {n} → Vec (suc n) A → A × Vec n A
 uncons v = (head v , tail v)
 
 uncons-IsEquiv : ∀ {n} → IsEquiv (uncons {A = A} {n = n})
-uncons-IsEquiv = ×-map-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsContr)) id-IsEquiv ∘-IsEquiv inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv Fin-suc-IsEquiv
+uncons-IsEquiv = ×-map-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsContr)) id-IsEquiv ∘-IsEquiv inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv [fzero,fsuc]-IsEquiv
 
 cons : ∀ {n} → A × Vec n A → Vec (suc n) A
 cons = inv uncons-IsEquiv
@@ -57,30 +57,49 @@ unsnoc : ∀ {n} → Vec (suc n) A → Vec n A × A
 unsnoc v = (init v , last v)
 
 unsnoc-IsEquiv : ∀ {n} → IsEquiv (unsnoc {A = A} {n = n})
-unsnoc-IsEquiv = ×-map-IsEquiv id-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsContr)) ∘-IsEquiv inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv Fin-pred-IsEquiv
+unsnoc-IsEquiv = ×-map-IsEquiv id-IsEquiv (inv-IsEquiv (const-IsEquiv ⊤-IsContr)) ∘-IsEquiv inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv [finj,fmax]-IsEquiv
 
 snoc : ∀ {n} → Vec n A × A → Vec (suc n) A
 snoc = inv unsnoc-IsEquiv
 
 last-tail : ∀ {n} (w : Vec (suc (suc n)) A) → last (tail w) ≡ last w
-last-tail w = ap w fsuc-fmax
+last-tail w = ap w (toℕ-IsInjective refl)
 
--- TODO: Rewrite split to operate on indices, and make concat the inv of split
+take : ∀ m {n} → Vec (m + n) A → Vec m A
+take m v = λ i → v (inject i)
 
-concat : {m n : ℕ} → Vec m A × Vec n A → Vec (m + n) A
-concat = (_∘ inv Fin-+-IsEquiv) ∘ pair
-
-concat-IsEquiv : {m n : ℕ} → IsEquiv (concat {A = A} {m = m} {n = n})
-concat-IsEquiv = ∘f-IsEquiv (inv-IsEquiv Fin-+-IsEquiv) ∘-IsEquiv pair-IsEquiv
+drop : ∀ m {n} → Vec (m + n) A → Vec n A
+drop m v = λ i → v (raise i)
 
 split : {m n : ℕ} → Vec (m + n) A → Vec m A × Vec n A
-split = inv concat-IsEquiv
+split {m = m} v = (take m v , drop m v)
 
 split-IsEquiv : {m n : ℕ} → IsEquiv (split {A = A} {m = m} {n = n})
-split-IsEquiv = inv-IsEquiv concat-IsEquiv
+split-IsEquiv = inv-IsEquiv pair-IsEquiv ∘-IsEquiv ∘f-IsEquiv [inject,raise]-IsEquiv
+
+concat : {m n : ℕ} → Vec m A × Vec n A → Vec (m + n) A
+concat = inv split-IsEquiv
+
+concat-IsEquiv : {m n : ℕ} → IsEquiv (concat {A = A} {m = m} {n = n})
+concat-IsEquiv = inv-IsEquiv split-IsEquiv
+
+take-concat : ∀ {m n} (x : Vec m A) (y : Vec n A) → take m (concat (x , y)) ≡ x
+take-concat x y = ap fst (leftInv concat-IsEquiv (x , y))
+
+drop-concat : ∀ {m n} (x : Vec m A) (y : Vec n A) → drop m (concat (x , y)) ≡ y
+drop-concat x y = ap snd (leftInv concat-IsEquiv (x , y))
+
+take-tail : ∀ {m n} (v : Vec (suc m + n) A) → take m (tail v) ≡ tail (take (suc m) v)
+take-tail v = funExt λ i → ap v (toℕ-IsInjective refl)
+
+drop-tail : ∀ {m n} (v : Vec (suc m + n) A) → drop m (tail v) ≡ drop (suc m) v
+drop-tail v = funExt λ i → ap v (toℕ-IsInjective refl)
 
 tail-concat : ∀ {m n} (x : Vec (suc m) A) (y : Vec n A) → tail (concat (x , y)) ≡ concat (tail x , y)
-tail-concat = {!!}
+tail-concat {A = A} {m = m} {n = n} x y = sym (rightInv concat-IsEquiv _) ∙ ap concat (×≡ (take-tail v ∙ ap tail (take-concat x y) , drop-tail v ∙ drop-concat x y))
+  where
+  v : Vec (suc m + n) A
+  v = concat (x , y)
 
 singleton : A → Vec 1 A
 singleton a = const a

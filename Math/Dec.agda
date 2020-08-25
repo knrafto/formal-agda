@@ -24,3 +24,25 @@ True (no ¬a) = ⊥
 witness : ∀ {ℓ} {A : Type ℓ} {d : Dec A} → True d → A
 witness {d = yes a} _ = a
 witness {d = no ¬a} ()
+
+-- If a decision procedure returns "yes", then we can extract the
+-- proof using from-yes.
+
+From-yes : ∀ {ℓ} {P : Type ℓ} → Dec P → Type ℓ
+From-yes {P = P} (yes _) = P
+From-yes {P = P} (no  _) = Lift ⊤
+
+from-yes : ∀ {ℓ} {P : Set ℓ} → (p : Dec P) → From-yes p
+from-yes (yes p) = p
+from-yes (no  _) = _
+
+-- If a decision procedure returns "no", then we can extract the proof
+-- using from-no.
+
+From-no : ∀ {ℓ} {P : Type ℓ} → Dec P → Type ℓ
+From-no {P = P} (yes _) = Lift ⊤
+From-no {P = P} (no  _) = ¬ P
+
+from-no : ∀ {ℓ} {P : Type ℓ} → (p : Dec P) → From-no p
+from-no (yes _) = _
+from-no (no ¬p) = ¬p

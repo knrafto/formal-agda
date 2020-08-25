@@ -1,8 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Asm.Avr where
 
-open import Experimental.Binary hiding (add; sub)
-open import Math.Bit
+open import Math.Binary hiding (add; sub)
 open import Math.Fin
 open import Math.Nat
 open import Math.Type

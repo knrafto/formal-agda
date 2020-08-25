@@ -1,8 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Asm.Factorial where
 
-open import Experimental.Binary
-open import Math.Bit
+open import Math.Binary
 open import Math.Nat
 open import Math.Type
 

@@ -114,8 +114,8 @@ toUnsigned-IsEquiv {suc n} = addBit-IsEquiv ∘-IsEquiv ×-map-IsEquiv toFin2-Is
 fromUnsigned : ∀ {n} → Unsigned n → Word n
 fromUnsigned = inv toUnsigned-IsEquiv
 
-constant : ∀ {n} (k : ℕ) → {True (<-Dec k (2 ^ n))} → Word n
-constant k {k<2^n} = fromUnsigned (k , witness k<2^n)
+constant : ∀ (n : ℕ) (k : ℕ) → {True (<-Dec k (2 ^ n))} → Word n
+constant n k {k<2^n} = fromUnsigned (k , witness k<2^n)
 
 toℕ-replicate-0₂ : ∀ n → toℕ (replicate n 0₂) ≡ 0
 toℕ-replicate-0₂ zero = refl

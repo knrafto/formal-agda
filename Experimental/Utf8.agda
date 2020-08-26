@@ -25,31 +25,31 @@ codePoint : Char → ℕ
 codePoint = fst
 
 leadingByte1 : Vec 7 Bit → Byte
-leadingByte1 bs = concat (constant {n = 1} 0x0 , bs)
+leadingByte1 bs = concat (constant 1 0b0 , bs)
 
 leadingByte1-IsEmbedding : IsEmbedding leadingByte1
 leadingByte1-IsEmbedding = IsEquiv→IsEmbedding (concat-IsEquiv {m = 1} {n = 7}) ∘-IsEmbedding c,-IsEmbedding (Vec-IsSet Bit-IsSet)
 
 leadingByte2 : Vec 5 Bit → Byte
-leadingByte2 bs = concat (constant {n = 3} 0x6 , bs)
+leadingByte2 bs = concat (constant 3 0b110 , bs)
 
 leadingByte2-IsEmbedding : IsEmbedding leadingByte2
 leadingByte2-IsEmbedding = IsEquiv→IsEmbedding (concat-IsEquiv {m = 3} {n = 5}) ∘-IsEmbedding c,-IsEmbedding (Vec-IsSet Bit-IsSet)
 
 leadingByte3 : Vec 4 Bit → Byte
-leadingByte3 bs = concat (constant {n = 4} 0xE , bs)
+leadingByte3 bs = concat (constant 4 0b1110 , bs)
 
 leadingByte3-IsEmbedding : IsEmbedding leadingByte3
 leadingByte3-IsEmbedding = IsEquiv→IsEmbedding (concat-IsEquiv {m = 4} {n = 4}) ∘-IsEmbedding c,-IsEmbedding (Vec-IsSet Bit-IsSet)
 
 leadingByte4 : Vec 3 Bit → Byte
-leadingByte4 bs = concat (constant {n = 5} 0x1E , bs)
+leadingByte4 bs = concat (constant 5 0b11110 , bs)
 
 leadingByte4-IsEmbedding : IsEmbedding leadingByte4
 leadingByte4-IsEmbedding = IsEquiv→IsEmbedding (concat-IsEquiv {m = 5} {n = 3}) ∘-IsEmbedding c,-IsEmbedding (Vec-IsSet Bit-IsSet)
 
 continuationByte : Vec 6 Bit → Byte
-continuationByte bs = concat (constant {n = 2} 0x2 , bs)
+continuationByte bs = concat (constant 2 0b10 , bs)
 
 continuationByte-IsEmbedding : IsEmbedding continuationByte
 continuationByte-IsEmbedding = IsEquiv→IsEmbedding (concat-IsEquiv {m = 2} {n = 6}) ∘-IsEmbedding c,-IsEmbedding (Vec-IsSet Bit-IsSet)

@@ -43,6 +43,9 @@ slice {n} w j i {j<n} {i≤j} (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness
   k+i<sj : k + i < suc j
   k+i<sj = subst (λ x → k + i < suc x) (snd (witness i≤j)) (<-+k k<sl)
 
+zeroWord : ∀ {n} → Word n
+zeroWord {n} = replicate n 0₂
+
 0<1 : 0 < 1
 0<1 = (0 , refl)
 
@@ -328,3 +331,9 @@ decideGe x y = decide (≤ℤ-Dec (toℤ y) (toℤ x))
 decideGeUnsigned : ∀ {n} → Word n → Word n → Word 1
 decideGeUnsigned x y = decide (≤-Dec (toℕ y) (toℕ x))
 
+--------------------------------------------------------------------------------
+-- Conditional
+--------------------------------------------------------------------------------
+
+if : ∀ {m n} → Word m → Word n → Word n → Word n
+if c t f = case Word-HasDecEq c zeroWord of λ { (yes _) → t ; (no _) → f }

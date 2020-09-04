@@ -4,6 +4,7 @@ module Math.Sum where
 open import Cubical.Data.Sum using (isOfHLevelSum)
 
 open import Math.Function
+open import Math.Id
 open import Math.Type
 
 private
@@ -107,3 +108,29 @@ pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inl _} {inl _} p = ap inl 
 pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inl a} {inr b} p = ⊥-rec (¬f≡g a b p)
 pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inr b} {inl a} p = ⊥-rec (¬f≡g a b (sym p))
 pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inr _} {inr _} p = ap inr (g-IsInjective p)
+
+-- Case analysis. Especially helpful if h is of the form pair (f , g)
+module _
+  {ℓ ℓ' ℓ'' ℓ'''} {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {P : C → Type ℓ'''}
+  {h : A ⊎ B → C} (h-IsEquiv : IsEquiv h)
+  (P-inl : ∀ a → P (h (inl a)))
+  (P-inr : ∀ b → P (h (inr b)))
+  where
+
+  P-pair : (x : A ⊎ B) → P (h x)
+  P-pair (inl a) = P-inl a
+  P-pair (inr b) = P-inr b
+
+  cases : ∀ c → P c
+  cases c = subst P (rightInv h-IsEquiv c) (P-pair (inv h-IsEquiv c))
+
+  cases-h : ∀ x → cases (h x) ≡ P-pair x
+  cases-h x =
+    ap (λ p → subst P p (P-pair (inv h-IsEquiv (h x)))) (sym (comInv h-IsEquiv x)) ∙
+    apd P-pair (leftInv h-IsEquiv x)
+
+  cases-inl : ∀ a → cases (h (inl a)) ≡ P-inl a
+  cases-inl a = cases-h (inl a)
+
+  cases-inr : ∀ b → cases (h (inr b)) ≡ P-inr b
+  cases-inr b = cases-h (inr b)

@@ -74,6 +74,9 @@ negate-IsEquiv = HasInverse→IsEquiv negate negate-negate negate-negate
 neg : ℕ → ℤ
 neg n = negate (pos n)
 
+negsuc : ℕ → ℤ
+negsuc n = neg (ℕ.suc n)
+
 _-_ : ℤ → ℤ → ℤ
 m - n = m + negate n
 
@@ -200,7 +203,7 @@ private
   fromInt-pos ℕ.zero = refl
   fromInt-pos (ℕ.suc n) = ap suc (fromInt-pos n)
 
-  fromInt-negsuc : (n : ℕ) → fromInt (Int.negsuc n) ≡ neg (ℕ.suc n)
+  fromInt-negsuc : (n : ℕ) → fromInt (Int.negsuc n) ≡ negsuc n
   fromInt-negsuc ℕ.zero = refl
   fromInt-negsuc (ℕ.suc n) = ap pred (fromInt-negsuc n)
 
@@ -210,14 +213,14 @@ pos-IsInjective {m} {n} p = Int.injPos (IsEquiv→IsInjective (inv-IsEquiv toInt
 neg-IsInjective : IsInjective neg
 neg-IsInjective {m} {n} p = pos-IsInjective (IsEquiv→IsInjective negate-IsEquiv p)
 
-¬pos≡negsuc : ∀ m n → ¬ pos m ≡ neg (ℕ.suc n)
+¬pos≡negsuc : ∀ m n → ¬ pos m ≡ negsuc n
 ¬pos≡negsuc m n p = Int.posNotnegsuc m n (IsEquiv→IsInjective (inv-IsEquiv toInt-IsEquiv) (fromInt-pos m ∙ p ∙ sym (fromInt-negsuc n)))
 
 -- TODO: name
-sign : (z : ℤ) → (Σ[ n ∈ ℕ ] pos n ≡ z) ⊎ (Σ[ n ∈ ℕ ] neg (ℕ.suc n) ≡ z)
+sign : (z : ℤ) → (Σ[ n ∈ ℕ ] pos n ≡ z) ⊎ (Σ[ n ∈ ℕ ] negsuc n ≡ z)
 sign z = sign-Int (toInt z) (fromInt-toInt z)
   where
-  sign-Int : (x : Int) → fromInt x ≡ z → (Σ[ n ∈ ℕ ] pos n ≡ z) ⊎ (Σ[ n ∈ ℕ ] neg (ℕ.suc n) ≡ z)
+  sign-Int : (x : Int) → fromInt x ≡ z → (Σ[ n ∈ ℕ ] pos n ≡ z) ⊎ (Σ[ n ∈ ℕ ] negsuc n ≡ z)
   sign-Int (Int.pos n) p = inl (n , sym (fromInt-pos n) ∙ p)
   sign-Int (Int.negsuc n) p = inr (n , sym (fromInt-negsuc n) ∙ p)
 

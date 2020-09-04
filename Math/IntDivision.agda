@@ -8,6 +8,7 @@ open import Math.Nat using () renaming (_+_ to _+ℕ_; _*_ to _*ℕ_; _<_ to _<�
 import Math.Nat as ℕ
 import Math.NatDivision as ℕ
 open import Math.Prod
+open import Math.Sum
 open import Math.Type
 
 module _ {d} (0<d : 0 <ℕ d) where
@@ -49,40 +50,36 @@ module _ {d} (0<d : 0 <ℕ d) where
   -- TODO: is there a slicker proof of euclid-IsEquiv by composing equivalences?
 
   euclid-IsInjective : IsInjective euclid
-  euclid-IsInjective {q₁ , r₁} {q₂ , r₂} p = case (sign q₁ , sign q₂) return (q₁ , r₁) ≡ (q₂ , r₂) of λ
-    { (inl (i₁ , posi₁≡q₁) , inl (i₂ , posi₂≡q₂)) →
-      let p' : pos (ℕ.euclid 0<d (i₁ , r₁)) ≡ pos (ℕ.euclid 0<d (i₂ , r₂))
-          p' = sym (euclid-pos i₁ r₁) ∙ ap (λ n → euclid (n , r₁)) posi₁≡q₁ ∙ p ∙ ap (λ n → euclid (n , r₂)) (sym posi₂≡q₂) ∙ euclid-pos i₂ r₂
-
-          p'' : (i₁ , r₁) ≡ (i₂ , r₂)
-          p'' = ℕ.euclid-IsInjective 0<d (pos-IsInjective p')
-      in ×≡ (sym posi₁≡q₁ ∙ ap (pos ∘ fst) p'' ∙ posi₂≡q₂ , ap snd p'')
-    ; (inl (i₁ , posi₁≡q₁) , inr (i₂ , negsuci₂≡q₂)) →
-      let p' : pos (ℕ.euclid 0<d (i₁ , r₁)) ≡ negsuc (ℕ.euclid 0<d (i₂ , reflect r₂))
-          p' = sym (euclid-pos i₁ r₁) ∙ ap (λ n → euclid (n , r₁)) posi₁≡q₁ ∙ p ∙ ap (λ n → euclid (n , r₂)) (sym negsuci₂≡q₂) ∙ euclid-negsuc i₂ r₂
-      in ⊥-rec (¬pos≡negsuc (ℕ.euclid 0<d (i₁ , r₁)) (ℕ.euclid 0<d (i₂ , reflect r₂)) p')
-    ; (inr (i₁ , negsuci₁≡q₁) , inl (i₂ , posi₂≡q₂)) →
-      let p' : negsuc (ℕ.euclid 0<d (i₁ , reflect r₁)) ≡ pos (ℕ.euclid 0<d (i₂ , r₂))
-          p' = sym (euclid-negsuc i₁ r₁) ∙ ap (λ n → euclid (n , r₁)) negsuci₁≡q₁ ∙ p ∙ ap (λ n → euclid (n , r₂)) (sym posi₂≡q₂) ∙ euclid-pos i₂ r₂
-      in ⊥-rec (¬pos≡negsuc (ℕ.euclid 0<d (i₂ , r₂)) (ℕ.euclid 0<d (i₁ , reflect r₁)) (sym p'))
-    ; (inr (i₁ , negsuci₁≡q₁) , inr (i₂ , negsuci₂≡q₂)) →
-      let p' : negsuc (ℕ.euclid 0<d (i₁ , reflect r₁)) ≡ negsuc (ℕ.euclid 0<d (i₂ , reflect r₂))
-          p' = sym (euclid-negsuc i₁ r₁) ∙ ap (λ n → euclid (n , r₁)) negsuci₁≡q₁ ∙ p ∙ ap (λ n → euclid (n , r₂)) (sym negsuci₂≡q₂) ∙ euclid-negsuc i₂ r₂
-
-          p'' : (i₁ , reflect r₁) ≡ (i₂ , reflect r₂)
-          p'' = ℕ.euclid-IsInjective 0<d (ℕ.suc-IsInjective (neg-IsInjective p'))
-      in ×≡ (sym negsuci₁≡q₁ ∙ ap (negsuc ∘ fst) p'' ∙ negsuci₂≡q₂ , IsEquiv→IsInjective reflect-IsEquiv (ap snd p''))
-    }
+  euclid-IsInjective {q₁ , r₁} {q₂ , r₂} =
+    cases {P = λ q₁ → (q₂ : ℤ) (p : euclid (q₁ , r₁) ≡ euclid (q₂ , r₂)) → (q₁ , r₁) ≡ (q₂ , r₂)} fromSigned-IsEquiv
+      (λ i₁ → cases fromSigned-IsEquiv
+        (λ i₂ p →
+          let p' : (i₁ , r₁) ≡ (i₂ , r₂)
+              p' = ℕ.euclid-IsInjective 0<d (pos-IsInjective (sym (euclid-pos i₁ r₁) ∙ p ∙ euclid-pos i₂ r₂))
+          in ×≡ (ap (pos ∘ fst) p' , ap snd p'))
+        (λ i₂ p →
+          let p' : pos (ℕ.euclid 0<d (i₁ , r₁)) ≡ negsuc (ℕ.euclid 0<d (i₂ , reflect r₂))
+              p' = sym (euclid-pos i₁ r₁) ∙ p ∙ euclid-negsuc i₂ r₂
+          in ⊥-rec (¬pos≡negsuc (ℕ.euclid 0<d (i₁ , r₁)) (ℕ.euclid 0<d (i₂ , reflect r₂)) p')))
+      (λ i₁ → cases {P = λ q₂ → (p : euclid (negsuc i₁ , r₁) ≡ euclid (q₂ , r₂)) → (negsuc i₁ , r₁) ≡ (q₂ , r₂)} fromSigned-IsEquiv
+        (λ i₂ p →
+          let p' : negsuc (ℕ.euclid 0<d (i₁ , reflect r₁)) ≡ pos (ℕ.euclid 0<d (i₂ , r₂))
+              p' = sym (euclid-negsuc i₁ r₁) ∙ p ∙ euclid-pos i₂ r₂
+          in ⊥-rec (¬pos≡negsuc (ℕ.euclid 0<d (i₂ , r₂)) (ℕ.euclid 0<d (i₁ , reflect r₁)) (sym p')))
+        (λ i₂ p →
+          let p' : (i₁ , reflect r₁) ≡ (i₂ , reflect r₂)
+              p' = ℕ.euclid-IsInjective 0<d (ℕ.suc-IsInjective (neg-IsInjective (sym (euclid-negsuc i₁ r₁) ∙ p ∙ euclid-negsuc i₂ r₂)))
+          in ×≡ (ap (negsuc ∘ fst) p' , IsEquiv→IsInjective reflect-IsEquiv (ap snd p'))))
+      q₁ q₂
 
   euclid-IsSurjective : IsSurjective euclid
-  euclid-IsSurjective n = case sign n return fiber euclid n of λ
-    { (inl (i , posi≡n)) →
-      let ((q , r) , p) = ℕ.euclid-IsSurjective 0<d i
-      in (pos q , r) , euclid-pos q r ∙ ap pos p ∙ posi≡n
-    ; (inr (i , negsuci≡n)) →
-      let ((q , r) , p) = ℕ.euclid-IsSurjective 0<d i
-      in (negsuc q , reflect r) , euclid-negsuc q (reflect r) ∙ ap (λ r → negsuc (ℕ.euclid 0<d (q , r))) (reflect-reflect r) ∙ ap (negsuc) p ∙ negsuci≡n
-    }
+  euclid-IsSurjective = cases fromSigned-IsEquiv
+    (λ n →
+      let ((q , r) , p) = ℕ.euclid-IsSurjective 0<d n
+      in (pos q , r) , euclid-pos q r ∙ ap pos p)
+    (λ n →
+      let ((q , r) , p) = ℕ.euclid-IsSurjective 0<d n
+      in (negsuc q , reflect r) , euclid-negsuc q (reflect r) ∙ ap (λ r → negsuc (ℕ.euclid 0<d (q , r))) (reflect-reflect r) ∙ ap (negsuc) p)
 
   euclid-IsEquiv : IsEquiv euclid
   euclid-IsEquiv = IsInjective×IsSurjective→IsEquiv (×-IsSet ℤ-IsSet Fin-IsSet) ℤ-IsSet euclid-IsInjective euclid-IsSurjective

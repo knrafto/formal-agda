@@ -16,6 +16,7 @@ open import Math.Nat
 import Math.Nat as ℕ
 import Math.NatDivision as ℕ
 open import Math.Prod
+open import Math.Sum
 open import Math.Vec
 open import Math.Type
 
@@ -164,16 +165,16 @@ toSigned-IsEquiv {zero} = toSigned0-IsEquiv ∘-IsEquiv toFin2-IsEquiv ∘-IsEqu
   toSigned0-IsInjective p = Fin.toℕ-IsInjective (ℤ.neg-IsInjective (ap fst p))
 
   toSigned0-IsSurjective : IsSurjective toSigned0
-  toSigned0-IsSurjective x@(m , -1≤m , m<1) = case ℤ.sign (ℤ.negate m) return fiber toSigned0 x of λ
-    { (inl (i , posi≡negatem)) →
+  toSigned0-IsSurjective x@(m , -1≤m , m<1) = cases {P = λ z → (p : z ≡ ℤ.negate m) → fiber toSigned0 x} ℤ.fromSigned-IsEquiv
+    (λ i posi≡negatem →
       let i<2 : i < 2
           i<2 = ℤ.pos-≤-inv (ℤ.suc-preserves-≤ (subst (_≤ℤ 1) (sym posi≡negatem) (ℤ.negate-≤ -1≤m)))
-      in (i , i<2) , ΣProp≡ (λ _ → ×-IsProp ℤ.≤-IsProp ℤ.<-IsProp) (ap ℤ.negate posi≡negatem ∙ ℤ.negate-negate m)
-    ; (inr (i , negsuci≡negatem)) →
+      in (i , i<2) , ΣProp≡ (λ _ → ×-IsProp ℤ.≤-IsProp ℤ.<-IsProp) (ap ℤ.negate posi≡negatem ∙ ℤ.negate-negate m))
+    (λ i negsuci≡negatem →
       let i<0 : i < 0
           i<0 = ℤ.pos-≤-inv (ℤ.suc-reflects-≤ (subst (_<ℤ 1) (sym (IsEquiv→IsInjective ℤ.negate-IsEquiv negsuci≡negatem)) m<1))
-      in ⊥-rec (¬-<-zero i<0)
-    }
+      in ⊥-rec (¬-<-zero i<0))
+    (ℤ.negate m) refl
 
   toSigned0-IsEquiv : IsEquiv toSigned0
   toSigned0-IsEquiv = IsInjective×IsSurjective→IsEquiv Fin-IsSet (Σ-IsSet ℤ-IsSet (λ _ → IsProp→IsSet (×-IsProp ℤ.≤-IsProp ℤ.<-IsProp))) toSigned0-IsInjective toSigned0-IsSurjective

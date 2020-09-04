@@ -61,3 +61,6 @@ subst-∙ P {p = p} {q = q} {x = x} =
 subst-const : {A : Type ℓ} {B : Type ℓ'} {a b : A} {x : B} (p : a ≡ b) → subst (λ _ → B) p x ≡ x
 subst-const {A = A} {B = B} {a = a} {x = x} =
   pathInd (λ b p → subst (λ _ → B) p x ≡ x) (subst-refl {A = A} (λ _ → B) {a = a})
+
+apd : {A : Type ℓ} {B : A → Type ℓ'} {x y : A} (f : (a : A) → B a) (p : x ≡ y) → subst B p (f x) ≡ f y
+apd {B = B} {x = x} f = pathInd (λ y p → subst B p (f x) ≡ f y) (subst-refl B)

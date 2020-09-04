@@ -11,6 +11,7 @@ open import Math.Dec
 open import Math.Function
 open import Math.Nat using (ℕ; ℕ-IsSet) renaming (_+_ to _+ℕ_; _*_ to _*ℕ_; _≤_ to _≤ℕ_; _<_ to _<ℕ_)
 import Math.Nat as ℕ
+open import Math.Sum
 open import Math.Type
 
 infix 4 _≤_ _<_
@@ -213,16 +214,28 @@ pos-IsInjective {m} {n} p = Int.injPos (IsEquiv→IsInjective (inv-IsEquiv toInt
 neg-IsInjective : IsInjective neg
 neg-IsInjective {m} {n} p = pos-IsInjective (IsEquiv→IsInjective negate-IsEquiv p)
 
+negsuc-IsInjective : IsInjective negsuc
+negsuc-IsInjective {m} {n} p = ℕ.suc-IsInjective (neg-IsInjective p)
+
 ¬pos≡negsuc : ∀ m n → ¬ pos m ≡ negsuc n
 ¬pos≡negsuc m n p = Int.posNotnegsuc m n (IsEquiv→IsInjective (inv-IsEquiv toInt-IsEquiv) (fromInt-pos m ∙ p ∙ sym (fromInt-negsuc n)))
 
 -- TODO: name
-sign : (z : ℤ) → (Σ[ n ∈ ℕ ] pos n ≡ z) ⊎ (Σ[ n ∈ ℕ ] negsuc n ≡ z)
-sign z = sign-Int (toInt z) (fromInt-toInt z)
+fromSigned : ℕ ⊎ ℕ → ℤ
+fromSigned = pair (pos , negsuc)
+
+fromSigned-IsInjective : IsInjective fromSigned
+fromSigned-IsInjective = pair-IsInjective pos-IsInjective negsuc-IsInjective ¬pos≡negsuc
+
+fromSigned-IsSurjective : IsSurjective fromSigned
+fromSigned-IsSurjective z = sign-Int (toInt z) (fromInt-toInt z)
   where
-  sign-Int : (x : Int) → fromInt x ≡ z → (Σ[ n ∈ ℕ ] pos n ≡ z) ⊎ (Σ[ n ∈ ℕ ] negsuc n ≡ z)
-  sign-Int (Int.pos n) p = inl (n , sym (fromInt-pos n) ∙ p)
-  sign-Int (Int.negsuc n) p = inr (n , sym (fromInt-negsuc n) ∙ p)
+  sign-Int : (x : Int) → fromInt x ≡ z → fiber fromSigned z
+  sign-Int (Int.pos n) p = inl n , sym (fromInt-pos n) ∙ p
+  sign-Int (Int.negsuc n) p = inr n , sym (fromInt-negsuc n) ∙ p
+
+fromSigned-IsEquiv : IsEquiv fromSigned
+fromSigned-IsEquiv = IsInjective×IsSurjective→IsEquiv (⊎-IsSet ℕ-IsSet ℕ-IsSet) ℤ-IsSet fromSigned-IsInjective fromSigned-IsSurjective
 
 _≤_ : ℤ → ℤ → Type₀
 m ≤ n = Σ[ k ∈ ℕ ] pos k + m ≡ n
@@ -240,13 +253,6 @@ data Trichotomy (m n : ℤ) : Type₀ where
   lt : m < n → Trichotomy m n
   eq : m ≡ n → Trichotomy m n
   gt : n < m → Trichotomy m n
-
-_≟_ : ∀ m n → Trichotomy m n
-m ≟ n = case sign (n - m) return Trichotomy m n of λ
-  { (inl (ℕ.suc i , possuci≡n-m)) → lt (i , +-suc (pos i) m ∙ ap (_+ m) possuci≡n-m ∙ rightInv (+n-IsEquiv m) n)
-  ; (inl (ℕ.zero , zero≡n-m)) → eq (ap (_+ m) zero≡n-m ∙ rightInv (+n-IsEquiv m) n)
-  ; (inr (i , negsuci≡n-m)) → gt (i , +-suc (pos i) n ∙ ap (pos (ℕ.suc i) +_) (sym (rightInv (+n-IsEquiv m) n) ∙ ap (_+ m) (sym negsuci≡n-m)) ∙ rightInv (n+-IsEquiv (pos (ℕ.suc i))) m)
-  }
 
 ≤-refl : ∀ {n} → n ≤ n
 ≤-refl = 0 , refl
@@ -284,27 +290,11 @@ m ≟ n = case sign (n - m) return Trichotomy m n of λ
 <-asym : ∀ {m n} → m < n → ¬ n ≤ m
 <-asym m<n n≤m = <-irrefl (<≤-trans m<n n≤m)
 
-≤-Dec : ∀ m n → Dec (m ≤ n)
-≤-Dec m n = case m ≟ n return Dec (m ≤ n) of λ
-  { (lt m<n) → yes (<-weaken m<n)
-  ; (eq m≡n) → yes (subst (m ≤_) m≡n ≤-refl)
-  ; (gt n<m) → no (<-asym n<m)
-  }
-
-<-Dec : ∀ m n → Dec (m < n)
-<-Dec m n = case m ≟ n return Dec (m < n) of λ
-  { (lt m<n) → yes m<n
-  ; (eq m≡n) → no λ m<n → <-irrefl (subst (_< n) m≡n m<n)
-  ; (gt n<m) → no λ m<n → <-irrefl (<-trans n<m m<n)
-  }
-
 -- TODO: name
-dichotomy : ∀ m n → (m < n) ⊎ (n ≤ m)
-dichotomy m n = case m ≟ n return (m < n) ⊎ (n ≤ m) of λ
-  { (lt m<n) → inl m<n
-  ; (eq m≡n) → inr (subst (_≤ m) m≡n ≤-refl)
-  ; (gt n<m) → inr (<-weaken n<m)
-  }
+compare-zero : ∀ n → (n < zero) ⊎ (zero ≤ n)
+compare-zero = cases fromSigned-IsEquiv
+  (λ n → inr (n , +-zero (pos n)))
+  (λ n → inl (n , ap (pos n +_) (rightInv suc-IsEquiv (neg n)) ∙ negate-rightInv (pos n)))
 
 -- TODO: not sold on these names
 suc-preserves-≤ : ∀ {m n} → m ≤ n → suc m ≤ suc n
@@ -360,6 +350,38 @@ neg-≤-zero n = negate-≤ (zero-≤-pos n)
 
 ≤-*-pos : ∀ {m n} k → m ≤ n → m * pos k ≤ n * pos k
 ≤-*-pos {m} {n} k (l , l+m≡n) = l *ℕ k , ap (_+ m * pos k) (pos-* l k) ∙ *-distrib-r (pos l) m (pos k) ∙ ap (_* pos k) l+m≡n
+
+<-split : ∀ {m n} → m < suc n → (m < n) ⊎ (m ≡ n)
+<-split (ℕ.zero , posz+sm≡sn) = inr (IsEquiv→IsInjective suc-IsEquiv posz+sm≡sn)
+<-split (ℕ.suc k , possk+sm≡sn) = inl (k , IsEquiv→IsInjective suc-IsEquiv possk+sm≡sn)
+
+-- TODO: name
+dichotomy : ∀ m n → (m < n) ⊎ (n ≤ m)
+dichotomy m n = case compare-zero (m - n) return (m < n) ⊎ (n ≤ m) of λ
+  { (inl m-n<zero) → inl (subst (_< n) (rightInv (+n-IsEquiv n) m) (<-+k m-n<zero))
+  ; (inr zero≤m-n) → inr (subst (n ≤_) (rightInv (+n-IsEquiv n) m) (≤-+k zero≤m-n))
+  }
+
+_≟_ : ∀ m n → Trichotomy m n
+m ≟ n = case dichotomy m n return Trichotomy m n of λ
+  { (inl m<n) → lt m<n
+  ; (inr n≤m) → case <-split (suc-preserves-≤ n≤m) return Trichotomy m n of λ
+    { (inl n<m) → gt n<m
+    ; (inr n≡m) → eq (sym n≡m)
+    }
+  }
+
+≤-Dec : ∀ m n → Dec (m ≤ n)
+≤-Dec m n = case dichotomy n m return Dec (m ≤ n) of λ
+  { (inl n<m) → no (<-asym n<m)
+  ; (inr m≤n) → yes m≤n
+  }
+
+<-Dec : ∀ m n → Dec (m < n)
+<-Dec m n = case dichotomy m n return Dec (m < n) of λ
+  { (inl m<n) → yes m<n
+  ; (inr n≤m) → no λ m<n → <-asym m<n n≤m
+  }
 
 open import Cubical.Data.Nat.Literals public
 

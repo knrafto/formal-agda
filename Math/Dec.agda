@@ -1,11 +1,13 @@
 {-# OPTIONS --cubical #-}
 module Math.Dec where
 
-open import Cubical.Relation.Nullary public using (Dec; yes; no) renaming (isPropDec to Dec-IsProp)
+open import Cubical.Relation.Nullary public using (Dec; yes; no) renaming (isPropDec to Dec-IsProp; Discrete to HasDecEq)
+open import Cubical.Data.Sigma.Properties public using () renaming (discreteΣ to Σ-HasDecEq)
 open import Math.Type
 
-HasDecEq : ∀ {ℓ} (A : Type ℓ) → Type ℓ
-HasDecEq A = (a b : A) → Dec (a ≡ b)
+if_then_else_ : ∀ {ℓ ℓ'} {P : Type ℓ} {A : Type ℓ'} → Dec P → A → A → A
+if (yes p) then t else f = t
+if (no ¬p) then t else f = f
 
 ¬-Dec : ∀ {ℓ} {A : Type ℓ} → Dec A → Dec (¬ A)
 ¬-Dec (yes p) = no λ ¬p → ¬p p

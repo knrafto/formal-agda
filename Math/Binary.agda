@@ -38,14 +38,21 @@ Word-HasDecEq = Vec-HasDecEq Bit-HasDecEq
 _++_ : ∀ {m n} → Word m → Word n → Word (n + m)
 x ++ y = concat (y , x)
 
-slice : ∀ {n} → Word n → (j i : ℕ) → {True (<-Dec j n)} → {i≤j : True (≤-Dec i j)} → Word (suc (difference (witness i≤j)))
-slice {n} w j i {j<n} {i≤j} (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness j<n))
+slice : ∀ {n} → (j i : ℕ) → {True (<-Dec j n)} → {i≤j : True (≤-Dec i j)} → Word n → Word (suc (difference (witness i≤j)))
+slice {n} j i {j<n} {i≤j} w (k , k<sl) = w (k + i , <≤-trans k+i<sj (witness j<n))
   where
   k+i<sj : k + i < suc j
   k+i<sj = subst (λ x → k + i < suc x) (snd (witness i≤j)) (<-+k k<sl)
 
 zeroWord : ∀ {n} → Word n
 zeroWord {n} = replicate n 0₂
+
+delay : ∀ {n} → (ℕ → Word n) → (ℕ → Word n)
+delay s zero    = zeroWord
+delay s (suc t) = s t
+
+arrayUpdate : ∀ {ℓ} {n} {A : Type ℓ} → Vec n A → Fin n → A → Vec n A
+arrayUpdate w i a = λ j → if Fin-HasDecEq i j then a else w j
 
 0<1 : 0 < 1
 0<1 = (0 , refl)
@@ -336,5 +343,5 @@ decideGeUnsigned x y = decide (≤-Dec (toℕ y) (toℕ x))
 -- Conditional
 --------------------------------------------------------------------------------
 
-if : ∀ {m n} → Word m → Word n → Word n → Word n
-if c t f = case Word-HasDecEq c zeroWord of λ { (yes _) → t ; (no _) → f }
+cond : ∀ {ℓ} {n} {A : Type ℓ} → Word n → A → A → A
+cond c t f = if Word-HasDecEq c zeroWord then t else f

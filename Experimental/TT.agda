@@ -5,145 +5,151 @@ open import Math.Fin
 open import Math.Nat
 open import Math.Type hiding (_∙_)
 
-data Ctx : Type₀
-postulate
-  Ty : Ctx → Type₀
+module _ (Σ : Type₀) where
 
-data Ctx where
-  ε   : Ctx
-  _▹_ : (Γ : Ctx) → Ty Γ → Ctx
+  data Ctx : Type₀
+  postulate
+    Ty : Ctx → Type₀
 
-length : Ctx → ℕ
-length ε       = zero
-length (Γ ▹ _) = suc (length Γ)
+  data Ctx where
+    ε   : Ctx
+    _▹_ : (Γ : Ctx) → Ty Γ → Ctx
 
-postulate
-  -- Category of contexts
-  Subst : Ctx → Ctx → Type₀
+  length : Ctx → ℕ
+  length ε       = zero
+  length (Γ ▹ _) = suc (length Γ)
 
-  id    : ∀ {Γ} → Subst Γ Γ
-  _∙_   : ∀ {Γ Δ Θ} → Subst Γ Δ → Subst Δ Θ → Subst Γ Θ
+  postulate
+    -- Category of contexts
+    Subst : Ctx → Ctx → Type₀
 
-  -- TODO: identities and associativity
-  id-∙  : ∀ {Γ Δ} (σ : Subst Γ Δ) → id ∙ σ ≡ σ
+    id    : ∀ {Γ} → Subst Γ Γ
+    _∙_   : ∀ {Γ Δ Θ} → Subst Γ Δ → Subst Δ Θ → Subst Γ Θ
 
-  -- Initial context
-  !   : ∀ {Γ} → Subst ε Γ
-  !-∙ : ∀ {Γ Δ} (σ : Subst Γ Δ) → ! ∙ σ ≡ !
+    -- TODO: identities and associativity
+    id-∙  : ∀ {Γ Δ} (σ : Subst Γ Δ) → id ∙ σ ≡ σ
 
-  -- Types: slice category C/Γ. A type A consists of a context Γ ▹ A and a morphism wk : Γ ▹ A → Γ
-  wk  : ∀ {Γ} (A : Ty Γ) → Subst (Γ ▹ A) Γ
+    -- Initial context
+    !   : ∀ {Γ} → Subst ε Γ
+    !-∙ : ∀ {Γ Δ} (σ : Subst Γ Δ) → ! ∙ σ ≡ !
 
-  -- Substitution of types.
-  _*T[_] : ∀ {Γ Δ} → Subst Γ Δ → Ty Δ → Ty Γ
-  -- TODO: properties
+    -- Types: slice category C/Γ. A type A consists of a context Γ ▹ A and a morphism wk : Γ ▹ A → Γ
+    wk  : ∀ {Γ} (A : Ty Γ) → Subst (Γ ▹ A) Γ
 
-  -- Terms: element 1 → A of a type A as a morphism in C/Γ. Consists of a morphism Γ → Γ ▹ A such that composing with wk is the identity.
-  Tm      : (Γ : Ctx) → Ty Γ → Type₀
-  ⟨_⟩     : ∀ {Γ A} → Tm Γ A → Subst Γ (Γ ▹ A)
-  ⟨⟩-∘-wk : ∀ {Γ A} (t : Tm Γ A) → ⟨ t ⟩ ∙ wk A ≡ id
+    -- Substitution of types.
+    _*T[_] : ∀ {Γ Δ} → Subst Γ Δ → Ty Δ → Ty Γ
+    -- TODO: properties
 
-  -- Substitution of types.
-  _*t[_] : ∀ {Γ Δ A} (σ : Subst Γ Δ) → Tm Δ A → Tm Γ (σ *T[ A ])
-  -- TODO: properties
+    -- Terms: element 1 → A of a type A as a morphism in C/Γ. Consists of a morphism Γ → Γ ▹ A such that composing with wk is the identity.
+    Tm      : (Γ : Ctx) → Ty Γ → Type₀
+    ⟨_⟩     : ∀ {Γ A} → Tm Γ A → Subst Γ (Γ ▹ A)
+    ⟨⟩-∘-wk : ∀ {Γ A} (t : Tm Γ A) → ⟨ t ⟩ ∙ wk A ≡ id
 
-  -- 0th de Bruijn variable, as universal arrow from pullback of wk with itself
-  -- Other de Bruijn variables can be constructed by weakening vz.
-  vz : ∀ {Γ A} → Tm (Γ ▹ A) (wk A *T[ A ])
+    -- Substitution of terms.
+    _*t[_] : ∀ {Γ Δ A} (σ : Subst Γ Δ) → Tm Δ A → Tm Γ (σ *T[ A ])
+    -- TODO: properties
 
-  -- Π types.
-  -- Π_A : C/(Γ ▹ A) → C/Γ is right adjoint to wk* : C/Γ → C/(Γ ▹ A)
-  Pi  : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ▹ A)) → Ty Γ
-  app : ∀ {Γ A B} → Tm Γ (Pi A B) → Tm (Γ ▹ A) B
-  lam : ∀ {Γ A B} → Tm (Γ ▹ A) B → Tm Γ (Pi A B)
-  -- TODO: app and lam are inverses
-  -- TODO: relation to substitution
+    -- 0th de Bruijn variable, as universal arrow from pullback of wk with itself
+    -- Other de Bruijn variables can be constructed by weakening vz.
+    vz : ∀ {Γ A} → Tm (Γ ▹ A) (wk A *T[ A ])
 
-  -- Universes as object classifiers.
-  -- Type : Type for now.
-  U    : ∀ {Γ} → Ty Γ
-  El   : ∀ {Γ} → Tm Γ U → Ty Γ
-  name : ∀ {Γ} → Ty Γ → Tm Γ U
+    -- Metavariables from the signature.
+    metaTy : Σ → Ty ε
+    metaTm : (α : Σ) → Tm ε (metaTy α)
 
-  *T[U] : ∀ {Γ Δ} (σ : Subst Δ Γ) → σ *T[ U ] ≡ U
-  -- TODO: other substitution properties
+    -- Π types.
+    -- Π_A : C/(Γ ▹ A) → C/Γ is right adjoint to wk* : C/Γ → C/(Γ ▹ A)
+    Pi  : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ▹ A)) → Ty Γ
+    app : ∀ {Γ A B} → Tm Γ (Pi A B) → Tm (Γ ▹ A) B
+    lam : ∀ {Γ A B} → Tm (Γ ▹ A) B → Tm Γ (Pi A B)
+    -- TODO: app and lam are inverses
+    -- TODO: relation to substitution
 
--- de Bruijn variables
-data Var : (Γ : Ctx) → Ty Γ → Type₀ where
-  vzero : ∀ {Γ A} → Var (Γ ▹ A) (wk A *T[ A ])
-  vsuc  : ∀ {Γ A B} (v : Var Γ A) → Var (Γ ▹ B) (wk B *T[ A ])
+    -- Universes as object classifiers.
+    -- Type : Type for now.
+    U    : ∀ {Γ} → Ty Γ
+    El   : ∀ {Γ} → Tm Γ U → Ty Γ
+    name : ∀ {Γ} → Ty Γ → Tm Γ U
 
-var : ∀ {Γ A} → Var Γ A → Tm Γ A
-var vzero    = vz
-var (vsuc v) = wk _ *t[ var v ]
+    *T[U] : ∀ {Γ Δ} (σ : Subst Δ Γ) → σ *T[ U ] ≡ U
+    -- TODO: other substitution properties
 
-lookup : (Γ : Ctx) → Fin (length Γ) → Σ[ A ∈ Ty Γ ] Var Γ A
-lookup ε (i , i<n) = ⊥-rec (¬-<-zero i<n)
-lookup (Γ ▹ A) (zero  , _)     = wk A *T[ A ] , vzero
-lookup (Γ ▹ A) (suc i , si<sn) = let (B , v) = lookup Γ (i , suc-reflects-< si<sn) in
-                                 wk A *T[ B ] , vsuc v
+  -- de Bruijn variables
+  data Var : (Γ : Ctx) → Ty Γ → Type₀ where
+    vzero : ∀ {Γ A} → Var (Γ ▹ A) (wk A *T[ A ])
+    vsuc  : ∀ {Γ A B} (v : Var Γ A) → Var (Γ ▹ B) (wk B *T[ A ])
 
-lookupTy : (Γ : Ctx) → Fin (length Γ) → Ty Γ
-lookupTy ε       (i , i<n)       = ⊥-rec (¬-<-zero i<n)
-lookupTy (Γ ▹ A) (zero  , _)     = wk A *T[ A ]
-lookupTy (Γ ▹ A) (suc i , si<sn) = wk A *T[ lookupTy Γ (i , suc-reflects-< si<sn) ]
+  var : ∀ {Γ A} → Var Γ A → Tm Γ A
+  var vzero    = vz
+  var (vsuc v) = wk _ *t[ var v ]
 
-lookupTm : (Γ : Ctx) (i : Fin (length Γ)) → Tm Γ (lookupTy Γ i)
-lookupTm ε       (i , i<n)       = ⊥-rec (¬-<-zero i<n)
-lookupTm (Γ ▹ A) (zero  , _)     = vz
-lookupTm (Γ ▹ A) (suc i , si<sn) = wk _ *t[ lookupTm Γ (i , suc-reflects-< si<sn) ]
+  lookup : (Γ : Ctx) → Fin (length Γ) → Σ[ A ∈ Ty Γ ] Var Γ A
+  lookup ε (i , i<n) = ⊥-rec (¬-<-zero i<n)
+  lookup (Γ ▹ A) (zero  , _)     = wk A *T[ A ] , vzero
+  lookup (Γ ▹ A) (suc i , si<sn) = let (B , v) = lookup Γ (i , suc-reflects-< si<sn) in
+                                   wk A *T[ B ] , vsuc v
 
-apply : ∀ {Γ A B} (f : Tm Γ (Pi A B)) (a : Tm Γ A) → Tm Γ (⟨ a ⟩ *T[ B ])
-apply f a = ⟨ a ⟩ *t[ app f ]
+  lookupTy : (Γ : Ctx) → Fin (length Γ) → Ty Γ
+  lookupTy ε       (i , i<n)       = ⊥-rec (¬-<-zero i<n)
+  lookupTy (Γ ▹ A) (zero  , _)     = wk A *T[ A ]
+  lookupTy (Γ ▹ A) (suc i , si<sn) = wk A *T[ lookupTy Γ (i , suc-reflects-< si<sn) ]
 
-data Expr : ℕ → Type₀ where
-  evar : ∀ {n} → Fin n → Expr n
-  eapp : ∀ {n} → Expr n → Expr n → Expr n
-  elam : ∀ {n} → Expr (suc n) → Expr n
+  lookupTm : (Γ : Ctx) (i : Fin (length Γ)) → Tm Γ (lookupTy Γ i)
+  lookupTm ε       (i , i<n)       = ⊥-rec (¬-<-zero i<n)
+  lookupTm (Γ ▹ A) (zero  , _)     = vz
+  lookupTm (Γ ▹ A) (suc i , si<sn) = wk _ *t[ lookupTm Γ (i , suc-reflects-< si<sn) ]
 
--- Typing rules for expressions Γ ⊢ e :: A ⇝ t
-data _⊢_::_⇝_ : (Γ : Ctx) → Expr (length Γ) → (A : Ty Γ) → Tm Γ A → Type₀ where
-  ⊢var : ∀ {Γ i} →
-    Γ ⊢ evar i :: lookupTy Γ i ⇝ lookupTm Γ i
-  ⊢app : ∀ {Γ A B f f' a a'} →
-    Γ ⊢ f :: Pi A B ⇝ f' →
-    Γ ⊢ a :: A ⇝ a' →
-    Γ ⊢ eapp f a :: ⟨ a' ⟩ *T[ B ] ⇝ apply f' a'
-  ⊢lam : ∀ {Γ A B e e'} →
-    (Γ ▹ A) ⊢ e :: B ⇝ e' →
-    Γ ⊢ elam e :: Pi A B ⇝ lam e'
+  apply : ∀ {Γ A B} (f : Tm Γ (Pi A B)) (a : Tm Γ A) → Tm Γ (⟨ a ⟩ *T[ B ])
+  apply f a = ⟨ a ⟩ *t[ app f ]
 
-⊢subst : ∀ {Γ e A₁ t₁ A₂ t₂} → (A₁ , t₁) ≡ (A₂ , t₂) → Γ ⊢ e :: A₁ ⇝ t₁ → Γ ⊢ e :: A₂ ⇝ t₂
-⊢subst {Γ = Γ} {e = e} p = transport λ i → Γ ⊢ e :: fst (p i) ⇝ snd (p i)
+  data Expr : ℕ → Type₀ where
+    evar : ∀ {n} → Fin n → Expr n
+    eapp : ∀ {n} → Expr n → Expr n → Expr n
+    elam : ∀ {n} → Expr (suc n) → Expr n
 
--- Monadic type-checking
-postulate
-  M      : Type₀ → Type₀
-  return : ∀ {A : Type₀} → A → M A
-  _>>=_  : ∀ {A B : Type₀} → M A → (A → M B) → M B
-  genTy  : (Γ : Ctx) → M (Ty Γ)
-  genTm  : (Γ : Ctx) (A : Ty Γ) → M (Tm Γ A)
-  genEq  : ∀ {Γ} (u₁ u₂ : Σ[ A ∈ Ty Γ ] Tm Γ A) → M (u₁ ≡ u₂)
+  -- Typing rules for expressions Γ ⊢ e :: A ⇝ t
+  data _⊢_::_⇝_ : (Γ : Ctx) → Expr (length Γ) → (A : Ty Γ) → Tm Γ A → Type₀ where
+    ⊢var : ∀ {Γ i} →
+      Γ ⊢ evar i :: lookupTy Γ i ⇝ lookupTm Γ i
+    ⊢app : ∀ {Γ A B f f' a a'} →
+      Γ ⊢ f :: Pi A B ⇝ f' →
+      Γ ⊢ a :: A ⇝ a' →
+      Γ ⊢ eapp f a :: ⟨ a' ⟩ *T[ B ] ⇝ apply f' a'
+    ⊢lam : ∀ {Γ A B e e'} →
+      (Γ ▹ A) ⊢ e :: B ⇝ e' →
+      Γ ⊢ elam e :: Pi A B ⇝ lam e'
 
-expect : ∀ {Γ A C e} → Σ[ t ∈ Tm Γ A ] Γ ⊢ e :: A ⇝ t → M (Σ[ t ∈ Tm Γ C ] Γ ⊢ e :: C ⇝ t)
-expect {Γ = Γ} {A = A} {C = C} (e' , ⊢e) = do
-  t ← genTm Γ C
-  p ← genEq (A , e') (C , t)
-  return (t , ⊢subst p ⊢e)
+  ⊢subst : ∀ {Γ e A₁ t₁ A₂ t₂} → (A₁ , t₁) ≡ (A₂ , t₂) → Γ ⊢ e :: A₁ ⇝ t₁ → Γ ⊢ e :: A₂ ⇝ t₂
+  ⊢subst {Γ = Γ} {e = e} p = transport λ i → Γ ⊢ e :: fst (p i) ⇝ snd (p i)
 
-elaborate : (Γ : Ctx) (e : Expr (length Γ)) (A : Ty Γ) → M (Σ[ t ∈ Tm Γ A ] Γ ⊢ e :: A ⇝ t)
-elaborate Γ (evar i) C = expect (lookupTm Γ i , ⊢var)
-elaborate Γ (eapp f a) C = do
-  A ← genTy Γ
-  B ← genTy (Γ ▹ A)
-  f' , ⊢f ← elaborate Γ f (Pi A B)
-  a' , ⊢a ← elaborate Γ a A
-  expect (apply f' a' , ⊢app ⊢f ⊢a)
-elaborate Γ (elam e) C = do
-  A ← genTy Γ
-  B ← genTy (Γ ▹ A)
-  e' , ⊢e ← elaborate (Γ ▹ A) e B
-  expect (lam e' , ⊢lam ⊢e)
+  -- Monadic type-checking
+  postulate
+    M      : Type₀ → Type₀
+    return : ∀ {A : Type₀} → A → M A
+    _>>=_  : ∀ {A B : Type₀} → M A → (A → M B) → M B
+    genTy  : (Γ : Ctx) → M (Ty Γ)
+    genTm  : (Γ : Ctx) (A : Ty Γ) → M (Tm Γ A)
+    genEq  : ∀ {Γ} (u₁ u₂ : Σ[ A ∈ Ty Γ ] Tm Γ A) → M (u₁ ≡ u₂)
+
+  expect : ∀ {Γ A C e} → Σ[ t ∈ Tm Γ A ] Γ ⊢ e :: A ⇝ t → M (Σ[ t ∈ Tm Γ C ] Γ ⊢ e :: C ⇝ t)
+  expect {Γ = Γ} {A = A} {C = C} (e' , ⊢e) = do
+    t ← genTm Γ C
+    p ← genEq (A , e') (C , t)
+    return (t , ⊢subst p ⊢e)
+
+  elaborate : (Γ : Ctx) (e : Expr (length Γ)) (A : Ty Γ) → M (Σ[ t ∈ Tm Γ A ] Γ ⊢ e :: A ⇝ t)
+  elaborate Γ (evar i) C = expect (lookupTm Γ i , ⊢var)
+  elaborate Γ (eapp f a) C = do
+    A ← genTy Γ
+    B ← genTy (Γ ▹ A)
+    f' , ⊢f ← elaborate Γ f (Pi A B)
+    a' , ⊢a ← elaborate Γ a A
+    expect (apply f' a' , ⊢app ⊢f ⊢a)
+  elaborate Γ (elam e) C = do
+    A ← genTy Γ
+    B ← genTy (Γ ▹ A)
+    e' , ⊢e ← elaborate (Γ ▹ A) e B
+    expect (lam e' , ⊢lam ⊢e)
 
 {-
 

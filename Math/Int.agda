@@ -193,6 +193,12 @@ negate-* = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
   (λ m p n → ap (negate n +_) (p n) ∙ sym (negate-+ n (m * n)))
   (λ m p n → ap (n +_) (p n) ∙ ap (_+ negate (m * n)) (sym (negate-negate n)) ∙ sym (negate-+ (negate n) (m * n)))
 
+*-assoc : ∀ m n o → m * (n * o) ≡ (m * n) * o
+*-assoc = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Π-IsProp λ _ → ℤ-IsSet _ _)
+  (λ n o → refl)
+  (λ m p n o → ap (n * o +_) (p n o) ∙ *-distrib-r n (m * n) o)
+  (λ m p n o → ap (negate (n * o) +_) (p n o) ∙ ap (_+ m * n * o) (sym (negate-* n o)) ∙ *-distrib-r (negate n) (m * n) o)
+
 neg-*-pos : ∀ m n → neg m * pos n ≡ neg (m *ℕ n)
 neg-*-pos m n = negate-* (pos m) (pos n) ∙ ap negate (sym (pos-* m n))
 

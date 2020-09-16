@@ -2,7 +2,8 @@
 module Math.Id where
 
 open import Cubical.Foundations.Prelude using (J; substRefl; transportRefl)
-open import Cubical.Foundations.GroupoidLaws using (lUnit; rUnit)
+-- TODO: rename these?
+open import Cubical.Foundations.GroupoidLaws using (lUnit; rUnit; lCancel; rCancel)
 open import Math.Function
 open import Math.Type
 
@@ -64,3 +65,17 @@ subst-const {A = A} {B = B} {a = a} {x = x} =
 
 apd : {A : Type ℓ} {B : A → Type ℓ'} {x y : A} (f : (a : A) → B a) (p : x ≡ y) → subst B p (f x) ≡ f y
 apd {B = B} {x = x} f = pathInd (λ y p → subst B p (f x) ≡ f y) (subst-refl B)
+
+subst-IsEquiv : {A : Type ℓ} (B : A → Type ℓ') {x y : A} (p : x ≡ y) → IsEquiv (subst B p)
+subst-IsEquiv B p = HasInverse→IsEquiv
+  (subst B (sym p))
+  (λ x → sym (subst-∙ B) ∙ ap (λ p → subst B p x) (rCancel p) ∙ subst-refl B)
+  (λ x → sym (subst-∙ B) ∙ ap (λ p → subst B p x) (lCancel p) ∙ subst-refl B)
+
+subst-fun :
+  {X : Type ℓ} (A : X → Type ℓ') (B : X → Type ℓ'') {x y : X} (p : x ≡ y) (f : A x → B x) →
+  subst (λ x → A x → B x) p f ≡ subst B p ∘ f ∘ subst A (sym p)
+subst-fun A B p f =
+  pathInd (λ y p → subst (λ x → A x → B x) p f ≡ subst B p ∘ f ∘ subst A (sym p))
+  (subst-refl (λ x → A x → B x) ∙ funExt λ x → sym (subst-refl B ∙ ap f (subst-refl A)))
+  p

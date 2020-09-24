@@ -2,118 +2,171 @@
 module Experimental.TT where
 
 open import Math.Fin
+open import Math.Function hiding (id)
 open import Math.Nat
 open import Math.Type hiding (Π; _∙_)
 
--- Σ is the signature of metavariables
-module _ (Σ : Type₀) where
-  infixl 7 _▹_
-  infixr 8 _*T_
-  infixr 8 _*t_
+infixl 7 _▹_
+infixr 8 _*T_
+infixr 8 _*t_
 
-  data Ctx   : Type₀
-  data Ty    : Ctx → Type₀
-  data Subst : Ctx → Ctx → Type₀
-  data Tm    : (Γ : Ctx) → Ty Γ → Type₀
+data Sig   : Type₀
+data Ctx   : Sig → Type₀
+data Ty    : ∀ {Σ} → Ctx Σ → Type₀
+data Subst : ∀ {Σ} → Ctx Σ → Ctx Σ → Type₀
+data Tm    : ∀ {Σ} → (Γ : Ctx Σ) → Ty Γ → Type₀
 
-  data Ctx where
-    ε   : Ctx
-    _▹_ : (Γ : Ctx) → Ty Γ → Ctx
+data MetaSubst : Sig → Sig → Type₀
+_$C_ : ∀ {Σ Σ'} → MetaSubst Σ Σ' → Ctx Σ → Ctx Σ'
 
-  data Ty where
-    metaTy : Σ → Ty ε
+data Sig where
+  ε     : Sig
+  _▹_⊢_ : (Σ : Sig) (Γ : Ctx Σ) → Ty Γ → Sig
 
-    -- Substitution of types
-    _*T_ : ∀ {Δ Γ} → Subst Δ Γ → Ty Γ → Ty Δ
+data Ctx where
+  ε   : ∀ {Σ} → Ctx Σ
+  _▹_ : ∀ {Σ} → (Γ : Ctx Σ) → Ty Γ → Ctx Σ
 
-    -- Universes as object classifiers. Type : Type for now
-    U  : ∀ {Γ} → Ty Γ
-    El : ∀ {Γ} → Tm Γ U → Ty Γ
+data Ty where
+  -- Meta substitution
+  _$T_ : ∀ {Σ Σ'} {Γ : Ctx Σ} (θ : MetaSubst Σ Σ') → Ty Γ → Ty (θ $C Γ)
+  -- Context substitution
+  _*T_ : ∀ {Σ} {Δ Γ : Ctx Σ} → Subst Δ Γ → Ty Γ → Ty Δ
 
-    -- Pi-types
-    Π : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ▹ A)) → Ty Γ
+  -- Universes as object classifiers. Type : Type for now
+  U  : ∀ {Σ} {Γ : Ctx Σ} → Ty Γ
+  El : ∀ {Σ} {Γ : Ctx Σ} → Tm Γ U → Ty Γ
 
-  data Subst where
-    -- category structure
-    id   : ∀ {Γ} → Subst Γ Γ
-    _∙_  : ∀ {Θ Δ Γ} → Subst Θ Δ → Subst Δ Γ → Subst Θ Γ
-    -- terminal (empty) substitution
-    !    : ∀ {Γ} → Subst Γ ε
-    -- weakening (parent) substitution
-    wk   : ∀ {Γ A} → Subst (Γ ▹ A) Γ
-    -- extend substitution by pullback
-    lift : ∀ {Δ Γ A} (σ : Subst Δ Γ) → Subst (Δ ▹ σ *T A) (Γ ▹ A)
-    -- term substitution
-    ⟨_⟩  : ∀ {Γ A} → Tm Γ A → Subst Γ (Γ ▹ A)
-
-  data Tm where
-    metaTm : (α : Σ) → Tm ε (metaTy α)
-
-    -- substitution of terms
-    _*t_ : ∀ {Δ Γ A} (σ : Subst Δ Γ) → Tm Γ A → Tm Δ (σ *T A )
-    -- variable
-    v₀   : ∀ {Γ A} → Tm (Γ ▹ A) (wk *T A)
-
-    -- Inverse of El ("name")
-    ⌜_⌝ : ∀ {Γ} → Ty Γ → Tm Γ U
-
-    -- Π-types
-    app : ∀ {Γ A B} → Tm Γ (Π A B) → Tm (Γ ▹ A) B
-    lam : ∀ {Γ A B} → Tm (Γ ▹ A) B → Tm Γ (Π A B)
-
-  postulate
-    -- TODO: identities and associativity
-    id-∙  : ∀ {Γ Δ} (σ : Subst Γ Δ) → id ∙ σ ≡ σ
-
-    -- Initial context
-    !-∙ : ∀ {Γ Δ} (σ : Subst Γ Δ) → σ ∙ ! ≡ !
-
-    -- Types: slice category C/Γ. A type A consists of a context Γ ▹ A and a morphism wk : Γ ▹ A → Γ
-
-
-    -- Terms: element 1 → A of a type A as a morphism in C/Γ. Consists of a morphism Γ → Γ ▹ A such that composing with wk is the identity.
-    -- ⟨⟩-∘-wk : ∀ {Γ A} (t : Tm Γ A) → ⟨ t ⟩ ∙ wk ≡ id
-
-    -- Metavariables from the signature.
-
-    -- Π types.
-    -- TODO: app and lam are inverses
-    -- TODO: relation to substitution
-
-    *T-U : ∀ {Γ Δ} (σ : Subst Δ Γ) → σ *T U ≡ U
-    -- TODO: other substitution properties
-
-  instantiate : ∀ {Γ A} → Ty (Γ ▹ A) → Tm Γ A → Ty Γ
-  instantiate B a = ⟨ a ⟩ *T B
-
-  apply : ∀ {Γ A B} (f : Tm Γ (Π A B)) (a : Tm Γ A) → Tm Γ (instantiate B a)
-  apply f a = ⟨ a ⟩ *t app f
-
-  -- de Bruijn variables
-  data Var : (Γ : Ctx) → Ty Γ → Type₀ where
-    vzero : ∀ {Γ A} → Var (Γ ▹ A) (wk *T A)
-    vsuc  : ∀ {Γ A B} (v : Var Γ B) → Var (Γ ▹ A) (wk *T B)
-
-  var : ∀ {Γ A} → Var Γ A → Tm Γ A
-  var vzero    = v₀
-  var (vsuc v) = wk *t var v
-
-  length : Ctx → ℕ
-  length ε       = zero
-  length (Γ ▹ _) = suc (length Γ)
-
-  lookup : (Γ : Ctx) → Fin (length Γ) → Σ[ A ∈ Ty Γ ] Var Γ A
-  lookup ε       (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
-  lookup (Γ ▹ A) (zero  , _    ) = wk *T A  , vzero
-  lookup (Γ ▹ A) (suc i , si<sn) = let (B , v) = lookup Γ (i , suc-reflects-< si<sn) in wk *T B , vsuc v
-
-  lookupTy : (Γ : Ctx) → Fin (length Γ) → Ty Γ
-  lookupTy Γ i = fst (lookup Γ i)
-
-  lookupTm : (Γ : Ctx) (i : Fin (length Γ)) → Tm Γ (lookupTy Γ i)
-  lookupTm Γ i = var (snd (lookup Γ i))
+  -- Pi-types
+  Π : ∀ {Σ} {Γ : Ctx Σ} (A : Ty Γ) (B : Ty (Γ ▹ A)) → Ty Γ
 
 -- Metavariable substitutions
+data MetaSubst where
+  -- new metavariable
+  wk   : ∀ {Σ Γ A} → MetaSubst Σ (Σ ▹ Γ ⊢ A)
+  -- extend substitution
+  lift : ∀ {Σ Σ'} {Γ : Ctx Σ} {A} (θ : MetaSubst Σ Σ') → MetaSubst (Σ ▹ Γ ⊢ A) (Σ' ▹ (θ $C Γ) ⊢ (θ $T A))
+  -- term substitution
+  ⟨_⟩  : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm Γ A → MetaSubst (Σ ▹ Γ ⊢ A) Σ
+
+θ $C ε       = ε
+θ $C (Γ ▹ A) = (θ $C Γ) ▹ (θ $T A)
+
+data Subst where
+  -- category structure
+  id   : ∀ {Σ} {Γ : Ctx Σ} → Subst Γ Γ
+  _∙_  : ∀ {Σ} {Θ Δ Γ : Ctx Σ} → Subst Θ Δ → Subst Δ Γ → Subst Θ Γ
+  -- terminal (empty) substitution
+  !    : ∀ {Σ} {Γ : Ctx Σ} → Subst Γ ε
+  -- weakening (parent) substitution
+  wk   : ∀ {Σ} {Γ : Ctx Σ} {A} → Subst (Γ ▹ A) Γ
+  -- extend substitution by pullback
+  lift : ∀ {Σ} {Δ Γ : Ctx Σ} {A} (σ : Subst Δ Γ) → Subst (Δ ▹ σ *T A) (Γ ▹ A)
+  -- term substitution
+  ⟨_⟩  : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm Γ A → Subst Γ (Γ ▹ A)
+
+data Tm where
+  -- Meta substitution
+  _$t_ : ∀ {Σ Σ'} {Γ : Ctx Σ} {A} (θ : MetaSubst Σ Σ') → Tm Γ A → Tm (θ $C Γ) (θ $T A)
+  -- Context substitution
+  _*t_ : ∀ {Σ} {Δ Γ : Ctx Σ} {A} (σ : Subst Δ Γ) → Tm Γ A → Tm Δ (σ *T A )
+
+  -- metavariable
+  m₀ : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm {Σ = Σ ▹ Γ ⊢ A} (wk $C Γ) (wk $T A)
+
+  -- variable
+  v₀ : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm (Γ ▹ A) (wk *T A)
+
+  -- Inverse of El ("name")
+  ⌜_⌝ : ∀ {Σ} {Γ : Ctx Σ} → Ty Γ → Tm Γ U
+
+  -- Π-types
+  app : ∀ {Σ} {Γ : Ctx Σ} {A B} → Tm Γ (Π A B) → Tm (Γ ▹ A) B
+  lam : ∀ {Σ} {Γ : Ctx Σ} {A B} → Tm (Γ ▹ A) B → Tm Γ (Π A B)
+
+-- postulate
+  -- TODO: identities and associativity
+  -- id-∙  : ∀ {Γ Δ} (σ : Subst Γ Δ) → id ∙ σ ≡ σ
+
+  -- Initial context
+  -- !-∙ : ∀ {Γ Δ} (σ : Subst Γ Δ) → σ ∙ ! ≡ !
+
+  -- Types: slice category C/Γ. A type A consists of a context Γ ▹ A and a morphism wk : Γ ▹ A → Γ
+
+
+  -- Terms: element 1 → A of a type A as a morphism in C/Γ. Consists of a morphism Γ → Γ ▹ A such that composing with wk is the identity.
+  -- ⟨⟩-∘-wk : ∀ {Γ A} (t : Tm Γ A) → ⟨ t ⟩ ∙ wk ≡ id
+
+  -- Metavariables from the signature.
+
+  -- Π types.
+  -- TODO: app and lam are inverses
+  -- TODO: relation to substitution
+
+  -- *T-U : ∀ {Γ Δ} (σ : Subst Δ Γ) → σ *T U ≡ U
+  -- TODO: other substitution properties
+
+instantiate : ∀ {Σ} {Γ : Ctx Σ} {A} → Ty (Γ ▹ A) → Tm Γ A → Ty Γ
+instantiate B a = ⟨ a ⟩ *T B
+
+apply : ∀ {Σ} {Γ : Ctx Σ} {A B} (f : Tm Γ (Π A B)) (a : Tm Γ A) → Tm Γ (instantiate B a)
+apply f a = ⟨ a ⟩ *t app f
+
+-- metavariables
+data Meta : ∀ {Σ} (Γ : Ctx Σ) → Ty Γ → Type₀ where
+  mzero : ∀ {Σ Γ A} → Meta {Σ = Σ ▹ Γ ⊢ A} (wk $C Γ) (wk $T A)
+  msuc  : ∀ {Σ Δ B Γ A} → Meta Δ B → Meta {Σ = Σ ▹ Γ ⊢ A} (wk $C Δ) (wk $T B)
+
+meta : ∀ {Σ} {Γ : Ctx Σ} {A} → Meta Γ A → Tm Γ A
+meta mzero    = m₀
+meta (msuc m) = wk $t meta m
+
+sigLen : Sig → ℕ
+sigLen ε           = zero
+sigLen (Σ ▹ _ ⊢ _) = suc (sigLen Σ)
+
+metaIndex : ∀ {Σ} {Γ : Ctx Σ} {A} → Meta Γ A → Fin (sigLen Σ)
+metaIndex mzero    = fzero
+metaIndex (msuc m) = fsuc (metaIndex m)
+
+lookupMeta : (Σ : Sig) → Fin (sigLen Σ) → Σ[ Γ ∈ Ctx Σ ] Σ[ A ∈ Ty Γ ] Meta Γ A
+lookupMeta ε           (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
+lookupMeta (Σ ▹ Γ ⊢ A) (zero  , _    ) = wk $C Γ , wk $T A , mzero
+lookupMeta (Σ ▹ Γ ⊢ A) (suc i , si<sn) = let (Δ , B , m) = lookupMeta Σ (i , suc-reflects-< si<sn) in wk $C Δ , wk $T B , msuc m
+
+-- de Bruijn variables
+data Var : ∀ {Σ} (Γ : Ctx Σ) → Ty Γ → Type₀ where
+  vzero : ∀ {Σ} {Γ : Ctx Σ} {A} → Var (Γ ▹ A) (wk *T A)
+  vsuc  : ∀ {Σ} {Γ : Ctx Σ} {A B} (v : Var Γ B) → Var (Γ ▹ A) (wk *T B)
+
+var : ∀ {Σ} {Γ : Ctx Σ} {A} → Var Γ A → Tm Γ A
+var vzero    = v₀
+var (vsuc v) = wk *t var v
+
+ctxLen : ∀ {Σ} → Ctx Σ → ℕ
+ctxLen ε       = zero
+ctxLen (Γ ▹ _) = suc (ctxLen Γ)
+
+lookupVar : ∀ {Σ} (Γ : Ctx Σ) → Fin (ctxLen Γ) → Σ[ A ∈ Ty Γ ] Var Γ A
+lookupVar ε       (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
+lookupVar (Γ ▹ A) (zero  , _    ) = wk *T A  , vzero
+lookupVar (Γ ▹ A) (suc i , si<sn) = let (B , v) = lookupVar Γ (i , suc-reflects-< si<sn) in wk *T B , vsuc v
+
+-- Heterogeneous constraints
+data Constraint : Sig → Type₀ where
+  true  : ∀ {Σ} → Constraint Σ
+  _⊢_≡_ : ∀ {Σ} → (Γ : Ctx Σ) → Σ[ A ∈ Ty Γ ] Tm Γ A → Σ[ B ∈ Ty Γ ] Tm Γ B → Constraint Σ
+  _∧_   : ∀ {Σ} → Constraint Σ → Constraint Σ → Constraint Σ
+
+IsSolved : ∀ {Σ} → Constraint Σ → Type₀
+IsSolved true        = ⊤
+IsSolved (Γ ⊢ A ≡ B) = A ≡ B
+IsSolved (k₁ ∧ k₂)   = IsSolved k₁ × IsSolved k₂
+
+_$K_ : ∀ {Σ Σ'} → MetaSubst Σ Σ' → Constraint Σ → Constraint Σ'
+θ $K true                    = true
+θ $K (Γ ⊢ (A , a) ≡ (B , b)) = (θ $C Γ) ⊢ (θ $T A , θ $t a) ≡ (θ $T B , θ $t b)
+θ $K (k₁ ∧ k₂)               = (θ $K k₁) ∧ (θ $K k₂)
 
 {-
   data Expr : ℕ → Type₀ where

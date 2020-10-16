@@ -17,15 +17,16 @@ data Subst : ∀ {Σ} → Ctx Σ → Ctx Σ → Type₀
 data Tm    : ∀ {Σ} → (Γ : Ctx Σ) → Ty Γ → Type₀
 
 data MetaSubst : Sig → Sig → Type₀
-_$C_ : ∀ {Σ Σ'} → MetaSubst Σ Σ' → Ctx Σ → Ctx Σ'
-
-data Sig where
-  ε     : Sig
-  _▹_⊢_ : (Σ : Sig) (Γ : Ctx Σ) → Ty Γ → Sig
 
 data Ctx where
   ε   : ∀ {Σ} → Ctx Σ
   _▹_ : ∀ {Σ} → (Γ : Ctx Σ) → Ty Γ → Ctx Σ
+
+data Sig where
+  ε   : Sig
+  _▹_ : (Σ : Sig) → Ty {Σ} ε → Sig
+
+_$C_ : ∀ {Σ Σ'} → MetaSubst Σ Σ' → Ctx Σ → Ctx Σ'
 
 data Ty where
   -- Meta substitution
@@ -40,17 +41,17 @@ data Ty where
   -- Pi-types
   Π : ∀ {Σ} {Γ : Ctx Σ} (A : Ty Γ) (B : Ty (Γ ▹ A)) → Ty Γ
 
+θ $C ε       = ε
+θ $C (Γ ▹ A) = θ $C Γ ▹ θ $T A
+
 -- Metavariable substitutions
 data MetaSubst where
   -- new metavariable
-  wk   : ∀ {Σ Γ A} → MetaSubst Σ (Σ ▹ Γ ⊢ A)
+  wk   : ∀ {Σ A} → MetaSubst Σ (Σ ▹ A)
   -- extend substitution
-  lift : ∀ {Σ Σ'} {Γ : Ctx Σ} {A} (θ : MetaSubst Σ Σ') → MetaSubst (Σ ▹ Γ ⊢ A) (Σ' ▹ (θ $C Γ) ⊢ (θ $T A))
+  lift : ∀ {Σ Σ' A} (θ : MetaSubst Σ Σ') → MetaSubst (Σ ▹ A) (Σ' ▹ θ $T A)
   -- term substitution
-  ⟨_⟩  : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm Γ A → MetaSubst (Σ ▹ Γ ⊢ A) Σ
-
-θ $C ε       = ε
-θ $C (Γ ▹ A) = (θ $C Γ) ▹ (θ $T A)
+  ⟨_⟩  : ∀ {Σ A} → Tm {Σ} ε A → MetaSubst (Σ ▹ A) Σ
 
 data Subst where
   -- category structure
@@ -72,7 +73,7 @@ data Tm where
   _*t_ : ∀ {Σ} {Δ Γ : Ctx Σ} {A} (σ : Subst Δ Γ) → Tm Γ A → Tm Δ (σ *T A )
 
   -- metavariable
-  m₀ : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm {Σ = Σ ▹ Γ ⊢ A} (wk $C Γ) (wk $T A)
+  m₀ : ∀ {Σ A} → Tm {Σ = Σ ▹ A} ε (wk $T A)
 
   -- variable
   v₀ : ∀ {Σ} {Γ : Ctx Σ} {A} → Tm (Γ ▹ A) (wk *T A)
@@ -112,28 +113,6 @@ instantiate B a = ⟨ a ⟩ *T B
 apply : ∀ {Σ} {Γ : Ctx Σ} {A B} (f : Tm Γ (Π A B)) (a : Tm Γ A) → Tm Γ (instantiate B a)
 apply f a = ⟨ a ⟩ *t app f
 
--- metavariables
-data Meta : ∀ {Σ} (Γ : Ctx Σ) → Ty Γ → Type₀ where
-  mzero : ∀ {Σ Γ A} → Meta {Σ = Σ ▹ Γ ⊢ A} (wk $C Γ) (wk $T A)
-  msuc  : ∀ {Σ Δ B Γ A} → Meta Δ B → Meta {Σ = Σ ▹ Γ ⊢ A} (wk $C Δ) (wk $T B)
-
-meta : ∀ {Σ} {Γ : Ctx Σ} {A} → Meta Γ A → Tm Γ A
-meta mzero    = m₀
-meta (msuc m) = wk $t meta m
-
-sigLen : Sig → ℕ
-sigLen ε           = zero
-sigLen (Σ ▹ _ ⊢ _) = suc (sigLen Σ)
-
-metaIndex : ∀ {Σ} {Γ : Ctx Σ} {A} → Meta Γ A → Fin (sigLen Σ)
-metaIndex mzero    = fzero
-metaIndex (msuc m) = fsuc (metaIndex m)
-
-lookupMeta : (Σ : Sig) → Fin (sigLen Σ) → Σ[ Γ ∈ Ctx Σ ] Σ[ A ∈ Ty Γ ] Meta Γ A
-lookupMeta ε           (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
-lookupMeta (Σ ▹ Γ ⊢ A) (zero  , _    ) = wk $C Γ , wk $T A , mzero
-lookupMeta (Σ ▹ Γ ⊢ A) (suc i , si<sn) = let (Δ , B , m) = lookupMeta Σ (i , suc-reflects-< si<sn) in wk $C Δ , wk $T B , msuc m
-
 -- de Bruijn variables
 data Var : ∀ {Σ} (Γ : Ctx Σ) → Ty Γ → Type₀ where
   vzero : ∀ {Σ} {Γ : Ctx Σ} {A} → Var (Γ ▹ A) (wk *T A)
@@ -147,10 +126,47 @@ ctxLen : ∀ {Σ} → Ctx Σ → ℕ
 ctxLen ε       = zero
 ctxLen (Γ ▹ _) = suc (ctxLen Γ)
 
+{-
 lookupVar : ∀ {Σ} (Γ : Ctx Σ) → Fin (ctxLen Γ) → Σ[ A ∈ Ty Γ ] Var Γ A
 lookupVar ε       (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
 lookupVar (Γ ▹ A) (zero  , _    ) = wk *T A  , vzero
 lookupVar (Γ ▹ A) (suc i , si<sn) = let (B , v) = lookupVar Γ (i , suc-reflects-< si<sn) in wk *T B , vsuc v
+-}
+
+lookupVar : ∀ {Σ} (Γ : Ctx Σ) → Fin (ctxLen Γ) → Σ[ A ∈ Ty Γ ] Tm Γ A
+lookupVar ε       (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
+lookupVar (Γ ▹ A) (zero  , _    ) = wk *T A  , v₀
+lookupVar (Γ ▹ A) (suc i , si<sn) = let (B , v) = lookupVar Γ (i , suc-reflects-< si<sn) in wk *T B , wk *t v
+
+-- metavariables
+data Meta : ∀ {Σ} → Ty {Σ} ε → Type₀ where
+  mzero : ∀ {Σ A} → Meta {Σ ▹ A} (wk $T A)
+  msuc  : ∀ {Σ B A} → Meta {Σ} B → Meta {Σ ▹ A} (wk $T B)
+
+meta : ∀ {Σ A} → Meta {Σ} A → Tm ε A
+meta mzero    = m₀
+meta (msuc m) = wk $t meta m
+
+sigLen : Sig → ℕ
+sigLen ε       = zero
+sigLen (Σ ▹ _) = suc (sigLen Σ)
+
+metaIndex : ∀ {Σ A} → Meta {Σ} A → Fin (sigLen Σ)
+metaIndex mzero    = fzero
+metaIndex (msuc m) = fsuc (metaIndex m)
+
+lookupMeta : (Σ : Sig) → Fin (sigLen Σ) → Σ[ A ∈ Ty {Σ} ε ] Meta A
+lookupMeta ε       (_     , i<n  ) = ⊥-rec (¬-<-zero i<n)
+lookupMeta (Σ ▹ A) (zero  , _    ) = wk $T A , mzero
+lookupMeta (Σ ▹ A) (suc i , si<sn) = let (B , m) = lookupMeta Σ (i , suc-reflects-< si<sn) in wk $T B , msuc m
+
+-- Unification
+-- The elaborator produces a signature Σ and constraint K
+-- The goal is to produce a "smaller" signature Σ' and subst θ : Σ → Σ' such that
+--   K is satisfied (over Σ) iff θK is satisfied (over Σ')
+--   TODO: hmm that's not right, if K is trivially true then it can make any substitution?
+--   TODO: "most general unifier
+-- We say the problem "typechecks" if Σ' is empty (no remaining metas) and θK is "trivially" satisfied (no remaining constraints)
 
 -- Heterogeneous constraints
 data Constraint : Sig → Type₀ where
@@ -158,147 +174,78 @@ data Constraint : Sig → Type₀ where
   _⊢_≡_ : ∀ {Σ} → (Γ : Ctx Σ) → Σ[ A ∈ Ty Γ ] Tm Γ A → Σ[ B ∈ Ty Γ ] Tm Γ B → Constraint Σ
   _∧_   : ∀ {Σ} → Constraint Σ → Constraint Σ → Constraint Σ
 
-IsSolved : ∀ {Σ} → Constraint Σ → Type₀
-IsSolved true        = ⊤
-IsSolved (Γ ⊢ A ≡ B) = A ≡ B
-IsSolved (k₁ ∧ k₂)   = IsSolved k₁ × IsSolved k₂
+IsSatisfied : ∀ {Σ} → Constraint Σ → Type₀
+IsSatisfied true        = ⊤
+IsSatisfied (Γ ⊢ A ≡ B) = A ≡ B
+IsSatisfied (k₁ ∧ k₂)   = IsSatisfied k₁ × IsSatisfied k₂
 
 _$K_ : ∀ {Σ Σ'} → MetaSubst Σ Σ' → Constraint Σ → Constraint Σ'
 θ $K true                    = true
 θ $K (Γ ⊢ (A , a) ≡ (B , b)) = (θ $C Γ) ⊢ (θ $T A , θ $t a) ≡ (θ $T B , θ $t b)
 θ $K (k₁ ∧ k₂)               = (θ $K k₁) ∧ (θ $K k₂)
 
-{-
-  data Expr : ℕ → Type₀ where
-    evar : ∀ {n} → Fin n → Expr n
-    eapp : ∀ {n} → Expr n → Expr n → Expr n
-    elam : ∀ {n} → Expr (suc n) → Expr n
+data Expr : ℕ → Type₀ where
+  hole : ∀ {n} → Expr n
+  evar : ∀ {n} → Fin n → Expr n
+  eapp : ∀ {n} → Expr n → Expr n → Expr n
+  elam : ∀ {n} → Expr (suc n) → Expr n
+  type : ∀ {n} → Expr n
+  pi   : ∀ {n} → Expr n → Expr (suc n) → Expr n
+  arr  : ∀ {n} → Expr n → Expr n → Expr n
+  ann  : ∀ {n} → Expr n → Expr n → Expr n
 
-  -- Typing rules for expressions Γ ⊢ e :: A ⇝ t
-  data _⊢_::_⇝_ : (Γ : Ctx) → Expr (length Γ) → (A : Ty Γ) → Tm Γ A → Type₀ where
-    ⊢var : ∀ {Γ i} →
-      Γ ⊢ evar i :: lookupTy Γ i ⇝ lookupTm Γ i
-    ⊢app : ∀ {Γ A B f f' a a'} →
-      Γ ⊢ f :: Π A B ⇝ f' →
-      Γ ⊢ a :: A ⇝ a' →
-      Γ ⊢ eapp f a :: ⟨ a' ⟩ *T B ⇝ apply f' a'
-    ⊢lam : ∀ {Γ A B e e'} →
-      (Γ ▹ A) ⊢ e :: B ⇝ e' →
-      Γ ⊢ elam e :: Π A B ⇝ lam e'
-
-  ⊢subst : ∀ {Γ e A₁ t₁ A₂ t₂} → (A₁ , t₁) ≡ (A₂ , t₂) → Γ ⊢ e :: A₁ ⇝ t₁ → Γ ⊢ e :: A₂ ⇝ t₂
-  ⊢subst {Γ = Γ} {e = e} p = transport λ i → Γ ⊢ e :: fst (p i) ⇝ snd (p i)
-
-  -- Monadic type-checking
-  postulate
-    M      : Type₀ → Type₀
-    return : ∀ {A : Type₀} → A → M A
-    _>>=_  : ∀ {A B : Type₀} → M A → (A → M B) → M B
-    genTy  : (Γ : Ctx) → M (Ty Γ)
-    genTm  : (Γ : Ctx) (A : Ty Γ) → M (Tm Γ A)
-    genEq  : ∀ {Γ} (u₁ u₂ : Σ[ A ∈ Ty Γ ] Tm Γ A) → M (u₁ ≡ u₂)
-
-  expect : ∀ {Γ A C e} → Σ[ t ∈ Tm Γ A ] Γ ⊢ e :: A ⇝ t → M (Σ[ t ∈ Tm Γ C ] Γ ⊢ e :: C ⇝ t)
-  expect {Γ = Γ} {A = A} {C = C} (e' , ⊢e) = do
-    t ← genTm Γ C
-    p ← genEq (A , e') (C , t)
-    return (t , ⊢subst p ⊢e)
-
-  elaborate : (Γ : Ctx) (e : Expr (length Γ)) (A : Ty Γ) → M (Σ[ t ∈ Tm Γ A ] Γ ⊢ e :: A ⇝ t)
-  elaborate Γ (evar i) C = expect (lookupTm Γ i , ⊢var)
-  elaborate Γ (eapp f a) C = do
-    A ← genTy Γ
-    B ← genTy (Γ ▹ A)
-    f' , ⊢f ← elaborate Γ f (Π A B)
-    a' , ⊢a ← elaborate Γ a A
-    expect (apply f' a' , ⊢app ⊢f ⊢a)
-  elaborate Γ (elam e) C = do
-    A ← genTy Γ
-    B ← genTy (Γ ▹ A)
-    e' , ⊢e ← elaborate (Γ ▹ A) e B
-    expect (lam e' , ⊢lam ⊢e)
-
-data CheckedExpr : (Γ : Ctx) → Ty Γ → Type₀
-exprTm : ∀ {Γ A} → CheckedExpr Γ A → Tm Γ A
+data CheckedExpr : ∀ {Σ} → Ctx Σ → Type₀
+⟦_⟧ : ∀ {Σ} {Γ : Ctx Σ} → CheckedExpr Γ → Σ[ A ∈ Ty Γ ] Tm Γ A
 
 data CheckedExpr where
-  evar : ∀ {Γ A} (v : Var Γ A) → CheckedExpr Γ A
-  eapp : ∀ {Γ A B} (f : CheckedExpr Γ (Pi A B)) (a : CheckedExpr Γ A) → CheckedExpr Γ (⟨ exprTm a ⟩ *T[ B ])
-  elam : ∀ {Γ A B} (e : CheckedExpr (Γ ▹ A) B) → CheckedExpr Γ (Pi A B)
+  hole : ∀ {Σ} {Γ : Ctx Σ} (A : Ty Γ) (a : Tm Γ A) → CheckedExpr Γ
+  evar : ∀ {Σ} {Γ : Ctx Σ} → Fin (ctxLen Γ) → CheckedExpr Γ
+  eapp : ∀ {Σ} {Γ : Ctx Σ} →
+    (A : Ty Γ) (B : Ty (Γ ▹ A)) (f : Tm Γ (Π A B)) (a : Tm Γ A)
+    (e₁ : CheckedExpr Γ) (e₂ : CheckedExpr Γ) →
+    ⟦ e₁ ⟧ ≡ (Π A B , f) →
+    ⟦ e₂ ⟧ ≡ (A , a) →
+    CheckedExpr Γ
+  elam : ∀ {Σ} {Γ : Ctx Σ} →
+    (A : Ty Γ) (B : Ty (Γ ▹ A)) (b : Tm (Γ ▹ A) B)
+    (e : CheckedExpr (Γ ▹ A)) →
+    ⟦ e ⟧ ≡ (B , b) →
+    CheckedExpr Γ
+  type : ∀ {Σ} {Γ : Ctx Σ} → CheckedExpr Γ
+  pi   : ∀ {Σ} {Γ : Ctx Σ} →
+    (A : Ty Γ) (B : Ty (Γ ▹ A))
+    (e₁ : CheckedExpr Γ) (e₂ : CheckedExpr (Γ ▹ A)) →
+    ⟦ e₁ ⟧ ≡ (U , ⌜ A ⌝) →
+    ⟦ e₂ ⟧ ≡ (U , ⌜ B ⌝) →
+    CheckedExpr Γ
+  arr  : ∀ {Σ} {Γ : Ctx Σ} →
+    (A : Ty Γ) (B : Ty Γ)
+    (e₁ : CheckedExpr Γ) (e₂ : CheckedExpr Γ) →
+    ⟦ e₁ ⟧ ≡ (U , ⌜ A ⌝) →
+    ⟦ e₂ ⟧ ≡ (U , ⌜ B ⌝) →
+    CheckedExpr Γ
+  ann  : ∀ {Σ} {Γ : Ctx Σ} →
+    (A : Ty Γ) (a : Tm Γ A)
+    (e₁ : CheckedExpr Γ) (e₂ : CheckedExpr Γ) →
+    ⟦ e₁ ⟧ ≡ (A , a) →
+    ⟦ e₂ ⟧ ≡ (U , ⌜ A ⌝) →
+    CheckedExpr Γ
 
-exprTm (evar v)   = varTm v
-exprTm (eapp f a) = ⟨ exprTm a ⟩ *t[ app (exprTm f) ]
-exprTm (elam e)   = lam (exprTm e)
+⟦ hole A a ⟧ = (A , a)
+⟦ evar i ⟧ = lookupVar _ i
+⟦ eapp A B f a _ _ _ _ ⟧ = instantiate B a , apply f a
+⟦ elam A B b _ _ ⟧ = (Π A B , lam b)
+⟦ type ⟧ = U , ⌜ U ⌝
+⟦ pi A B e₁ e₂ _ _ ⟧ = U , ⌜ Π A B ⌝
+⟦ arr A B _ _ _ _ ⟧ = U , ⌜ Π A (wk *T B) ⌝
+⟦ ann A a _ _ _ _ ⟧ = A , a
 
-unchecked : ∀ {Γ A} → CheckedExpr Γ A → UncheckedExpr (length Γ)
-unchecked (evar v)   = evar (varIndex v)
-unchecked (eapp f a) = eapp (unchecked f) (unchecked a)
-unchecked (elam e)   = elam (unchecked e)
-
-Term : Ctx → Type₀
-Term Γ = Σ[ A ∈ Ty Γ ] Tm Γ A
-
-MetaSubst : Type₀ → Type₀
-MetaSubst M = M → Term ε
-
-MetaTerm : Type₀ → Ctx → Type₀
-MetaTerm M Γ = MetaSubst M → Term Γ
-
-Constraint : Type₀ → Type₀
-Constraint M = Σ[ Γ ∈ Ctx ] MetaTerm M Γ × MetaTerm M Γ
-
-IsSatisified : ∀ {M} → Constraint M → MetaSubst M → Type₀
-IsSatisified (Γ , t₁ , t₂) θ = t₁ θ ≡ t₂ θ
-
--- A unification problem is:
---   A set of metavariables
---   A set of constraints
-Problem : Type₁
-Problem = Σ[ M ∈ Type₀ ] Σ[ C ∈ Type₀ ] (C → Constraint M)
-
-emptyProblem : Problem
-emptyProblem = (⊥ , ⊥ , ⊥-rec)
-
--- A solution to a unification problem is an assignment of metavars such that all constraints are satisfied.
-Solution : Problem → Type₀
-Solution (M , C , constraint) = Σ[ θ ∈ MetaSubst M ] ((c : C) → IsSatisified (constraint c) θ)
-
-checked : ∀ {Γ A} → UncheckedExpr (length Γ) → Σ[ M ∈ Problem ] (Solution M → CheckedExpr Γ A)
-checked {Γ = Γ} (evar i)   = let (A , v) = lookup Γ i in
-                             emptyProblem , λ _ → evar v
-checked {Γ = Γ} (eapp f a) = {!!}
-checked {Γ = Γ} (elam e)   = {!!}
-  -- add metas α : Γ → A, β : Γ → Set, γ : Γ → β Γ → Set
-
-data Expr : Ctx → Type₀
-exprTy : ∀ {Γ} → Expr Γ → Ty Γ
-exprTm : ∀ {Γ} (e : Expr Γ) → Tm Γ (exprTy e)
-
-data Expr where
-  evar : ∀ {Γ} → Var Γ → Expr Γ
-  eu   : ∀ {Γ} → Expr Γ
-  epi  : ∀ {Γ}
-    (e₁ : Expr Γ)
-    (p₁ : exprTy e₁ ≡ U)
-    (e₂ : Expr (Γ ▹ El (subst (Tm _) p₁ (exprTm e₁))))
-    (p₂ : exprTy e₂ ≡ U) →
-    Expr Γ
-  eapp : ∀ {Γ}
-    (f a : Expr Γ)
-    (B : Ty (Γ ▹ exprTy a))
-    (p : exprTy f ≡ Pi (exprTy a) B) →
-    Expr Γ
-  elam : ∀ {Γ} (A : Ty Γ) → Expr (Γ ▹ A) → Expr Γ
-
-exprTy (evar v) = varTy v
-exprTy eu = U
-exprTy (epi e₁ p₁ e₂ p₂) = U
-exprTy (eapp f a B p) = instantiateTy (exprTm a) B
-exprTy (elam A e) = Pi _ (exprTy e)
-
-exprTm (evar v) = varTm v
-exprTm eu = name U
-exprTm (epi e₁ p₁ e₂ p₂) = name (Pi (El (subst (Tm _) p₁ (exprTm e₁))) (El (subst (Tm _) p₂ (exprTm e₂))))
-exprTm (eapp f a B p) = instantiateTm (exprTm a) (app (subst (Tm _) p (exprTm f)))
-exprTm (elam A e) = lam (exprTm e)
--}
+forget : ∀ {Σ} {Γ : Ctx Σ} → CheckedExpr Γ → Expr (ctxLen Γ)
+forget (hole _ _) = hole
+forget (evar i) = evar i
+forget (eapp _ _ _ _ e₁ e₂ _ _) = eapp (forget e₁) (forget e₂)
+forget (elam _ _ _ e _) = elam (forget e)
+forget type = type
+forget (pi _ _ e₁ e₂ _ _) = pi (forget e₁) (forget e₂)
+forget (arr _ _ e₁ e₂ _ _) = arr (forget e₁) (forget e₂)
+forget (ann _ _ e₁ e₂ _ _) = ann (forget e₁) (forget e₂)

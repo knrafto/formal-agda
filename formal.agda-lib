@@ -1,3 +1,4 @@
 name: formal
 depend: cubical
 include: .
+flags: --allow-unsolved-metas --cubical

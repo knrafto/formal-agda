@@ -41,6 +41,10 @@ IsFinite-IsProp (m , |Finm≡A|) (n , |Finn≡A|) = ΣProp≡ (λ _ → ∥∥-I
     with-∥∥ |Finn≡A| (ℕ-IsSet _ _) λ Finn≡A →
     Fin-IsInjective (Finm≡A ∙ sym Finn≡A)
 
+IsFinite→IsSet : ∀ {A : Type₀} → IsFinite A → IsSet A
+IsFinite→IsSet (n , |Finm≡A|) = with-∥∥ |Finm≡A| IsSet-IsProp λ Finm≡A →
+  subst IsSet Finm≡A Fin-IsSet
+
 IsFinite-∀-Dec : ∀ {ℓ} {A : Type₀} {P : A → Type ℓ} → IsFinite A → (∀ a → IsProp (P a)) → (∀ a → Dec (P a)) → Dec (∀ a → P a)
 IsFinite-∀-Dec {P = P} (n , |Finn≡A|) P-IsProp P-Dec = with-∥∥ |Finn≡A| (Dec-IsProp (Π-IsProp P-IsProp)) λ Finn≡A → lemma Finn≡A P P-Dec
   where

@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Experimental.Utf8 where
 
-open import Math.Binary
+open import Experimental.Binary
 open import Math.Bit
 open import Math.Dec
 open import Math.Fin

@@ -138,7 +138,7 @@ toℕ-replicate-0₂ (suc n) = ap (λ n → n * 2 + 0) (toℕ-replicate-0₂ n)
 
 toℤ : ∀ {n} → Word (suc n) → ℤ
 toℤ {zero} w = neg (Bit.toℕ (head w))
-toℤ {suc n} w = toℤ (tail w) *ℤ 2 +ℤ pos (Bit.toℕ (head w))
+toℤ {suc n} w = toℤ (tail w) *ℤ pos 2 +ℤ pos (Bit.toℕ (head w))
 
 toℤ-IsInjective : ∀ {n} → IsInjective (toℤ {n = n})
 toℤ-IsInjective {zero} = ℤ.neg-IsInjective ∘-IsInjective Bit.toℕ-IsInjective ∘-IsInjective IsEquiv→IsInjective (inv-IsEquiv singleton-IsEquiv)
@@ -175,11 +175,11 @@ toSigned-IsEquiv {zero} = toSigned0-IsEquiv ∘-IsEquiv toFin2-IsEquiv ∘-IsEqu
   toSigned0-IsSurjective x@(m , -1≤m , m<1) = cases {P = λ z → (p : z ≡ ℤ.negate m) → fiber toSigned0 x} ℤ.fromSigned-IsEquiv
     (λ i posi≡negatem →
       let i<2 : i < 2
-          i<2 = ℤ.pos-≤-inv (ℤ.suc-preserves-≤ (subst (_≤ℤ 1) (sym posi≡negatem) (ℤ.negate-≤ -1≤m)))
+          i<2 = ℤ.pos-≤-inv (ℤ.suc-preserves-≤ (subst (_≤ℤ pos 1) (sym posi≡negatem) (ℤ.negate-≤ -1≤m)))
       in (i , i<2) , ΣProp≡ (λ _ → ×-IsProp ℤ.≤-IsProp ℤ.<-IsProp) (ap ℤ.negate posi≡negatem ∙ ℤ.negate-negate m))
     (λ i negsuci≡negatem →
       let i<0 : i < 0
-          i<0 = ℤ.pos-≤-inv (ℤ.suc-reflects-≤ (subst (_<ℤ 1) (sym (IsEquiv→IsInjective ℤ.negate-IsEquiv negsuci≡negatem)) m<1))
+          i<0 = ℤ.pos-≤-inv (ℤ.suc-reflects-≤ (subst (_<ℤ pos 1) (sym (IsEquiv→IsInjective ℤ.negate-IsEquiv negsuci≡negatem)) m<1))
       in ⊥-rec (¬-<-zero i<0))
     (ℤ.negate m) refl
 
@@ -216,23 +216,23 @@ fromSigned = inv toSigned-IsEquiv
 signBit : ∀ {n} → Word (suc n) → Bit
 signBit = last
 
-signBit≡0₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 0₂ → 0 ≤ℤ toℤ w
-signBit≡0₂ {zero} w s≡0₂ = subst (0 ≤ℤ_) (ap (neg ∘ Bit.toℕ) (sym s≡0₂)) ℤ.≤-refl
+signBit≡0₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 0₂ → pos 0 ≤ℤ toℤ w
+signBit≡0₂ {zero} w s≡0₂ = subst (pos 0 ≤ℤ_) (ap (neg ∘ Bit.toℕ) (sym s≡0₂)) ℤ.≤-refl
 signBit≡0₂ {suc n} w s≡0₂ = ℤ.≤-euclid 0<2 (toℤ (tail w)) (Bit.toFin2 (head w)) (signBit≡0₂ (tail w) (last-tail w ∙ s≡0₂))
 
-signBit≡1₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 1₂ → toℤ w <ℤ 0
-signBit≡1₂ {zero} w s≡1₂ = subst (_<ℤ 0) (ap (neg ∘ Bit.toℕ) (sym s≡1₂)) (0 , rightInv ℤ.suc-IsEquiv 0)
+signBit≡1₂ : ∀ {n} (w : Word (suc n)) → last w ≡ 1₂ → toℤ w <ℤ pos 0
+signBit≡1₂ {zero} w s≡1₂ = subst (_<ℤ pos 0) (ap (neg ∘ Bit.toℕ) (sym s≡1₂)) (0 , rightInv ℤ.suc-IsEquiv (pos 0))
 signBit≡1₂ {suc n} w s≡1₂ = ℤ.euclid-< 0<2 (toℤ (tail w)) (Bit.toFin2 (head w)) (signBit≡1₂ (tail w) (last-tail w ∙ s≡1₂))
 
 toℤ-replicate : ∀ n b → toℤ (replicate (suc n) b) ≡ neg (Bit.toℕ b)
 toℤ-replicate zero b = refl
 toℤ-replicate (suc n) b =
-  ap (λ n → n *ℤ 2 +ℤ pos (Bit.toℕ b)) (toℤ-replicate n b) ∙
+  ap (λ n → n *ℤ pos 2 +ℤ pos (Bit.toℕ b)) (toℤ-replicate n b) ∙
   ap (_+ℤ pos (Bit.toℕ b)) (n*2≡n+n (neg (Bit.toℕ b))) ∙
   rightInv (ℤ.+n-IsEquiv (pos (Bit.toℕ b))) (neg (Bit.toℕ b))
   where
-  n*2≡n+n : ∀ n → n *ℤ 2 ≡ n +ℤ n
-  n*2≡n+n n = ℤ.*-comm n 2 ∙ ap (n +ℤ_) (ℤ.+-zero n)
+  n*2≡n+n : ∀ n → n *ℤ pos 2 ≡ n +ℤ n
+  n*2≡n+n n = ℤ.*-comm n (pos 2) ∙ ap (n +ℤ_) (ℤ.+-zero n)
 
 --------------------------------------------------------------------------------
 -- Modular representation
@@ -267,7 +267,7 @@ signExtend-toℤ {zero} n w = ap toℤ lemma ∙ toℤ-replicate n (signBit w)
   lemma : signExtend n w ≡ replicate (suc n) (signBit w)
   lemma = {!!}
 
-signExtend-toℤ {suc m} n w = ap (λ n → n *ℤ 2 +ℤ pos (Bit.toℕ (head w))) (ap toℤ tail-signExtend ∙ signExtend-toℤ n (tail w))
+signExtend-toℤ {suc m} n w = ap (λ n → n *ℤ pos 2 +ℤ pos (Bit.toℕ (head w))) (ap toℤ tail-signExtend ∙ signExtend-toℤ n (tail w))
   where
   tail-signExtend : tail (signExtend n w) ≡ signExtend n (tail w)
   tail-signExtend = tail-concat w (replicate n (signBit w)) ∙ ap (λ b → replicate n b ++ tail w) (sym (last-tail w))

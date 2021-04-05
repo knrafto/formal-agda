@@ -1,6 +1,9 @@
 {-# OPTIONS --cubical #-}
 module Math.Type where
 
+-- TODO: Necessary to enable literal overloading. Where should I put this?
+open import Agda.Builtin.FromNat public
+
 open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-max; Type; _≡_; Σ; Σ-syntax; _,_; fst; snd)
 open import Cubical.Foundations.HLevels public using () renaming (isPropΠ to Π-IsProp; isPropΣ to Σ-IsProp; isSetΠ to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ; isPropIsOfHLevel)
@@ -8,7 +11,7 @@ open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; s
 open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-rec; isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
-open import Cubical.Data.Nat public using (ℕ)
+open import Cubical.Data.Nat public using (ℕ; fromNatℕ)
 -- TODO: rename ΣProp≡
 open import Cubical.Data.Sigma public using (_×_) renaming (Σ≡Prop to ΣProp≡)
 open import Cubical.Data.Sigma using (ΣPathTransport→PathΣ)

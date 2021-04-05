@@ -10,6 +10,8 @@ open import Math.Nat using (ℕ-IsSet; _<_)
 open import Math.Quotient
 open import Math.Type
 
+open import Agda.Builtin.FromNat using (fromNat)
+
 Mod : ℕ → Type₀
 Mod d = ℤ / (λ m n → pos d +ℤ m ≡ n)
 
@@ -107,7 +109,7 @@ module _ {d : ℕ} where
     g = Mod-rec Fin-IsSet (remainder 0<d) remainder-+d
 
     g-fromFin : (i : Fin d) → g (fromFin i) ≡ i
-    g-fromFin i = ap snd (leftInv (euclid-IsEquiv 0<d) (pos 0 , i))
+    g-fromFin i = ap snd (leftInv (euclid-IsEquiv 0<d) (0 , i))
 
     fromℤ-euclid : ∀ q i → fromℕ (toℕ i) ≡ fromℤ (euclid 0<d (q , i))
     fromℤ-euclid = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Mod-IsSet _ _)

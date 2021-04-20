@@ -1,4 +1,19 @@
 {-# OPTIONS --cubical #-}
+-- A partial correctness proof for a single instance of the Paxos protocol.
+-- Paxos assumes that before submitting a proposal, the proposer first
+-- looks for a "parent" proposal among a quorum of acceptors. This
+-- "parent" structure defines a forest (i.e. a many-rooted tree) of
+-- all proposals. From this forest, we show that we can pick out a
+-- subset of proposals (which we call "committed" proposals) which
+-- form a linearlized log. The basic Paxos protocol [1], in which all
+-- parties agree on a single value, essentially implements a
+-- "first-write-wins" register on top of this log, where the value of
+-- the first committed proposal becomes the agreed-upon value. More
+-- generally however, this log of committed proposals can be used to
+-- to implement an arbitrary sequence of updates as in CASPaxos [2].
+--
+-- [1]: https://lamport.azurewebsites.net/pubs/paxos-simple.pdf
+-- [2]: https://arxiv.org/pdf/1802.07000.pdf
 module Systems.Paxos where
 
 open import Math.Dec

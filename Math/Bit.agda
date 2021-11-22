@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Bit where
 
 open import Math.Dec

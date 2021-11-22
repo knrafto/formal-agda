@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Experimental.TT where
 
 open import Math.Fin

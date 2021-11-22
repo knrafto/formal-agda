@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Sigma where
 
 open import Math.Id

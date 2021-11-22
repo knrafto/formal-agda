@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Experimental.Utf8 where
 
 open import Experimental.Binary

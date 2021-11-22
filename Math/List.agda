@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.List where
 
 open import Math.Fin

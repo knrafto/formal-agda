@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.IntDivision where
 
 open import Math.Fin

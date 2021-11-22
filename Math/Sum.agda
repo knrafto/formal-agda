@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Sum where
 
 open import Cubical.Data.Sum using (isOfHLevelSum)

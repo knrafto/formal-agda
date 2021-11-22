@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Type where
 
 -- TODO: Necessary to enable literal overloading. Where should I put this?

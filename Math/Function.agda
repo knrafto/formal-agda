@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Function where
 
 open import Cubical.Core.Everything public using (_≃_) renaming (isEquiv to IsEquiv)

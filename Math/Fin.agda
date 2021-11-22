@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Fin where
 
 open import Cubical.Data.Fin public using (Fin; toℕ; fzero; fsuc; ¬Fin0; fsplit) renaming (toℕ-injective to toℕ-IsInjective; isSetFin to Fin-IsSet)

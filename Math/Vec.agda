@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Math.Vec where
 
 open import Math.Dec

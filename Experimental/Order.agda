@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Experimental.Order where
 
 open import Math.Dec

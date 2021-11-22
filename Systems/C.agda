@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Systems.C where
 
 open import Math.Type

@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Prod where
 
 open import Math.Function

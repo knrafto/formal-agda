@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Experimental.Category where
 
 open import Math.Function hiding (id)

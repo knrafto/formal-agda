@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Systems.SQL where
 
 open import Math.Type

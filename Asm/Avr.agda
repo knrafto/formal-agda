@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Asm.Avr where
 
 open import Experimental.Binary hiding (add; sub)

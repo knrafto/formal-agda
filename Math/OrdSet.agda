@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.OrdSet where
 
 open import Math.Function

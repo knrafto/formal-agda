@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 -- A partial correctness proof for a single instance of the Paxos protocol.
 -- Paxos assumes that before submitting a proposal, the proposer first
 -- looks for a "parent" proposal among a quorum of acceptors. This

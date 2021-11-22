@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Id where
 
 open import Cubical.Foundations.Prelude using (J; substRefl; transportRefl)

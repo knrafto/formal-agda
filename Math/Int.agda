@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Int where
 
 open import Cubical.Data.Int using (Int)

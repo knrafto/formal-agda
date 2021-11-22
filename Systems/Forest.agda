@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Systems.Forest where
 
 open import Math.Function

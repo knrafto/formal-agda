@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Asm.Factorial where
 
 open import Experimental.Binary

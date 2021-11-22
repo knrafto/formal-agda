@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 -- See https://www.cs.bham.ac.uk/~mhe/agda/Dcpo.html#2802
 module Systems.Dcpo where
 

@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Monoid where
 
 open import Math.Function

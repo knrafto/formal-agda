@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
 module Experimental.Binary where
 
 open import Math.Bit hiding (toℕ; toℕ-IsInjective)

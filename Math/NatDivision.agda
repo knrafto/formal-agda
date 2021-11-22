@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 -- Euclidean division of natural numbers.
 module Math.NatDivision where
 

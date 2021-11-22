@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Systems.Sequence where
 
 open import Math.Fin

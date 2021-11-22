@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Nat where
 
 open import Agda.Builtin.FromNat

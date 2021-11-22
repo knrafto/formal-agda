@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Order where
 
 open import Math.Type

@@ -1,4 +1,3 @@
-{-# OPTIONS --cubical #-}
 module Math.Quotient where
 
 open import Cubical.Foundations.Prelude using (toPathP)

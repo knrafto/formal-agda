@@ -8,7 +8,7 @@ open import Cubical.Core.Everything public using (Level; ℓ-zero; ℓ-suc; ℓ-
 open import Cubical.Foundations.HLevels public using () renaming (isPropΠ to Π-IsProp; isPropΣ to Σ-IsProp; isSetΠ to Π-IsSet)
 open import Cubical.Foundations.HLevels using (isOfHLevel; isOfHLevelΣ; isPropIsOfHLevel)
 open import Cubical.Foundations.Prelude public using (Lift; lift; lower; refl; sym; _∙_; subst; transport) renaming (cong to ap; cong₂ to ap₂; isContr to IsContr; isProp to IsProp; isSet to IsSet; isContr→isProp to IsContr→IsProp; isProp→isSet to IsProp→IsSet)
-open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-rec; isProp⊥ to ⊥-IsProp)
+open import Cubical.Data.Empty public using (⊥) renaming (rec to ⊥-rec; elim to ⊥-ind; isProp⊥ to ⊥-IsProp)
 open import Cubical.Data.Sum public using (_⊎_; inl; inr)
 open import Cubical.Data.Unit public using (tt) renaming (Unit to ⊤; isContrUnit to ⊤-IsContr; isPropUnit to ⊤-IsProp)
 open import Cubical.Data.Nat public using (ℕ; fromNatℕ)
@@ -58,6 +58,9 @@ IsSet-IsProp = isPropIsOfHLevel 2
 ¬-IsProp : {A : Type ℓ} → IsProp (¬ A)
 ¬-IsProp = Π-IsProp (λ a → ⊥-IsProp)
 
+→-IsProp : {A : Type ℓ} {B : Type ℓ'} → IsProp B → IsProp (A → B)
+→-IsProp B-IsProp = Π-IsProp (λ a → B-IsProp)
+
 →-IsSet : {A : Type ℓ} {B : Type ℓ'} → IsSet B → IsSet (A → B)
 →-IsSet B-IsSet = Π-IsSet (λ a → B-IsSet)
 
@@ -76,8 +79,14 @@ HasHLevel× n a b = isOfHLevelΣ n a (λ _ → b)
 ⊤-rec : {A : Type ℓ} → A → (⊤ → A)
 ⊤-rec a tt = a
 
+⊤-ind : {B : ⊤ → Type ℓ} → B tt → Π ⊤ B
+⊤-ind b tt = b
+
 ⊤-IsSet : IsSet ⊤
 ⊤-IsSet = IsProp→IsSet ⊤-IsProp
+
+⊥-IsSet : IsSet ⊥
+⊥-IsSet = IsProp→IsSet ⊥-IsProp
 
 -- Rearranged version of ∥∥-rec
 with-∥∥ : {A : Type ℓ} {P : Type ℓ'} → ∥ P ∥ → IsProp A → (P → A) → A

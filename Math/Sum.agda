@@ -50,14 +50,14 @@ private
 ⊎-assoc (inl (inr b)) = inr (inl b)
 ⊎-assoc (inr c) = inr (inr c)
 
+⊎-unassoc : A ⊎ (B ⊎ C) → (A ⊎ B) ⊎ C
+⊎-unassoc (inl a) = inl (inl a)
+⊎-unassoc (inr (inl b)) = inl (inr b)
+⊎-unassoc (inr (inr c)) = inr c
+
 ⊎-assoc-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → IsEquiv (⊎-assoc {A = A} {B = B} {C = C})
 ⊎-assoc-IsEquiv {A = A} {B = B} {C = C} = HasInverse→IsEquiv ⊎-unassoc ⊎-unassoc-assoc ⊎-assoc-unassoc
   where
-  ⊎-unassoc : A ⊎ (B ⊎ C) → (A ⊎ B) ⊎ C
-  ⊎-unassoc (inl a) = inl (inl a)
-  ⊎-unassoc (inr (inl b)) = inl (inr b)
-  ⊎-unassoc (inr (inr c)) = inr c
-
   ⊎-unassoc-assoc : (x : (A ⊎ B) ⊎ C) → ⊎-unassoc (⊎-assoc x) ≡ x
   ⊎-unassoc-assoc (inl (inl a)) = refl
   ⊎-unassoc-assoc (inl (inr b)) = refl
@@ -68,39 +68,42 @@ private
   ⊎-assoc-unassoc (inr (inl b)) = refl
   ⊎-assoc-unassoc (inr (inr c)) = refl
 
-⊎-distribute : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → (A ⊎ B) × C → (A × C) ⊎ (B × C)
+⊎-unassoc-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → IsEquiv (⊎-unassoc {A = A} {B = B} {C = C})
+⊎-unassoc-IsEquiv = inv-IsEquiv ⊎-assoc-IsEquiv
+
+⊎-distribute : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → Σ (A ⊎ B) C → (Σ A (C ∘ inl)) ⊎ (Σ B (C ∘ inr))
 ⊎-distribute (inl a , c) = inl (a , c)
 ⊎-distribute (inr b , c) = inr (b , c)
 
-⊎-distribute-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → IsEquiv (⊎-distribute {A = A} {B = B} {C = C})
-⊎-distribute-IsEquiv = HasInverse→IsEquiv ⊎-factor ⊎-factor-distribute ⊎-distribute-factor
+⊎-distribute-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → IsEquiv (⊎-distribute {A = A} {B = B} {C = C})
+⊎-distribute-IsEquiv {A = A} {B = B} {C = C} = HasInverse→IsEquiv ⊎-factor ⊎-factor-distribute ⊎-distribute-factor
   where
-  ⊎-factor : (A × C) ⊎ (B × C) → (A ⊎ B) × C
+  ⊎-factor : (Σ A (C ∘ inl)) ⊎ (Σ B (C ∘ inr)) → Σ (A ⊎ B) C
   ⊎-factor (inl (a , c)) = (inl a , c)
   ⊎-factor (inr (b , c)) = (inr b , c)
 
-  ⊎-factor-distribute : (a : (A ⊎ B) × C) → ⊎-factor (⊎-distribute a) ≡ a
+  ⊎-factor-distribute : (a : Σ (A ⊎ B) C) → ⊎-factor (⊎-distribute a) ≡ a
   ⊎-factor-distribute (inl a , c) = refl
   ⊎-factor-distribute (inr b , c) = refl
 
-  ⊎-distribute-factor : (b : (A × C) ⊎ (B × C)) → ⊎-distribute (⊎-factor b) ≡ b
+  ⊎-distribute-factor : (b : (Σ A (C ∘ inl)) ⊎ (Σ B (C ∘ inr))) → ⊎-distribute (⊎-factor b) ≡ b
   ⊎-distribute-factor (inl (a , c)) = refl
   ⊎-distribute-factor (inr (b , c)) = refl
 
-pair : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → (A → C) × (B → C) → (A ⊎ B → C)
+pair : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → (Π A (C ∘ inl)) × (Π B (C ∘ inr)) → Π (A ⊎ B) C
 pair (f , g) (inl a) = f a
 pair (f , g) (inr b) = g b
 
-pair-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → IsEquiv (pair {A = A} {B = B} {C = C})
-pair-IsEquiv = HasInverse→IsEquiv unpair unpair-pair pair-unpair
+pair-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → IsEquiv (pair {A = A} {B = B} {C = C})
+pair-IsEquiv {A = A} {B = B} {C = C} = HasInverse→IsEquiv unpair unpair-pair pair-unpair
   where
-  unpair : (A ⊎ B → C) → (A → C) × (B → C)
+  unpair : Π (A ⊎ B) C → (Π A (C ∘ inl)) × (Π B (C ∘ inr))
   unpair h = (λ a → h (inl a)), (λ b → h (inr b))
 
-  unpair-pair : (fg : (A → C) × (B → C)) → unpair (pair fg) ≡ fg
+  unpair-pair : (fg : (Π A (C ∘ inl)) × (Π B (C ∘ inr))) → unpair (pair fg) ≡ fg
   unpair-pair (f , g) = refl
 
-  pair-unpair : (h : A ⊎ B → C) → pair (unpair h) ≡ h
+  pair-unpair : (h : Π (A ⊎ B) C) → pair (unpair h) ≡ h
   pair-unpair h = funExt λ { (inl a) → refl ; (inr b) → refl }
 
 pair-IsInjective : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {f : A → C} {g : B → C} → IsInjective f → IsInjective g → (∀ a b → ¬ f a ≡ g b) → IsInjective (pair (f , g))

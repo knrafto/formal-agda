@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
 module Asm.Factorial where
 
-open import Math.Binary
+open import Experimental.Binary
 open import Math.Nat
 open import Math.Type
 
@@ -150,7 +150,7 @@ module Factorial where
     in e' , e'-done , subst (λ n → value e' r1 ≡ byte n) (sym (*-1 r)) e'-r1
   loop-property (suc n) sucn<2^8 r e e-loop₀ e-r0 e-r1 =
     let module e-props = bz-props e loop₀ done loop₁ r0 0x05 e-loop₀ refl refl refl
- 
+
         e₁ = e-props.bz-next
         e₁-loop₁ = e-props.bz-next-instruction-not-taken λ e-r0≡byte0 → ¬suc≡zero (lemma sucn<2^8 (sym e-r0 ∙ e-r0≡byte0))
         e₁-r0 = e-props.bz-other r0 (byte (suc n)) e-r0

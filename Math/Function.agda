@@ -165,8 +165,17 @@ Equiv A B = Σ[ f ∈ (A → B) ] IsEquiv f
 ≡→≃-IsEquiv : (A B : Type ℓ) → IsEquiv (≡→≃ A B)
 ≡→≃-IsEquiv A B = snd univalence
 
+≃→≡ : {A B : Type ℓ} → A ≃ B → A ≡ B
+≃→≡ {A = A} {B = B} = inv (≡→≃-IsEquiv A B)
+
 ua : {A B : Type ℓ} (f : A → B) → IsEquiv f → A ≡ B
 ua {A = A} {B = B} f f-IsEquiv = inv (≡→≃-IsEquiv A B) (f , f-IsEquiv)
 
 ⊤-rec-IsInjective : ∀ {a : A} → IsInjective (⊤-rec a)
 ⊤-rec-IsInjective = λ _ → ⊤-IsProp _ _
+
+Π-⊥-IsContr : {B : ⊥ → Type ℓ} → IsContr (Π ⊥ B)
+Π-⊥-IsContr = ⊥-ind , λ f → funExt ⊥-ind
+
+⊤-ind-IsEquiv : {B : ⊤ → Type ℓ} → IsEquiv (⊤-ind {B = B})
+⊤-ind-IsEquiv = HasInverse→IsEquiv (λ f → f tt) (λ a → refl) (λ b → refl)

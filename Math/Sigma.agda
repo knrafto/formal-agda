@@ -5,6 +5,15 @@ open import Math.Id
 open import Math.Function
 open import Math.Type
 
+Σ-⊤-extract : ∀ {ℓ} {B : ⊤ → Type ℓ} → Σ ⊤ B → B tt
+Σ-⊤-extract (tt , b) = b
+
+Σ-⊤-extract-IsEquiv : ∀ {ℓ} {B : ⊤ → Type ℓ} → IsEquiv (Σ-⊤-extract {B = B})
+Σ-⊤-extract-IsEquiv = HasInverse→IsEquiv (λ b → (tt , b)) (λ _ → refl) (λ _ → refl)
+
+⊥-fst-IsEquiv : ∀ {ℓ} {B : ⊥ → Type ℓ} → IsEquiv (fst {A = ⊥} {B = B})
+⊥-fst-IsEquiv = HasInverse→IsEquiv ⊥-rec (λ { (x , _) → ⊥-rec x }) (λ x → ⊥-rec x)
+
 Σ-map-snd :
   ∀ {ℓ ℓ' ℓ''} {A : Type ℓ} {B : A → Type ℓ'} {C : A → Type ℓ''} →
   (∀ a → B a → C a) → Σ A B → Σ A C

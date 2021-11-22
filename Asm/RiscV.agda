@@ -1,7 +1,6 @@
-{-# OPTIONS --cubical #-}
 module Asm.RiscV where
 
-open import Math.Binary hiding (add; sub)
+open import Experimental.Binary hiding (add; sub)
 open import Math.Dec
 open import Math.Fin
 open import Math.Function
@@ -198,11 +197,11 @@ encode (shift-imm op rd rs1 shamt) =
 encode (load op rd rs1 imm) =
   imm ++ encodeReg rs1 ++ LoadOp-funct3 op ++ encodeReg rd ++ constant 7 0b0000011
 encode (store op rs1 rs2 imm) =
-  slice imm 11 5 ++ encodeReg rs2 ++ encodeReg rs1 ++ StoreOp-funct3 op ++ slice imm 4 0 ++ constant 7 0b0100011
+  slice 11 5 imm ++ encodeReg rs2 ++ encodeReg rs1 ++ StoreOp-funct3 op ++ slice 4 0 imm ++ constant 7 0b0100011
 encode (branch op rs1 rs2 imm) =
-  slice imm 12 12 ++ slice imm 10 5 ++ encodeReg rs2 ++ encodeReg rs1 ++ BranchOp-funct3 op ++ slice imm 4 1 ++ slice imm 11 11 ++ constant 7 0b1100011
+  slice 12 12 imm ++ slice 10 5 imm ++ encodeReg rs2 ++ encodeReg rs1 ++ BranchOp-funct3 op ++ slice 4 1 imm ++ slice 11 11 imm ++ constant 7 0b1100011
 encode (upper-imm op rd imm) = imm ++ encodeReg rd ++ UpperImmOp-opcode op
-encode (jump op rd imm) = slice imm 20 20 ++ slice imm 10 1 ++ slice imm 11 11 ++ slice imm 19 12 ++ encodeReg rd ++ JumpOp-opcode op
+encode (jump op rd imm) = slice 20 20 imm ++ slice 10 1 imm ++ slice 11 11 imm ++ slice 19 12 imm ++ encodeReg rd ++ JumpOp-opcode op
 
 encode-IsInjective : IsInjective encode
 encode-IsInjective = {!!}  -- good luck

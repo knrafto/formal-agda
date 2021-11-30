@@ -5,39 +5,54 @@ open import Math.Fin
 open import Math.Function
 open import Math.Nat renaming (_<_ to _<ℕ_)
 open import Math.Type
+open import Experimental.Fin
 
 Rel : Type₀ → Type₁
 Rel A = A → A → Type₀
 
-IsOrdSet : (A : Type₀) → Rel A → Type₀
-IsOrdSet A _<_
-  = IsSet A
-  × (∀ {a b} → IsProp (a < b))
-  × (∀ {a} → ¬ (a < a))
-  × (∀ {a b c} → a < b → b < c → a < c)
+-- "Ordered" types.
+Ord : Type₁
+Ord = Σ[ A ∈ Type₀ ] Rel A
 
-ℕ-IsOrdSet : IsOrdSet ℕ _<ℕ_
-ℕ-IsOrdSet = ℕ-IsSet , <-IsProp , <-irrefl , <-trans
+⟨_⟩ : Ord → Type₀
+⟨ A , _ ⟩ = A
 
-_<Fin_ : ∀ {n} → Rel (Fin n)
-i <Fin j = toℕ i <ℕ toℕ j
+rel : (A : Ord) → Rel ⟨ A ⟩
+rel (_ , <) = <
 
-Fin-IsOrdSet : ∀ {n} → IsOrdSet (Fin n) _<Fin_
-Fin-IsOrdSet = Fin-IsSet , <-IsProp , <-irrefl , <-trans
+-- TODO: name
+emptyRel : ∀ {A} → Rel A
+emptyRel = λ _ _ → ⊥
 
-IsMonotone : {A B : Type₀} → Rel A → Rel B → (A → B) → Type₀
-IsMonotone _<A_ _<B_ f = ∀ {a b} → a <A b → f a <B f b
+⊥< : Ord
+⊥< = ⊥ , emptyRel
 
--- TODO: IsOrdIso?
-IsOrderIso : {A B : Type₀} → Rel A → Rel B → (A → B) → Type₀
-IsOrderIso _<A_ _<B_ f = IsMonotone _<A_ _<B_ f × IsEquiv f
+⊤< : Ord
+⊤< = ⊤ , emptyRel
 
-IsFinOrdSet : (A : Type₀) → Rel A → Type₀
-IsFinOrdSet A _<_ = Σ[ n ∈ ℕ ] Σ[ f ∈ (Fin n → A) ] IsOrderIso _<Fin_ _<_ f
+-- TODO: infix operator precedence
 
-_<Σ_ : {A : Type₀} {P : A → Type₀} → Rel A → Rel (Σ[ a ∈ A ] P a)
-_<Σ_ _<_ (a , _) (b , _) = a < b
+-- Perhaps this would be easier if we defined coproducts in terms of Σ and 2
+⊎-< : ∀ {A B} → Rel A → Rel B → Rel (A ⊎ B)
+⊎-< A-< B-< (inl a₁) (inl a₂) = A-< a₁ a₂
+⊎-< A-< B-< (inl a₁) (inr b₂) = ⊤
+⊎-< A-< B-< (inr b₁) (inl a₂) = ⊥
+⊎-< A-< B-< (inr b₁) (inr b₂) = B-< b₁ b₂
 
-Σ-IsFinOrdSet : {A : Type₀} {P : A → Type₀} (_<_ : Rel A)
-  → (∀ a → IsProp (P a)) → (∀ a → Dec (P a)) → IsFinOrdSet (Σ[ a ∈ A ] P a) (_<Σ_ _<_)
-Σ-IsFinOrdSet _<_ P-IsProp P-Dec = {!!}
+_⊎<_ : Ord → Ord → Ord
+A ⊎< B = ⟨ A ⟩ ⊎ ⟨ B ⟩ , ⊎-< (rel A) (rel B)
+
+Σ-< : ∀ {A B} → Rel A → (∀ a → Rel (B a)) → Rel (Σ A B)
+Σ-< = {!!}
+
+_Σ<_ : (A : Ord) → (⟨ A ⟩ → Ord) → Ord
+A Σ< B = Σ ⟨ A ⟩ (λ a → ⟨ B a ⟩) , Σ-< (rel A) (λ a → rel (B a))
+
+IsTotallyOrdered : Ord → Type₀
+IsTotallyOrdered = {!!}
+
+IsList : Ord → Type₀
+IsList A = IsTotallyOrdered A × IsFinite ⟨ A ⟩
+
+IsStream : Ord → Type₀
+IsStream A = {!!}

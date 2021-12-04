@@ -8,11 +8,23 @@ if_then_else_ : ∀ {ℓ ℓ'} {P : Type ℓ} {A : Type ℓ'} → Dec P → A �
 if (yes p) then t else f = t
 if (no ¬p) then t else f = f
 
+⊤-Dec : Dec ⊤
+⊤-Dec = yes tt
+
+⊥-Dec : Dec ⊥
+⊥-Dec = no λ p → p
+
 ¬-Dec : ∀ {ℓ} {A : Type ℓ} → Dec A → Dec (¬ A)
 ¬-Dec (yes p) = no λ ¬p → ¬p p
 ¬-Dec (no ¬p) = yes ¬p
 
-×-Dec : ∀ {ℓ} {A B : Type ℓ} → Dec A → Dec B → Dec (A × B)
+Σ-Dec : ∀ {ℓ ℓ'} {A : Type ℓ} {B : A → Type ℓ'} → IsProp A → Dec A → (∀ a → Dec (B a)) → Dec (Σ A B)
+Σ-Dec {B = B} A-IsProp (yes a) B-Dec with B-Dec a
+... | yes b = yes (a , b)
+... | no ¬b = no λ { (a , b) → ¬b (subst B (A-IsProp _ _) b) }
+Σ-Dec A-IsProp (no ¬a) B-Dec = no λ { (a , b) → ¬a a }
+
+×-Dec : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} → Dec A → Dec B → Dec (A × B)
 ×-Dec (yes a) (yes b) = yes (a , b)
 ×-Dec (yes a) (no ¬b) = no λ { (a , b) → ¬b b }
 ×-Dec (no ¬a) _       = no λ { (a , b) → ¬a a }

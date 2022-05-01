@@ -1,11 +1,12 @@
 module Math.Mod where
 
+open import Math.Dec
 open import Math.Fin
 open import Math.Function
-open import Math.Int using (ℤ; ℤ-ind-IsProp; pos; neg) renaming (_+_ to _+ℤ_; _*_ to _*ℤ_)
+open import Math.Int using (ℤ; ℤ-IsSet; ℤ-HasDecEq; ℤ-ind-IsProp; pos; neg) renaming (_+_ to _+ℤ_; _*_ to _*ℤ_)
 import Math.Int as ℤ
 open import Math.IntDivision
-open import Math.Nat using (ℕ-IsSet; _<_)
+open import Math.Nat using (ℕ-IsSet; _<_; _≟_; lt; eq; gt; ¬-<-zero)
 open import Math.Quotient
 open import Math.Type
 
@@ -14,6 +15,7 @@ open import Agda.Builtin.FromNat using (fromNat)
 Mod : ℕ → Type₀
 Mod d = ℤ / (λ m n → pos d +ℤ m ≡ n)
 
+-- TODO: maybe it would be better if d was explicit
 module _ {d : ℕ} where
   Mod-IsSet : IsSet (Mod d)
   Mod-IsSet = /-IsSet
@@ -121,3 +123,24 @@ module _ {d : ℕ} where
 
     fromFin-g : (n : Mod d) → fromFin (g n) ≡ n
     fromFin-g = Mod-ind-IsProp (λ _ → Mod-IsSet _ _) fromFin-remainder
+
+fromℤ-IsEquiv : IsEquiv (fromℤ {d = 0})
+fromℤ-IsEquiv = HasInverse→IsEquiv g g-fromℤ fromℤ-g
+    where
+    g : Mod 0 → ℤ
+    g = Mod-rec {d = 0} ℤ-IsSet id (λ _ → refl)
+
+    g-fromℤ : (n : ℤ) → g (fromℤ {d = 0} n) ≡ n
+    g-fromℤ n = refl
+
+    fromℤ-g : (i : Mod 0) → fromℤ {d = 0} (g i) ≡ i
+    fromℤ-g = Mod-ind-IsProp {d = 0} (λ _ → Mod-IsSet {d = 0} _ _) (λ _ → refl)
+
+Mod-HasDecEq : ∀ {d} → HasDecEq (Mod d)
+Mod-HasDecEq {d = d} = case d ≟ 0 return _ of λ
+  { (lt d<0) → ⊥-rec (¬-<-zero d<0)
+  ; (eq d≡0) →
+      subst (λ d → HasDecEq (Mod d)) (sym d≡0)
+        (subst HasDecEq (ua _ fromℤ-IsEquiv) ℤ-HasDecEq)
+  ; (gt 0<d) → subst HasDecEq (ua _ (fromFin-IsEquiv 0<d)) Fin-HasDecEq
+  }

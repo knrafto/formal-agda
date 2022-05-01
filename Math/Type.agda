@@ -21,6 +21,8 @@ private
   variable
     ℓ ℓ' : Level
 
+infixr 5 _∧_
+infixr 4 _∨_
 infix 4 _≡[_]≡_
 
 -- Equality over another equality.
@@ -74,6 +76,18 @@ HasHLevel× n a b = isOfHLevelΣ n a (λ _ → b)
 
 ×-IsProp : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → IsProp (A × B)
 ×-IsProp = HasHLevel× 1
+
+_∧_ : (A : Type ℓ) (B : Type ℓ') → Type (ℓ-max ℓ ℓ')
+_∧_ = _×_
+
+∧-IsProp : {A : Type ℓ} {B : Type ℓ'} → IsProp A → IsProp B → IsProp (A ∧ B)
+∧-IsProp = ×-IsProp
+
+_∨_ : (A : Type ℓ) (B : Type ℓ') → Type (ℓ-max ℓ ℓ')
+A ∨ B = ∥ A ⊎ B ∥
+
+∨-IsProp : {A : Type ℓ} {B : Type ℓ'} → IsProp (A ∨ B)
+∨-IsProp = ∥∥-IsProp
 
 ⊤-rec : {A : Type ℓ} → A → (⊤ → A)
 ⊤-rec a tt = a

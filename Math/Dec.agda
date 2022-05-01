@@ -29,6 +29,14 @@ if (no ¬p) then t else f = f
 ×-Dec (yes a) (no ¬b) = no λ { (a , b) → ¬b b }
 ×-Dec (no ¬a) _       = no λ { (a , b) → ¬a a }
 
+∧-Dec : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} → Dec A → Dec B → Dec (A ∧ B)
+∧-Dec = ×-Dec
+
+∨-Dec : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} → Dec A → Dec B → Dec (A ∨ B)
+∨-Dec (yes a) _ = yes ∣ inl a ∣
+∨-Dec (no ¬a) (yes b) = yes ∣ inr b ∣
+∨-Dec (no ¬a) (no ¬b) = no (∥∥-rec ⊥-IsProp λ { (inl a) → ¬a a; (inr b) → ¬b b })
+
 -- Can be used as an implicit argument for compile time checking
 True : ∀ {ℓ} {A : Type ℓ} → Dec A → Type₀
 True (yes a) = ⊤

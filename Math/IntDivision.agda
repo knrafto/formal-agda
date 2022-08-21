@@ -22,7 +22,7 @@ module _ {d} (0<d : 0 <ℕ d) where
   euclid-pred q r = +-comm (euclid (q , r)) (neg d) ∙ +-assoc (neg d) (q * pos d) (pos (toℕ r))
 
   euclid-< : ∀ {n} q r → q < n → euclid (q , r) < n * pos d
-  euclid-< {n} q r q<n = <≤-trans (<-k+ {k = q * pos d} (pos-< (snd r))) (subst (_≤ n * pos d) (+-comm (pos d) (q * pos d)) (≤-*-pos d q<n))
+  euclid-< {n} q r q<n = <≤-trans (<-k+ {k = q * pos d} (pos-< (toℕ-< r))) (subst (_≤ n * pos d) (+-comm (pos d) (q * pos d)) (≤-*-pos d q<n))
 
   ≤-euclid : ∀ {n} q r → n ≤ q → n * pos d ≤ euclid (q , r)
   ≤-euclid {n} q r n≤q = ≤-trans (≤-*-pos d n≤q) (toℕ r , +-comm (pos (toℕ r)) (q * pos d))
@@ -42,7 +42,8 @@ module _ {d} (0<d : 0 <ℕ d) where
     where
     reflect-toℕ' : neg d + pos (toℕ r) ≡ negsuc (toℕ (reflect r))
     reflect-toℕ' =
-      ap (λ n → neg n + pos (toℕ r)) (sym (reflect-toℕ r)) ∙
+      ap (λ n → neg n + pos (toℕ r)) (sym (toℕ-reflect r)) ∙
+      ap (λ n → negsuc n + pos (toℕ r)) (ℕ.+-comm (toℕ r) (toℕ (reflect r))) ∙
       ap (_+ pos (toℕ r)) (neg-+ (ℕ.suc (toℕ (reflect r))) (toℕ r)) ∙
       rightInv (+n-IsEquiv (pos (toℕ r))) (negsuc (toℕ (reflect r)))
 

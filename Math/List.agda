@@ -85,7 +85,5 @@ Index xs = Fin (length xs)
 
 _[_] : {A : Type ℓ} → (xs : List A) → Index xs → A
 [] [ i ] = ⊥-rec (¬Fin0 i)
-List-cons (x , xs) [ i ] = case fsplit i of λ
-  { (inl _) → x
-  ; (inr (i' , _)) → xs [ i' ]
-  }
+List-cons (x , xs) [ inl tt ] = x
+List-cons (x , xs) [ inr i ] = xs [ i ]

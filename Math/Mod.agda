@@ -1,7 +1,8 @@
 module Math.Mod where
 
 open import Math.Dec
-open import Math.Fin
+open import Math.Fin using (Fin; Fin-IsSet; Fin-HasDecEq)
+import Math.Fin as Fin
 open import Math.Function
 open import Math.Int using (ℤ; ℤ-IsSet; ℤ-HasDecEq; ℤ-ind-IsProp; pos; neg) renaming (_+_ to _+ℤ_; _*_ to _*ℤ_)
 import Math.Int as ℤ
@@ -94,7 +95,7 @@ module _ {d : ℕ} where
     left m n = ap fromℤ (ℤ.*-comm (pos d +ℤ m) n) ∙ right n m ∙ ap fromℤ (ℤ.*-comm n m)
 
   fromFin : Fin d → Mod d
-  fromFin i = fromℕ (toℕ i)
+  fromFin i = fromℕ (Fin.toℕ i)
 
   fromFin-IsEquiv : 0 < d → IsEquiv fromFin
   fromFin-IsEquiv 0<d = HasInverse→IsEquiv g g-fromFin fromFin-g
@@ -112,7 +113,7 @@ module _ {d : ℕ} where
     g-fromFin : (i : Fin d) → g (fromFin i) ≡ i
     g-fromFin i = ap snd (leftInv (euclid-IsEquiv 0<d) (0 , i))
 
-    fromℤ-euclid : ∀ q i → fromℕ (toℕ i) ≡ fromℤ (euclid 0<d (q , i))
+    fromℤ-euclid : ∀ q i → fromℕ (Fin.toℕ i) ≡ fromℤ (euclid 0<d (q , i))
     fromℤ-euclid = ℤ-ind-IsProp (λ _ → Π-IsProp λ _ → Mod-IsSet _ _)
       (λ i → refl)
       (λ q p i → p i ∙ fromℤ-≡ (ℤ.+-comm (pos d) (euclid 0<d (q , i)) ∙ euclid-suc 0<d q i))

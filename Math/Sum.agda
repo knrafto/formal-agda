@@ -106,17 +106,20 @@ pair : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → (Π A (C 
 pair (f , g) (inl a) = f a
 pair (f , g) (inr b) = g b
 
+unpair : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → Π (A ⊎ B) C → (Π A (C ∘ inl)) × (Π B (C ∘ inr))
+unpair h = (λ a → h (inl a)), (λ b → h (inr b))
+
 pair-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → IsEquiv (pair {A = A} {B = B} {C = C})
 pair-IsEquiv {A = A} {B = B} {C = C} = HasInverse→IsEquiv unpair unpair-pair pair-unpair
   where
-  unpair : Π (A ⊎ B) C → (Π A (C ∘ inl)) × (Π B (C ∘ inr))
-  unpair h = (λ a → h (inl a)), (λ b → h (inr b))
-
-  unpair-pair : (fg : (Π A (C ∘ inl)) × (Π B (C ∘ inr))) → unpair (pair fg) ≡ fg
+  unpair-pair : (fg : (Π A (C ∘ inl)) × (Π B (C ∘ inr))) → unpair {C = C} (pair fg) ≡ fg
   unpair-pair (f , g) = refl
 
   pair-unpair : (h : Π (A ⊎ B) C) → pair (unpair h) ≡ h
   pair-unpair h = funExt λ { (inl a) → refl ; (inr b) → refl }
+
+unpair-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → IsEquiv (unpair {A = A} {B = B} {C = C})
+unpair-IsEquiv = inv-IsEquiv pair-IsEquiv
 
 pair-IsInjective : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} {f : A → C} {g : B → C} → IsInjective f → IsInjective g → (∀ a b → ¬ f a ≡ g b) → IsInjective (pair (f , g))
 pair-IsInjective f-IsInjective g-IsInjective ¬f≡g {inl _} {inl _} p = ap inl (f-IsInjective p)

@@ -107,6 +107,12 @@ _∘-IsInjective_ {g = g} {f = f} g-IsInjective f-IsInjective = f-IsInjective �
   ⊥-rec-rightInv : (a : A) → ⊥-rec (¬A a) ≡ a
   ⊥-rec-rightInv a = ⊥-rec (¬A a)
 
+⊥-rec-IsEmbedding : {A : Type ℓ} → IsEmbedding (⊥-rec {A = A})
+⊥-rec-IsEmbedding a b = ⊥-rec a
+
+⊥-rec-IsInjective : {A : Type ℓ} → IsInjective (⊥-rec {A = A})
+⊥-rec-IsInjective {a₁ = a₁} {a₂ = a₂} = ⊥-rec a₁
+
 ¬-IsEquiv : {A : Type ℓ} (¬A : ¬ A) → IsEquiv ¬A
 ¬-IsEquiv {A = A} ¬A = HasInverse→IsEquiv ⊥-rec ¬-leftInv ¬-rightInv
   where

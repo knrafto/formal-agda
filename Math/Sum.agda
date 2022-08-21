@@ -1,5 +1,6 @@
 module Math.Sum where
 
+open import Cubical.Data.Sum public using () renaming (isEmbedding-inl to inl-IsEmbedding; isEmbedding-inr to inr-IsEmbedding)
 open import Cubical.Data.Sum using (isOfHLevelSum)
 
 open import Math.Function
@@ -16,6 +17,15 @@ private
 
 ⊎-IsSet : IsSet A → IsSet B → IsSet (A ⊎ B)
 ⊎-IsSet = isOfHLevelSum 0
+
+inl-IsInjective : IsInjective (inl {A = A} {B = B})
+inl-IsInjective = IsEmbedding→IsInjective inl-IsEmbedding
+
+inr-IsInjective : IsInjective (inr {A = A} {B = B})
+inr-IsInjective = IsEmbedding→IsInjective inr-IsEmbedding
+
+¬inl≡inr : {A : Type ℓ} {B : Type ℓ'} {a : A} {b : B} → ¬ (inl a ≡ inr b)
+¬inl≡inr p = lower (Cubical.Data.Sum.SumPath.encode _ _ p)
 
 ⊥-inr-IsEquiv : {A : Type ℓ} → IsEquiv (inr {A = ⊥} {B = A})
 ⊥-inr-IsEquiv {A = A} = HasInverse→IsEquiv ⊥-inr-inv ⊥-inr-leftInv ⊥-inr-rightInv
@@ -74,13 +84,13 @@ private
 ⊎-distribute (inl a , c) = inl (a , c)
 ⊎-distribute (inr b , c) = inr (b , c)
 
+⊎-factor : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → (Σ A (C ∘ inl)) ⊎ (Σ B (C ∘ inr)) → Σ (A ⊎ B) C
+⊎-factor (inl (a , c)) = (inl a , c)
+⊎-factor (inr (b , c)) = (inr b , c)
+
 ⊎-distribute-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → IsEquiv (⊎-distribute {A = A} {B = B} {C = C})
 ⊎-distribute-IsEquiv {A = A} {B = B} {C = C} = HasInverse→IsEquiv ⊎-factor ⊎-factor-distribute ⊎-distribute-factor
   where
-  ⊎-factor : (Σ A (C ∘ inl)) ⊎ (Σ B (C ∘ inr)) → Σ (A ⊎ B) C
-  ⊎-factor (inl (a , c)) = (inl a , c)
-  ⊎-factor (inr (b , c)) = (inr b , c)
-
   ⊎-factor-distribute : (a : Σ (A ⊎ B) C) → ⊎-factor (⊎-distribute a) ≡ a
   ⊎-factor-distribute (inl a , c) = refl
   ⊎-factor-distribute (inr b , c) = refl
@@ -88,6 +98,9 @@ private
   ⊎-distribute-factor : (b : (Σ A (C ∘ inl)) ⊎ (Σ B (C ∘ inr))) → ⊎-distribute (⊎-factor b) ≡ b
   ⊎-distribute-factor (inl (a , c)) = refl
   ⊎-distribute-factor (inr (b , c)) = refl
+
+⊎-factor-IsEquiv : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → IsEquiv (⊎-factor {A = A} {B = B} {C = C})
+⊎-factor-IsEquiv = inv-IsEquiv ⊎-distribute-IsEquiv
 
 pair : {A : Type ℓ} {B : Type ℓ'} {C : A ⊎ B → Type ℓ''} → (Π A (C ∘ inl)) × (Π B (C ∘ inr)) → Π (A ⊎ B) C
 pair (f , g) (inl a) = f a

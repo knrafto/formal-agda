@@ -1,7 +1,9 @@
 module Math.Dec where
 
 open import Cubical.Relation.Nullary public using (Dec; yes; no) renaming (isPropDec to Dec-IsProp; Discrete to HasDecEq)
-open import Cubical.Data.Sigma.Properties public using () renaming (discreteΣ to Σ-HasDecEq)
+
+open import Math.Sum
+open import Math.Function
 open import Math.Type
 
 if_then_else_ : ∀ {ℓ ℓ'} {P : Type ℓ} {A : Type ℓ'} → Dec P → A → A → A
@@ -36,6 +38,27 @@ if (no ¬p) then t else f = f
 ∨-Dec (yes a) _ = yes ∣ inl a ∣
 ∨-Dec (no ¬a) (yes b) = yes ∣ inr b ∣
 ∨-Dec (no ¬a) (no ¬b) = no (∥∥-rec ⊥-IsProp λ { (inl a) → ¬a a; (inr b) → ¬b b })
+
+IsProp→HasDecEq : ∀ {ℓ} {A : Type ℓ} → IsProp A → HasDecEq A
+IsProp→HasDecEq A-IsProp a b = yes (A-IsProp a b)
+
+⊥-HasDecEq : HasDecEq ⊥
+⊥-HasDecEq = IsProp→HasDecEq ⊥-IsProp
+
+⊤-HasDecEq : HasDecEq ⊤
+⊤-HasDecEq = IsProp→HasDecEq ⊤-IsProp
+
+⊎-HasDecEq : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} → HasDecEq A → HasDecEq B → HasDecEq (A ⊎ B)
+⊎-HasDecEq A-HasDecEq B-HasDecEq (inl a₁) (inl a₂) = case (A-HasDecEq a₁ a₂) of λ
+  { (yes p) → yes (ap inl p)
+  ; (no ¬p) → no (λ q → ¬p (IsEmbedding→IsInjective inl-IsEmbedding q))
+  }
+⊎-HasDecEq A-HasDecEq B-HasDecEq (inr b₁) (inr b₂) = case (B-HasDecEq b₁ b₂) of λ
+  { (yes p) → yes (ap inr p)
+  ; (no ¬p) → no λ q → ¬p (IsEmbedding→IsInjective inr-IsEmbedding q)
+  }
+⊎-HasDecEq A-HasDecEq B-HasDecEq (inl a) (inr b) = no λ p → ¬inl≡inr p
+⊎-HasDecEq A-HasDecEq B-HasDecEq (inr b) (inl a) = no λ p → ¬inl≡inr (sym p)
 
 -- Can be used as an implicit argument for compile time checking
 True : ∀ {ℓ} {A : Type ℓ} → Dec A → Type₀
